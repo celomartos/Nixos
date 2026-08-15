@@ -1,0 +1,37 @@
+# ===============================
+# Mako - configuração visual
+# ===============================
+
+# Posição na tela
+anchor=top-right
+
+# Margens
+margin=10
+padding=12
+
+# Tamanho
+width=340
+height=110
+max-visible=5
+
+# Fonte
+font=JetBrainsMono Nerd Font 12
+
+# Cores (formato ARGB)
+background-color=#000000ff
+text-color=#f4cdd9
+border-color=#ffffffff
+
+# Borda
+border-size=2
+border-radius=16
+
+# Tempo na tela (ms)
+default-timeout=5000
+ignore-timeout=false
+
+# Ícones
+icons=1
+icon-path=/usr/share/icons/hicolor
+
+

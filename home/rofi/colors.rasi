@@ -1,0 +1,9 @@
+* {
+    background:        #000000;
+    background-alt:    #000000;
+    foreground:        #ffffff;
+
+    /*hover pica xD*/
+    selected:          #ffffff;       
+    foreground-alt:    #030303;
+}

@@ -1,0 +1,130 @@
+/* =================== BASE =================== */
+* {
+    border: none;
+    border-radius: 1px;
+    font-family: JetBrainsMono Nerd Font;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 0.1rem;
+}
+
+window#waybar {
+    background: transparent;
+}
+
+tooltip {
+    background: #000000;
+    border-radius: 16px;
+    padding: 10px;
+}
+
+
+/* =================== GLOBAL STYLE =================== */
+
+#workspaces,
+#cpu,
+#memory,
+#disk,
+#custom-temp,
+#custom-power,
+#custom-gamemode,
+#custom-launcher,
+#custom-keybinds,
+#clock,
+#pulseaudio,
+#battery,
+#custom-mpris,
+#tray,
+#custom-cava 
+{
+    margin-top: 1px;
+    margin-left: 8px;
+
+    padding: 8px 16px;
+
+    background: rgb(0, 0, 0);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.22);
+
+    color: #ffffff;
+
+    border-radius: 16px;
+
+
+}
+
+
+/* =================== HOVER =================== */
+
+#workspaces:hover,
+#cpu:hover,
+#memory:hover,
+#disk:hover,
+#custom-temp:hover,
+#custom-power:hover,
+#custom-gamemode:hover,
+#custom-launcher:hover,
+#custom-keybinds:hover,
+#clock:hover,
+#custom-eww-dashboard:hover,
+#pulseaudio:hover,
+#battery:hover,
+#tray:hover,
+#custom-mpris:hover,
+#custom-cava:hover,
+#keyboard-state:hover {
+    background: rgb(59, 59, 59);
+    
+    color: #ffffff;
+
+
+}
+
+
+/* =================== WORKSPACES =================== */
+
+#workspaces {
+    padding: 4px 4px;
+    border-radius: 12px;
+}
+
+#workspaces button {
+    padding: 4px 8px;
+    border: none;
+
+    border-radius: 10px;
+    background: transparent;
+
+    color: #ffffff;
+    transition: 0.2s ease;
+
+    margin-right: 4px;
+}
+
+#workspaces button:last-child {
+    margin-right: 0;
+}
+
+#workspaces button.active {
+    background: rgba(255, 255, 255, 0.281);
+    color: #ffffff;
+}
+
+
+    
+
+    
+
+
+
+/* =================== TRAY =================== */
+
+#tray {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+
+
+
+
