@@ -42,6 +42,10 @@
     "amd_pstate=active"
 ];
 
+ boot.kernel.sysctl = {
+  "vm.swappiness" = 100;
+};
+
   nixpkgs.config.allowUnfree = true;
 
 
@@ -134,7 +138,10 @@
   # GRAPHICS / HYPRLAND
   # ============================================================================
 
-  hardware.graphics.enable = true;
+  hardware.graphics = {
+    enable = true;
+    enable32Bit = true;
+  };
 
   programs.hyprland = {
     enable = true;
@@ -175,12 +182,23 @@
   hardware.cpu.amd.updateMicrocode = true;
   powerManagement.cpuFreqGovernor = "performance";
 
-
   # ============================================================================
   # MEMORY / STORAGE
   # ============================================================================
 
-  zramSwap.enable = true;
+    zramSwap = {
+    enable = true;
+    algorithm = "lz4";
+    memoryPercent = 100;
+    priority = 100;
+  };
+    
+    swapDevices = [
+  {
+    device = "/swapfile";
+    size = 2 * 1024; # 2 GiB
+  }
+];
 
   services.fstrim.enable = true;
 
@@ -254,13 +272,6 @@
 
 
   # ============================================================================
-  # APPLICATIONS
-  # ============================================================================
-
-
-
-
-  # ============================================================================
   # FONTS
   # ============================================================================
 
@@ -277,10 +288,15 @@
     # Basic utilities
     vim
     wget
+    lm_sensors
+    pciutils
+    psmisc
 
     # Development
     gcc
     gdb
+    cmake
+    gnumake
 
     # Desktop / file management
     thunar
@@ -291,6 +307,8 @@
     unzip
     gtk3
     gtk4
+    tree
+    file
 
     # Version control
     git
