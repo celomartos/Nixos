@@ -12,10 +12,6 @@
 
   inputs = {
 
-  nur-xddxdd = {
-  url = "github:xddxdd/nur-packages";
-  inputs.nixpkgs.follows = "nixpkgs";
-};
     # --------------------------------------------------------------------------
     # Nixpkgs
     # --------------------------------------------------------------------------
@@ -65,7 +61,6 @@
       home-manager,
       cachyos-kernel,
       nix-flatpak,
-      nur-xddxdd,
       ...
     }:
 
@@ -105,8 +100,6 @@
           # Declarative Flatpak support.
           nix-flatpak.nixosModules.nix-flatpak
 
-          # Lantian binary cache.
-          nur-xddxdd.nixosModules.nix-cache-attic
         ];
       };
     };
