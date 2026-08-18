@@ -15,7 +15,7 @@
 # User applications and application configuration are managed
 # through Home Manager in ./home.nix.
 
-{ config, pkgs, cachyos-kernel, ... }:
+{ config, pkgs, cachyos-kernel, lanzaboote, lib, ... }:
 
 {
   # ============================================================================
@@ -26,28 +26,38 @@
     /etc/nixos/hardware-configuration.nix
   ];
 
-
   # ============================================================================
-  # NIXPKGS / KERNEL
+  # BOOT / KERNEL
   # ============================================================================
 
   nixpkgs.overlays = [
     cachyos-kernel.overlays.pinned
   ];
 
-  boot.kernelPackages =
-    cachyos-kernel.legacyPackages.x86_64-linux.linuxPackages-cachyos-latest;
+  boot = {
+    loader.systemd-boot.enable = lib.mkForce false;
+    loader.efi.canTouchEfiVariables = true;
+    loader.timeout = 3;
 
-  boot.kernelParams = [
-    "amd_pstate=active"
-];
+    lanzaboote = {
+      enable = true;
+      pkiBundle = "/var/lib/sbctl";
+    };
 
- boot.kernel.sysctl = {
-  "vm.swappiness" = 100;
-};
+    kernelPackages =
+      pkgs.linuxPackages_latest;
+
+    kernelParams = [
+      "amd_pstate=active"
+      "quiet"
+    ];
+
+    kernel.sysctl = {
+      "vm.swappiness" = 100;
+    };
+  };
 
   nixpkgs.config.allowUnfree = true;
-
 
   # ============================================================================
   # HOME MANAGER
@@ -60,15 +70,6 @@
 
   home-manager.users.celin = import ./home.nix;
 
-
-  # ============================================================================
-  # BOOT
-  # ============================================================================
-
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-
-
   # ============================================================================
   # NIX
   # ============================================================================
@@ -78,12 +79,15 @@
       "nix-command"
       "flakes"
     ];
+
     substituters = [
+      "https://nixpkgs.cachix.org"
       "https://cache.nixos.org/"
       "https://attic.xuyh0120.win/lantian"
     ];
 
     trusted-public-keys = [
+      "nixpkgs.cachix.org-1:q91R6hxbwFvDqTSDKwDAV4T5PxqXGxswD8vhONFMeOE="
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
       "lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc="
     ];
@@ -94,7 +98,7 @@
   nix.gc = {
     automatic = true;
     dates = "weekly";
-    options = "--delete-older-than 14d";
+    options = "--delete-older-than 7d";
   };
 
   # ============================================================================
@@ -103,13 +107,11 @@
 
   networking.hostName = "nixos";
 
-
   # ============================================================================
   # NETWORKING
   # ============================================================================
 
   networking.networkmanager.enable = true;
-
 
   # ============================================================================
   # LOCALE / TIMEZONE
@@ -117,22 +119,21 @@
 
   time.timeZone = "America/Sao_Paulo";
 
-  i18n.defaultLocale = "pt_BR.UTF-8";
+  i18n.defaultLocale = "en_US.UTF-8";
 
   i18n.extraLocaleSettings = {
-    LC_ADDRESS = "pt_BR.UTF-8";
-    LC_IDENTIFICATION = "pt_BR.UTF-8";
-    LC_MEASUREMENT = "pt_BR.UTF-8";
-    LC_MONETARY = "pt_BR.UTF-8";
-    LC_NAME = "pt_BR.UTF-8";
-    LC_NUMERIC = "pt_BR.UTF-8";
-    LC_PAPER = "pt_BR.UTF-8";
-    LC_TELEPHONE = "pt_BR.UTF-8";
-    LC_TIME = "pt_BR.UTF-8";
+    LC_ADDRESS = "en_US.UTF-8";
+    LC_IDENTIFICATION = "en_US.UTF-8";
+    LC_MEASUREMENT = "en_US.UTF-8";
+    LC_MONETARY = "en_US.UTF-8";
+    LC_NAME = "en_US.UTF-8";
+    LC_NUMERIC = "en_US.UTF-8";
+    LC_PAPER = "en_US.UTF-8";
+    LC_TELEPHONE = "en_US.UTF-8";
+    LC_TIME = "en_US.UTF-8";
   };
 
   console.keyMap = "br-abnt2";
-
 
   # ============================================================================
   # GRAPHICS / HYPRLAND
@@ -153,7 +154,6 @@
     wayland.enable = true;
   };
 
-
   # ============================================================================
   # AUDIO
   # ============================================================================
@@ -173,7 +173,6 @@
     # jack.enable = true;
   };
 
-
   # ============================================================================
   # HARDWARE
   # ============================================================================
@@ -186,22 +185,21 @@
   # MEMORY / STORAGE
   # ============================================================================
 
-    zramSwap = {
+  zramSwap = {
     enable = true;
     algorithm = "lz4";
     memoryPercent = 100;
     priority = 100;
   };
-    
-    swapDevices = [
-  {
-    device = "/swapfile";
-    size = 2 * 1024; # 2 GiB
-  }
-];
+
+  swapDevices = [
+    {
+      device = "/swapfile";
+      size = 2 * 1024; # 2 GiB
+    }
+  ];
 
   services.fstrim.enable = true;
-
 
   # ============================================================================
   # GAMING
@@ -221,7 +219,6 @@
 
   programs.gamemode.enable = true;
 
-
   # ============================================================================
   # FLATPAK
   # ============================================================================
@@ -240,7 +237,6 @@
     };
   };
 
-
   # ============================================================================
   # SYSTEM LOGGING
   # ============================================================================
@@ -249,7 +245,6 @@
     SystemMaxUse=500M
     RuntimeMaxUse=100M
   '';
-
 
   # ============================================================================
   # USER
@@ -270,7 +265,6 @@
 
   programs.fish.enable = true;
 
-
   # ============================================================================
   # FONTS
   # ============================================================================
@@ -279,55 +273,18 @@
     nerd-fonts.jetbrains-mono
   ];
 
-
   # ============================================================================
   # SYSTEM PACKAGES
   # ============================================================================
 
   environment.systemPackages = with pkgs; [
-    # Basic utilities
-    vim
-    wget
-    lm_sensors
-    pciutils
-    psmisc
 
-    # Development
-    gcc
-    gdb
-    cmake
-    gnumake
-
-    # Desktop / file management
-    thunar
-    thunar-volman
-    thunar-archive-plugin
-    thunar-media-tags-plugin
-    zip
-    unzip
-    gtk3
-    gtk4
-    tree
-    file
-
-    # Version control
-    git
-
-    # Networking
+    scx.full
+    scx-loader
     nextdns
+    sbctl
 
-    # Audio
-    ffmpeg
-
-    # Gaming
-    protonup-qt
-    mangohud
-
-    # Graphics / Vulkan
-    vulkan-tools
-    mesa-demos
   ];
-
 
   # ============================================================================
   # NEXTDNS
@@ -351,33 +308,22 @@
     '';
   };
 
-
   # ============================================================================
-  # SSH
+  # SCHEDULER
   # ============================================================================
 
-  services.openssh = {
-    enable = true;
+  systemd.services.scx-lavd = {
+    description = "LAVD sched-ext scheduler";
+    wantedBy = [ "multi-user.target" ];
+    before = [ "multi-user.target" ];
 
-    openFirewall = true;
-
-    settings = {
-      PasswordAuthentication = true;
-      KbdInteractiveAuthentication = true;
-
-      PermitRootLogin = "no";
-
-      AllowUsers = [
-        "celin"
-      ];
-
-      MaxAuthTries = 3;
-
-      PerSourcePenalties =
-        "crash:3600s authfail:3600s max:86400s";
+    serviceConfig = {
+      Type = "exec";
+      ExecStart = "${pkgs.scx.full}/bin/scx_lavd --performance";
+      Restart = "on-failure";
+      RestartSec = 2;
     };
   };
-
 
   # ============================================================================
   # FIREWALL
@@ -385,7 +331,6 @@
 
   # networking.firewall.allowedTCPPorts = [ ];
   # networking.firewall.allowedUDPPorts = [ ];
-
 
   # ============================================================================
   # SYSTEM STATE VERSION

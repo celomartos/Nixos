@@ -5,7 +5,6 @@
 
   description = "NixOS configuration for celin";
 
-
   # ============================================================================
   # INPUTS
   # ============================================================================
@@ -19,7 +18,6 @@
     # NixOS unstable provides newer packages and features.
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
 
-
     # --------------------------------------------------------------------------
     # Home Manager
     # --------------------------------------------------------------------------
@@ -32,7 +30,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-
     # --------------------------------------------------------------------------
     # CachyOS Kernel
     # --------------------------------------------------------------------------
@@ -40,6 +37,13 @@
     # CachyOS-optimized Linux kernels.
     cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel";
 
+    # --------------------------------------------------------------------------
+    # Lanzaboote
+    # --------------------------------------------------------------------------
+
+    lanzaboote = {
+      url = "github:nix-community/lanzaboote";
+    };
 
     # --------------------------------------------------------------------------
     # Flatpak
@@ -48,7 +52,6 @@
     # Declarative Flatpak management for NixOS.
     nix-flatpak.url = "github:gmodena/nix-flatpak";
   };
-
 
   # ============================================================================
   # OUTPUTS
@@ -61,11 +64,10 @@
       home-manager,
       cachyos-kernel,
       nix-flatpak,
+      lanzaboote,
       ...
     }:
-
     {
-
       # ------------------------------------------------------------------------
       # NixOS Configuration
       # ------------------------------------------------------------------------
@@ -75,16 +77,14 @@
         # System architecture.
         system = "x86_64-linux";
 
-
         # ----------------------------------------------------------------------
-        # Extra arguments
+        # Extra Arguments
         # ----------------------------------------------------------------------
 
         # Make the CachyOS kernel input available inside configuration.nix.
         specialArgs = {
           inherit cachyos-kernel;
         };
-
 
         # ----------------------------------------------------------------------
         # NixOS Modules
@@ -100,6 +100,8 @@
           # Declarative Flatpak support.
           nix-flatpak.nixosModules.nix-flatpak
 
+          # Lanzaboote
+          lanzaboote.nixosModules.lanzaboote
         ];
       };
     };

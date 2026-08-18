@@ -1,7 +1,7 @@
-hl.env("XCURSOR_THEME", "capitaine-cursors")
+hl.env("XCURSOR_THEME", "Bibata-Modern-Classic")
 hl.env("XCURSOR_SIZE", "24")
 
-hl.env("HYPRCURSOR_THEME", "capitaine-cursors")
+hl.env("HYPRCURSOR_THEME", "Bibata-Modern-Classic")
 hl.env("HYPRCURSOR_SIZE", "24")
 
 hl.env("XDG_CURRENT_DESKTOP", "Hyprland")

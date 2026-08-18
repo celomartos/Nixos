@@ -19,9 +19,7 @@
   home.file.".config/waybar".source = ./home/waybar;
   home.file.".config/rofi".source = ./home/rofi;
   home.file.".config/mako".source = ./home/mako;
-  home.file.".config/gtk-3.0".source =./home/gtk-3.0;
-  home.file.".config/gtk-4.0".source = ./home/gtk-4.0;
-  home.file.".config/nwg-look".source = ./home/nwg-look;
+  home.file.".config/cava".source = ./home/cava;
 
   # ============================================================================
   # FISH
@@ -56,7 +54,6 @@
 
   programs.firefox.enable = true;
 
-
   # ============================================================================
   # KITTY
   # ============================================================================
@@ -65,12 +62,126 @@
     enable = true;
 
     settings = {
-      font_family = "JetBrains Mono";
+      font_family = "JetBrainsMono Nerd Font";
       font_size = 11;
       background_opacity = "0.7";
     };
   };
 
+  home.sessionVariables = {
+    TERMINAL = "kitty";
+  };
+
+  # ============================================================================
+  # FASTFETCH
+  # ============================================================================
+
+  home.file.".config/fastfetch/config.jsonc".text = ''
+    {
+      "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/master/doc/json_schema.json",
+      "modules": [
+        {
+          "type": "custom",
+          "format": " "
+        },
+
+        {
+          "type": "custom",
+          "format": "──────────────"
+        },
+
+        "os",
+        "host",
+        "kernel",
+        "uptime",
+
+        {
+          "type": "custom",
+          "format": " "
+        },
+
+        {
+          "type": "custom",
+          "format": "──────────────"
+        },
+
+        "packages",
+        "shell",
+        "display",
+        "wm",
+        "terminal",
+
+        {
+          "type": "custom",
+          "format": " "
+        },
+
+        {
+          "type": "custom",
+          "format": "──────────────"
+        },
+
+        "cpu",
+        "gpu",
+        "memory",
+        "swap",
+        "disk",
+
+        {
+          "type": "custom",
+          "format": " "
+        }
+      ]
+    }
+  '';
+
+  # ============================================================================
+  # MIMEAPPS
+  # ============================================================================
+
+  xdg.enable = true;
+
+  xdg.mimeApps = {
+    enable = true;
+
+    defaultApplications = {
+      "inode/directory" = "thunar.desktop";
+      "text/plain" = "dev.zed.Zed.desktop";
+      "text/x-c" = "dev.zed.Zed.desktop";
+      "text/x-c++" = "dev.zed.Zed.desktop";
+      "text/x-python" = "dev.zed.Zed.desktop";
+      "text/x-java" = "dev.zed.Zed.desktop";
+      "text/x-shellscript" = "dev.zed.Zed.desktop";
+      "text/x-makefile" = "dev.zed.Zed.desktop";
+      "application/json" = "dev.zed.Zed.desktop";
+      "application/xml" = "dev.zed.Zed.desktop";
+    };
+  };
+
+  xdg.desktopEntries.kitty = {
+    name = "Kitty";
+    genericName = "Terminal Emulator";
+    exec = "kitty";
+    terminal = false;
+    categories = [
+      "System"
+      "TerminalEmulator"
+    ];
+  };
+
+  # ============================================================================
+  # CURSOR
+  # ============================================================================
+
+  home.pointerCursor = {
+    enable = true;
+    gtk.enable = true;
+    x11.enable = true;
+
+    package = pkgs.bibata-cursors;
+    name = "Bibata-Modern-Classic";
+    size = 24;
+  };
 
   # ============================================================================
   # USER PACKAGES
@@ -87,7 +198,26 @@
     fastfetch
     btop
     curl
-    zed
+    wget
+    lm_sensors
+    pciutils
+    psmisc
+    playerctl
+    wev
+
+    # --------------------------------------------------------------------------
+    # Development
+    # --------------------------------------------------------------------------
+
+    gcc
+    gdb
+    cmake
+    gnumake
+    zed-editor
+    neovim
+    git
+    luaPackages.tree-sitter-cli
+
 
     # --------------------------------------------------------------------------
     # Desktop / Wayland
@@ -98,8 +228,9 @@
     waybar
     rofi
     cliphist
+    wl-clipboard
     mako
-
+    hyprpicker
 
     # --------------------------------------------------------------------------
     # GTK / Qt
@@ -107,8 +238,11 @@
 
     nwg-look
     qt6Packages.qt6ct
+    gtk3
+    gtk4
     tela-icon-theme
-
+    kdePackages.breeze
+    kdePackages.breeze-gtk
 
     # --------------------------------------------------------------------------
     # File management / utilities
@@ -116,7 +250,19 @@
 
     qbittorrent
     qview
-
+    thunar
+    xfce4-settings
+    tumbler
+    libgsf
+    poppler
+    webp-pixbuf-loader
+    thunar-volman
+    thunar-archive-plugin
+    thunar-media-tags-plugin
+    zip
+    unzip
+    tree
+    file
 
     # --------------------------------------------------------------------------
     # Audio / Media
@@ -125,7 +271,7 @@
     easyeffects
     mpv
     cava
-
+    ffmpeg
 
     # --------------------------------------------------------------------------
     # Browser / Internet
@@ -134,7 +280,6 @@
     qutebrowser
     proton-vpn
 
-
     # --------------------------------------------------------------------------
     # Gaming
     # --------------------------------------------------------------------------
@@ -142,11 +287,15 @@
     vesktop
     linux-wallpaperengine
     prismlauncher
+    protonup-qt
+    mangohud
 
     # --------------------------------------------------------------------------
-    # Graphics / Recording
+    # Graphics / Vulkan
     # --------------------------------------------------------------------------
 
+    vulkan-tools
+    mesa-demos
     gimp
     hyprshot
     obs-studio
