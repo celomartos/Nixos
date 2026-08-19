@@ -32,10 +32,10 @@
     functions = {
       fish_prompt = {
         body = ''
-          set_color "#00D7FF"
+          set_color "#FFFFFF"
           echo -n "in "(prompt_pwd)
           set_color normal
-          echo -n " \$ "
+          echo -n " > "
         '';
       };
     };
@@ -48,7 +48,7 @@
     # Commands executed when an interactive Fish shell starts.
     interactiveShellInit = ''
       set -g fish_greeting
-      pfetch
+      fastfetch
     '';
   };
 
@@ -64,7 +64,8 @@
     settings = {
       font_family = "JetBrainsMono Nerd Font";
       font_size = 11;
-      background_opacity = "0.7";
+      background_opacity = "0.6";
+      background_blur = "0";
     };
   };
 
@@ -76,63 +77,112 @@
   # FASTFETCH
   # ============================================================================
 
+  home.file.".config/fastfetch/fastfetch.png".source = /home/celin/Nixos/home/assets/fastfetch.jpg;
   home.file.".config/fastfetch/config.jsonc".text = ''
     {
       "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/master/doc/json_schema.json",
-      "modules": [
-        {
-          "type": "custom",
-          "format": " "
-        },
 
-        {
-          "type": "custom",
-          "format": "──────────────"
-        },
-
-        "os",
-        "host",
-        "kernel",
-        "uptime",
-
-        {
-          "type": "custom",
-          "format": " "
-        },
-
-        {
-          "type": "custom",
-          "format": "──────────────"
-        },
-
-        "packages",
-        "shell",
-        "display",
-        "wm",
-        "terminal",
-
-        {
-          "type": "custom",
-          "format": " "
-        },
-
-        {
-          "type": "custom",
-          "format": "──────────────"
-        },
-
-        "cpu",
-        "gpu",
-        "memory",
-        "swap",
-        "disk",
-
-        {
-          "type": "custom",
-          "format": " "
+      "logo": {
+        "type": "kitty",
+        "height": 16,
+        "source": "/home/celin/.config/fastfetch/fastfetch.png",
+        "padding": {
+          "right": 4
         }
-      ]
-    }
+      },
+
+      "display": {
+        "color": {
+          "keys": "white",
+          "output": "white"
+        },
+        "key": {
+          "width": 13,
+          "type": "both"
+        },
+        "brightColor": false
+      },
+
+    "modules": [
+
+  {
+    "type": "break"
+  },
+
+  {
+    "type": "title",
+    "format": "{user-name}@{host-name}"
+  },
+
+  {
+    "type": "os",
+    "key": "System  | ",
+    "keyIcon": "",
+    "format": "{name} {version}"
+  },
+
+  {
+    "type": "kernel",
+    "key": "Kernel  | ",
+    "keyIcon": ""
+  },
+
+  {
+    "type": "shell",
+    "key": "Shell   | ",
+    "keyIcon": ""
+  },
+
+  { "type": "packages",
+	  "key": "Pkgs    | ",
+	  "keyIcon": ""
+	},
+
+	{ "type": "wm",
+	  "key": "WM      | ",
+	  "keyIcon": ""
+	},
+
+  {
+    "type": "uptime",
+    "key": "Uptime  | ",
+    "keyIcon": ""
+  },
+
+	{ "type": "custom",
+	  "format": "────────────────────────────"
+	},
+
+	{ "type": "gpu",
+	  "key": "GPU     | ",
+	  "keyIcon": ""
+        },
+
+	{ "type": "cpu",
+	  "key": "CPU     | ",
+	  "keyIcon": ""
+	},
+
+  {
+    "type": "memory",
+    "key": "Memory  | ",
+    "keyIcon": ""
+  },
+
+  {
+    "type": "swap",
+    "key": "Swap    | ",
+    "keyIcon": ""
+  },
+
+  {
+    "type": "disk",
+    "key": "Storage | ",
+    "keyIcon": "",
+    "folders": "/"
+     },
+    ]
+  }
   '';
 
   # ============================================================================
@@ -194,7 +244,6 @@
     # --------------------------------------------------------------------------
 
     bat
-    pfetch
     fastfetch
     btop
     curl
@@ -217,6 +266,10 @@
     neovim
     git
     luaPackages.tree-sitter-cli
+    lazygit
+    fd
+    ripgrep
+    fzf
 
 
     # --------------------------------------------------------------------------
@@ -272,6 +325,7 @@
     mpv
     cava
     ffmpeg
+    stremio-linux-shell
 
     # --------------------------------------------------------------------------
     # Browser / Internet

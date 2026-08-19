@@ -15,14 +15,7 @@
 # User applications and application configuration are managed
 # through Home Manager in ./home.nix.
 
-{ config, pkgs,pkgs-stable, lanzaboote, lib, ... }:
-
-  let
-   pkgs-stable = import pkgs-stable {
-    system = pkgs.system;
-    config.allowUnfree = true;
-    };
-  in
+{ config, pkgs, pkgs-stable, lanzaboote, lib, ... }:
 
 {
   # ============================================================================
@@ -302,7 +295,8 @@
   systemd.services.nextdns-activate = {
     after = [ "nextdns.service" ];
     wantedBy = [ "multi-user.target" ];
-
+    serviceConfig.Type = "oneshot";
+    serviceConfig.RemainAfterExit = true;
     script = ''
       ${pkgs.nextdns}/bin/nextdns activate
     '';
