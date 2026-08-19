@@ -15,7 +15,14 @@
 # User applications and application configuration are managed
 # through Home Manager in ./home.nix.
 
-{ config, pkgs, cachyos-kernel, lanzaboote, lib, ... }:
+{ config, pkgs,pkgs-stable, lanzaboote, lib, ... }:
+
+  let
+   pkgs-stable = import pkgs-stable {
+    system = pkgs.system;
+    config.allowUnfree = true;
+    };
+  in
 
 {
   # ============================================================================
@@ -29,10 +36,6 @@
   # ============================================================================
   # BOOT / KERNEL
   # ============================================================================
-
-  nixpkgs.overlays = [
-    cachyos-kernel.overlays.pinned
-  ];
 
   boot = {
     loader.systemd-boot.enable = lib.mkForce false;
@@ -49,7 +52,6 @@
 
     kernelParams = [
       "amd_pstate=active"
-      "quiet"
     ];
 
     kernel.sysctl = {
@@ -83,13 +85,11 @@
     substituters = [
       "https://nixpkgs.cachix.org"
       "https://cache.nixos.org/"
-      "https://attic.xuyh0120.win/lantian"
     ];
 
     trusted-public-keys = [
       "nixpkgs.cachix.org-1:q91R6hxbwFvDqTSDKwDAV4T5PxqXGxswD8vhONFMeOE="
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
-      "lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc="
     ];
 
     auto-optimise-store = true;

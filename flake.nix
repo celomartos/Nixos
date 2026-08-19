@@ -17,6 +17,9 @@
 
     # NixOS unstable provides newer packages and features.
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+    
+    # NixOS stable
+    nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-26.05";
 
     # --------------------------------------------------------------------------
     # Home Manager
@@ -29,13 +32,6 @@
       # Use the same nixpkgs version as the system.
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    # --------------------------------------------------------------------------
-    # CachyOS Kernel
-    # --------------------------------------------------------------------------
-
-    # CachyOS-optimized Linux kernels.
-    cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel";
 
     # --------------------------------------------------------------------------
     # Lanzaboote
@@ -61,8 +57,8 @@
     {
       self,
       nixpkgs,
+      nixpkgs-stable,
       home-manager,
-      cachyos-kernel,
       nix-flatpak,
       lanzaboote,
       ...
@@ -77,14 +73,9 @@
         # System architecture.
         system = "x86_64-linux";
 
-        # ----------------------------------------------------------------------
-        # Extra Arguments
-        # ----------------------------------------------------------------------
-
-        # Make the CachyOS kernel input available inside configuration.nix.
-        specialArgs = {
-          inherit cachyos-kernel;
-        };
+	specialArgs = {
+	  inherit nixpkgs-stable;
+	};
 
         # ----------------------------------------------------------------------
         # NixOS Modules
