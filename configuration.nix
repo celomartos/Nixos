@@ -18,17 +18,9 @@
 { config, pkgs, pkgs-stable, lanzaboote, lib, ... }:
 
 {
-  # ============================================================================
-  # IMPORTS
-  # ============================================================================
-
   imports = [
     /etc/nixos/hardware-configuration.nix
   ];
-
-  # ============================================================================
-  # BOOT / KERNEL
-  # ============================================================================
 
   boot = {
     loader.systemd-boot.enable = lib.mkForce false;
@@ -43,20 +35,25 @@
     kernelPackages =
       pkgs.linuxPackages_latest;
 
+    kernelModules = ["tcp_bbr"];
+
     kernelParams = [
       "amd_pstate=active"
+      "preempt=full"
+      "transparent_hugepage=always"
     ];
 
     kernel.sysctl = {
-      "vm.swappiness" = 100;
+      "net.ipv4.tcp_congestion_control" = "bbr";
+      "vm.swappiness" = 200;
+      "vm.page-cluster" = 1;
+      "kernel.nmi_watchdog" = 0;
+      "net.core.netdev_max_backlog" = 4096;
+      "vm.vfs_cache_pressure" = 50;
     };
   };
 
   nixpkgs.config.allowUnfree = true;
-
-  # ============================================================================
-  # HOME MANAGER
-  # ============================================================================
 
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
@@ -139,6 +136,7 @@
 
   programs.hyprland = {
     enable = true;
+    withUWSM = true;
     xwayland.enable = true;
   };
 
@@ -188,7 +186,7 @@
   swapDevices = [
     {
       device = "/swapfile";
-      size = 2 * 1024; # 2 GiB
+      size = 2 * 1024;
     }
   ];
 
@@ -246,11 +244,12 @@
   users.users.celin = {
     isNormalUser = true;
 
-    description = "Celin";
+    description = "celin";
 
     extraGroups = [
       "networkmanager"
       "wheel"
+      "gamemode"
     ];
   };
 
@@ -264,6 +263,10 @@
 
   fonts.packages = with pkgs; [
     nerd-fonts.jetbrains-mono
+    texlivePackages.opensans
+    noto-fonts
+    texlivePackages.droid
+    texlivePackages.roboto
   ];
 
   # ============================================================================

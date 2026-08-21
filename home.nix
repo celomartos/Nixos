@@ -189,24 +189,50 @@
   # MIMEAPPS
   # ============================================================================
 
-  xdg.enable = true;
+   xdg.enable = true;
 
-  xdg.mimeApps = {
-    enable = true;
+xdg.desktopEntries.neovim = {
+  name = "Neovim";
+  genericName = "Text Editor";
+  exec = "kitty nvim %F";
+  terminal = false;
+  type = "Application";
+  categories = [
+    "Utility"
+    "TextEditor"
+    "Development"
+  ];
 
-    defaultApplications = {
-      "inode/directory" = "thunar.desktop";
-      "text/plain" = "dev.zed.Zed.desktop";
-      "text/x-c" = "dev.zed.Zed.desktop";
-      "text/x-c++" = "dev.zed.Zed.desktop";
-      "text/x-python" = "dev.zed.Zed.desktop";
-      "text/x-java" = "dev.zed.Zed.desktop";
-      "text/x-shellscript" = "dev.zed.Zed.desktop";
-      "text/x-makefile" = "dev.zed.Zed.desktop";
-      "application/json" = "dev.zed.Zed.desktop";
-      "application/xml" = "dev.zed.Zed.desktop";
-    };
+  mimeType = [
+    "text/plain"
+    "text/x-c"
+    "text/x-c++"
+    "text/x-python"
+    "text/x-java"
+    "text/x-shellscript"
+    "text/x-makefile"
+    "application/json"
+    "application/xml"
+  ];
+};
+
+xdg.mimeApps = {
+  enable = true;
+
+  defaultApplications = {
+    "inode/directory" = [ "thunar.desktop" ];
+
+    "text/plain" = [ "neovim.desktop" ];
+    "text/x-c" = [ "neovim.desktop" ];
+    "text/x-c++" = [ "neovim.desktop" ];
+    "text/x-python" = [ "neovim.desktop" ];
+    "text/x-java" = [ "neovim.desktop" ];
+    "text/x-shellscript" = [ "neovim.desktop" ];
+    "text/x-makefile" = [ "neovim.desktop" ];
+    "application/json" = [ "neovim.desktop" ];
+    "application/xml" = [ "neovim.desktop" ];
   };
+};
 
   xdg.desktopEntries.kitty = {
     name = "Kitty";
@@ -258,11 +284,9 @@
     # Development
     # --------------------------------------------------------------------------
 
-    gcc
     gdb
     cmake
     gnumake
-    zed-editor
     neovim
     git
     luaPackages.tree-sitter-cli
@@ -270,6 +294,11 @@
     fd
     ripgrep
     fzf
+    clang
+    clang-tools
+    lua-language-server
+
+
 
 
     # --------------------------------------------------------------------------
@@ -291,11 +320,13 @@
 
     nwg-look
     qt6Packages.qt6ct
+    libsForQt5.qt5ct
     gtk3
     gtk4
     tela-icon-theme
     kdePackages.breeze
     kdePackages.breeze-gtk
+    kdePackages.kcolorscheme
 
     # --------------------------------------------------------------------------
     # File management / utilities
@@ -316,6 +347,8 @@
     unzip
     tree
     file
+    xdg-desktop-portal-hyprland
+    xdg-desktop-portal
 
     # --------------------------------------------------------------------------
     # Audio / Media
