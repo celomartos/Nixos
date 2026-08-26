@@ -4,11 +4,8 @@
   "exclusive": "false",
 
   "modules-left": [
-    "custom/launcher",
-    "cpu",
-    "custom/temp",
-    "memory",
-    "hyprland/workspaces"
+    "hyprland/workspaces",
+    "custom/window"
   ],
 
   "modules-center": [
@@ -18,8 +15,17 @@
   "modules-right": [
     "tray",
     "pulseaudio",
+    "memory",
+    "cpu",
+    "custom/temp",
     "custom/power"
   ],
+
+"custom/window": {
+    "exec": "~/.config/waybar/scripts/window.sh",
+    "interval": 1,
+    "format": "{}"
+},
 
   "pulseaudio": {
     "tooltip": false,
@@ -45,7 +51,7 @@
     "exec": "/home/celin/.config/waybar/scripts/cava.sh",
     "return-type": "text",
     "format": "{}",
-    "tooltip": false
+    "tooltip": false,
   },
 
   "cpu": {
@@ -58,7 +64,7 @@
     "format": " {}",
     "interval": 2,
     "exec": "/home/celin/.config/waybar/scripts/tempinfo.sh",
-    "tooltip": true
+    "tooltip": false,
   },
 
   "memory": {
@@ -69,7 +75,7 @@
     "format": " ",
     "on-click": "rofi -show run",
     "on-click-right": "killall rofi",
-    "tooltip": false
+    "tooltip": false,
   },
 
   "custom/power": {

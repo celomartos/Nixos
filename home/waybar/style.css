@@ -3,19 +3,22 @@
     border: none;
     border-radius: 1px;
     font-family: JetBrainsMono Nerd Font;
-    font-size: 14px;
-    font-weight: 500;
-    padding: 0.1rem;
+    font-size: 16px;
+    font-weight: 700;
+    padding: 0;
 }
 
 window#waybar {
-    background: transparent;
+    background: rgba(0, 0, 0, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 4px;
 }
 
+
 tooltip {
-    background: #000000;
-    border-radius: 16px;
-    padding: 10px;
+    background: rgba (0, 0, 0, 0.6);
+    border-radius: 4px;
+    padding: 20px;
 }
 
 
@@ -34,21 +37,22 @@ tooltip {
 #pulseaudio,
 #battery,
 #custom-mpris,
+#custom-window,
 #tray,
 #custom-cava 
 {
-    margin-top: 1px;
+    margin-top: 0px;
     margin-left: 8px;
 
-    padding: 8px 16px;
+    padding: 0px 18px;
 
-    background: rgb(0, 0, 0);
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    border-bottom: 2px solid rgba(255, 255, 255, 0.22);
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.15);
 
     color: #ffffff;
 
-    border-radius: 16px;
+    border-radius: 4px;
 
 
 }
@@ -70,10 +74,11 @@ tooltip {
 #pulseaudio:hover,
 #battery:hover,
 #tray:hover,
+#custom-window:hover,
 #custom-mpris:hover,
 #custom-cava:hover,
 #keyboard-state:hover {
-    background: rgb(59, 59, 59);
+    background: rgb(45, 45, 45);
     
     color: #ffffff;
 
@@ -85,7 +90,7 @@ tooltip {
 
 #workspaces {
     padding: 4px 4px;
-    border-radius: 12px;
+    border-radius: 4px;
 }
 
 #workspaces button {
@@ -106,7 +111,7 @@ tooltip {
 }
 
 #workspaces button.active {
-    background: rgba(255, 255, 255, 0.281);
+    background: rgba(255, 255, 255, 0.200);
     color: #ffffff;
 }
 

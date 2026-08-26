@@ -280,6 +280,7 @@ xdg.mimeApps = {
     psmisc
     playerctl
     wev
+    jq
 
     # --------------------------------------------------------------------------
     # Development
