@@ -4,6 +4,7 @@
   "exclusive": "false",
 
   "modules-left": [
+    "custom/launcher",
     "cpu",
     "custom/temp",
     "memory",
@@ -16,7 +17,6 @@
 
   "modules-right": [
     "tray",
-    "custom/cava",
     "pulseaudio",
     "custom/power"
   ],
@@ -56,7 +56,7 @@
 
   "custom/temp": {
     "format": " {}",
-    "interval": 3,
+    "interval": 2,
     "exec": "/home/celin/.config/waybar/scripts/tempinfo.sh",
     "tooltip": true
   },
@@ -66,7 +66,7 @@
   },
 
   "custom/launcher": {
-    "format": " ",
+    "format": " ",
     "on-click": "rofi -show run",
     "on-click-right": "killall rofi",
     "tooltip": false
@@ -114,7 +114,6 @@
       // --- Work ---
       "kitty": "󰆍",
       "firefox": "󰈹",
-      "dev.zed.Zed": "",
 
       // --- Apps ---
       "vesktop": "",

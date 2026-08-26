@@ -37,7 +37,12 @@
 
     kernelModules = ["tcp_bbr"];
 
+    consoleLogLevel = 3;
+    initrd.verbose = false;
+
     kernelParams = [
+      "rd.udev.log_level=3"
+      "rd.systemd.show_status=auto"
       "amd_pstate=active"
       "preempt=full"
       "transparent_hugepage=always"
@@ -45,7 +50,7 @@
 
     kernel.sysctl = {
       "net.ipv4.tcp_congestion_control" = "bbr";
-      "vm.swappiness" = 200;
+      "vm.swappiness" = 130;
       "vm.page-cluster" = 1;
       "kernel.nmi_watchdog" = 0;
       "net.core.netdev_max_backlog" = 4096;
@@ -75,11 +80,13 @@
     substituters = [
       "https://nixpkgs.cachix.org"
       "https://cache.nixos.org/"
+      "https://hyprland.cachix.org"
     ];
 
     trusted-public-keys = [
       "nixpkgs.cachix.org-1:q91R6hxbwFvDqTSDKwDAV4T5PxqXGxswD8vhONFMeOE="
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+      "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
     ];
 
     auto-optimise-store = true;
@@ -92,7 +99,7 @@
   };
 
   # ============================================================================
-  # SYSTEM IDENTITY
+  # system identity
   # ============================================================================
 
   networking.hostName = "nixos";
@@ -183,13 +190,6 @@
     priority = 100;
   };
 
-  swapDevices = [
-    {
-      device = "/swapfile";
-      size = 2 * 1024;
-    }
-  ];
-
   services.fstrim.enable = true;
 
   # ============================================================================
@@ -275,12 +275,20 @@
 
   environment.systemPackages = with pkgs; [
 
-    scx.full
-    scx-loader
     nextdns
     sbctl
 
   ];
+
+  
+  # ============================================================================
+  # Session variables
+  # ============================================================================
+
+      environment.sessionVariables = {
+      MESA_SHADER_CACHE_MAX_SIZE = "12G";
+      GSK_RENDERER = "gl";
+    };
 
   # ============================================================================
   # NEXTDNS
@@ -305,22 +313,29 @@
     '';
   };
 
+  xdg.portal = {
+  enable = true;
+  extraPortals = [
+    pkgs.xdg-desktop-portal-hyprland
+  ];
+};
+
   # ============================================================================
   # SCHEDULER
   # ============================================================================
 
-  systemd.services.scx-lavd = {
-    description = "LAVD sched-ext scheduler";
-    wantedBy = [ "multi-user.target" ];
-    before = [ "multi-user.target" ];
+ # systemd.services.scx-lavd = {
+  #  description = "LAVD sched-ext scheduler";
+   # wantedBy = [ "multi-user.target" ];
+    #before = [ "multi-user.target" ];
 
-    serviceConfig = {
-      Type = "exec";
-      ExecStart = "${pkgs.scx.full}/bin/scx_lavd --performance";
-      Restart = "on-failure";
-      RestartSec = 2;
-    };
-  };
+    #serviceConfig = {
+     # Type = "exec";
+      #ExecStart = "${pkgs.scx.full}/bin/scx_lavd --performance";
+     # Restart = "on-failure";
+     # RestartSec = 2;
+    #};
+  #};
 
   # ============================================================================
   # FIREWALL

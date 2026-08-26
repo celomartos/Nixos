@@ -1,7 +1,7 @@
 local terminal          = "kitty"
 local menu              = "rofi -show drun"
 local screenshot        = "hyprshot -m region -m active --clipboard-only"
-local waybar            = "killall waybar cava|| waybar"
+local waybar            = "killall waybar || waybar"
 local cliphist          = "cliphist list | rofi -dmenu -display-columns 2 | cliphist decode | wl-copy"
 local filemanager       = "thunar"
 local navegador         = "firefox"

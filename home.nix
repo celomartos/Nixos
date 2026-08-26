@@ -20,6 +20,8 @@
   home.file.".config/rofi".source = ./home/rofi;
   home.file.".config/mako".source = ./home/mako;
   home.file.".config/cava".source = ./home/cava;
+  home.file.".config/Kvantum/Graphite".source = ./home/Graphite;
+  home.file.".local/share/themes/Graphite-Dark".source = ./home/Graphite-Dark;
 
   # ============================================================================
   # FISH
@@ -48,7 +50,6 @@
     # Commands executed when an interactive Fish shell starts.
     interactiveShellInit = ''
       set -g fish_greeting
-      fastfetch
     '';
   };
 
@@ -256,7 +257,7 @@ xdg.mimeApps = {
 
     package = pkgs.bibata-cursors;
     name = "Bibata-Modern-Classic";
-    size = 24;
+    size = 23;
   };
 
   # ============================================================================
@@ -297,9 +298,7 @@ xdg.mimeApps = {
     clang
     clang-tools
     lua-language-server
-
-
-
+    python313Packages.python
 
     # --------------------------------------------------------------------------
     # Desktop / Wayland
@@ -327,6 +326,8 @@ xdg.mimeApps = {
     kdePackages.breeze
     kdePackages.breeze-gtk
     kdePackages.kcolorscheme
+    libsForQt5.qtstyleplugin-kvantum
+    qt6Packages.qtstyleplugin-kvantum
 
     # --------------------------------------------------------------------------
     # File management / utilities
@@ -347,8 +348,7 @@ xdg.mimeApps = {
     unzip
     tree
     file
-    xdg-desktop-portal-hyprland
-    xdg-desktop-portal
+    unrar
 
     # --------------------------------------------------------------------------
     # Audio / Media
@@ -359,6 +359,7 @@ xdg.mimeApps = {
     cava
     ffmpeg
     stremio-linux-shell
+    kdePackages.kdenlive
 
     # --------------------------------------------------------------------------
     # Browser / Internet
@@ -376,6 +377,9 @@ xdg.mimeApps = {
     prismlauncher
     protonup-qt
     mangohud
+    lutris
+    wine
+    appimage-run
 
     # --------------------------------------------------------------------------
     # Graphics / Vulkan
@@ -389,7 +393,6 @@ xdg.mimeApps = {
 
     # OBS plugins.
     obs-studio-plugins.obs-pipewire-audio-capture
-    obs-studio-plugins.obs-move-transition
     obs-studio-plugins.obs-scene-as-transition
     obs-studio-plugins.obs-vkcapture
   ];
