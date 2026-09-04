@@ -23,7 +23,6 @@
 
 "custom/window": {
     "exec": "~/.config/waybar/scripts/window.sh",
-    "interval": 1,
     "format": "{}"
 },
 
@@ -126,6 +125,9 @@
       "org.qbittorrent.qBittorrent": "󰘿",
       "steam": "",
       "stremio": "",
+      "org.prismlauncher.PrismLauncher": "󰍳",
+      "Minecraft": "󰍳",
+      "com.github.th-ch.youtube-music": "",
 
       // --- Graphics & Visual ---
       "xdg-desktop-portal-gtk": "",

@@ -2,7 +2,7 @@ hl.on("hyprland.start", function()
 
     hl.exec_cmd("dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP")
 
-    hl.exec_cmd("linux-wallpaperengine --screen-root HDMI-A-1 --bg 1626467688 --silent --layer background")
+    hl.exec_cmd("linux-wallpaperengine  --screen-root HDMI-A-1 --bg 2867320447  --silent  --layer background")
     hl.exec_cmd("cliphist wipe")
     hl.exec_cmd("systemctl --user start hyprpolkitagent")
     hl.exec_cmd("waybar")

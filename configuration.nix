@@ -50,7 +50,7 @@
 
     kernel.sysctl = {
       "net.ipv4.tcp_congestion_control" = "bbr";
-      "vm.swappiness" = 130;
+      "vm.swappiness" = 200;
       "vm.page-cluster" = 1;
       "kernel.nmi_watchdog" = 0;
       "net.core.netdev_max_backlog" = 4096;
@@ -141,6 +141,12 @@
     enable32Bit = true;
   };
 
+  hardware.amdgpu.overdrive.enable = true;
+
+  services.lact = {
+  enable = true;
+  };
+
   programs.hyprland = {
     enable = true;
     withUWSM = true;
@@ -220,6 +226,7 @@
     packages = [
       "org.vinegarhq.Sober"
       "org.gtk.Gtk3theme.Breeze-Dark"
+      "org.gtk.Gtk3theme.Adwaita-dark"
     ];
 
     update.auto = {
@@ -277,9 +284,41 @@
 
     nextdns
     sbctl
+    geekbench
+    stress-ng
 
   ];
 
+  programs.nix-ld = {
+  enable = true;
+
+  libraries = with pkgs; [
+    glib
+    gobject-introspection
+    nspr
+    nss
+    atk
+    at-spi2-atk
+    cups
+    dbus
+    cairo
+    gtk3
+    pango
+    libX11
+    libXcomposite
+    libXdamage
+    libXext
+    libXfixes
+    libXrandr
+    libgbm
+    expat
+    libxcb
+    libxkbcommon
+    systemd
+    alsa-lib
+    libglvnd
+  ];
+};
   
   # ============================================================================
   # Session variables
@@ -341,8 +380,9 @@
   # FIREWALL
   # ============================================================================
 
-  # networking.firewall.allowedTCPPorts = [ ];
-  # networking.firewall.allowedUDPPorts = [ ];
+  networking.firewall = {
+  enable = true;
+};
 
   # ============================================================================
   # SYSTEM STATE VERSION

@@ -1,27 +1,27 @@
 
 hl.config({
     general = {
-        gaps_in = 5,
+        gaps_in = 10,
         gaps_out = 25,
 
-        border_size = 2,
+        border_size = 1,
 
         col = {
-            active_border = "rgba(ffffffff)",
+            active_border = "rgba(e0e0e0ff)",
             inactive_border = "rgba(11111111)",
         },
 
         resize_on_border = false,
-        allow_tearing = false,
+        allow_tearing = true,
 
         layout = "dwindle",
     },
 
     decoration = {
-        rounding = 14,
+        rounding = 12,
 
         active_opacity = 1.0,
-        inactive_opacity = 1.0,
+        inactive_opacity = 0.9,
 
         shadow = {
             enabled = true,

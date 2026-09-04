@@ -65,7 +65,7 @@
     settings = {
       font_family = "JetBrainsMono Nerd Font";
       font_size = 11;
-      background_opacity = "0.6";
+      background_opacity = "0.8";
       background_blur = "0";
     };
   };
@@ -281,6 +281,8 @@ xdg.mimeApps = {
     playerctl
     wev
     jq
+    socat
+    android-tools
 
     # --------------------------------------------------------------------------
     # Development
@@ -300,6 +302,9 @@ xdg.mimeApps = {
     clang-tools
     lua-language-server
     python313Packages.python
+    pnpm
+    nodejs_24
+    electron
 
     # --------------------------------------------------------------------------
     # Desktop / Wayland
@@ -381,6 +386,8 @@ xdg.mimeApps = {
     lutris
     wine
     appimage-run
+    lact
+    hydralauncher
 
     # --------------------------------------------------------------------------
     # Graphics / Vulkan

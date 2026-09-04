@@ -1,28 +1,22 @@
-/* =================== BASE =================== */
 * {
     border: none;
     border-radius: 1px;
     font-family: JetBrainsMono Nerd Font;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 700;
-    padding: 0;
+    padding: 0.1rem;
 }
 
 window#waybar {
-    background: rgba(0, 0, 0, 0.75);
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    border-radius: 4px;
+    background: transparent;
 }
 
 
 tooltip {
-    background: rgba (0, 0, 0, 0.6);
+    background: rgba (0, 0, 0, 0.8);
     border-radius: 4px;
-    padding: 20px;
+    padding: 16px;
 }
-
-
-/* =================== GLOBAL STYLE =================== */
 
 #workspaces,
 #cpu,
@@ -46,19 +40,16 @@ tooltip {
 
     padding: 0px 18px;
 
-    background: transparent;
+    background: rgba (0, 0, 0, 1);
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-bottom: 2px solid rgba(255, 255, 255, 0.15);
 
     color: #ffffff;
 
-    border-radius: 4px;
+    border-radius: 12px;
 
 
 }
-
-
-/* =================== HOVER =================== */
 
 #workspaces:hover,
 #cpu:hover,
@@ -78,19 +69,14 @@ tooltip {
 #custom-mpris:hover,
 #custom-cava:hover,
 #keyboard-state:hover {
-    background: rgb(45, 45, 45);
+    background: rgb(55, 55, 55);
     
     color: #ffffff;
-
-
 }
-
-
-/* =================== WORKSPACES =================== */
 
 #workspaces {
     padding: 4px 4px;
-    border-radius: 4px;
+    border-radius: 12px;
 }
 
 #workspaces button {
@@ -114,15 +100,6 @@ tooltip {
     background: rgba(255, 255, 255, 0.200);
     color: #ffffff;
 }
-
-
-    
-
-    
-
-
-
-/* =================== TRAY =================== */
 
 #tray {
     padding-left: 10px;
