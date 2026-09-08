@@ -283,6 +283,7 @@ xdg.mimeApps = {
     jq
     socat
     android-tools
+    gnirehtet
 
     # --------------------------------------------------------------------------
     # Development
@@ -378,7 +379,9 @@ xdg.mimeApps = {
     # Gaming
     # --------------------------------------------------------------------------
 
-    vesktop
+    (pkgs.discord.override {
+    withVencord = true;
+    })
     linux-wallpaperengine
     prismlauncher
     protonup-qt

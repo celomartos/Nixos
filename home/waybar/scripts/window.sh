@@ -10,8 +10,8 @@ get_window() {
   kitty)
     echo "󰆍 Kitty"
     ;;
-  vesktop)
-    echo "󰙯 Vesktop"
+  discord)
+    echo "󰙯 Discord"
     ;;
 
   thunar)

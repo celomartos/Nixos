@@ -239,10 +239,10 @@
   # SYSTEM LOGGING
   # ============================================================================
 
-  services.journald.extraConfig = ''
-    SystemMaxUse=500M
-    RuntimeMaxUse=100M
-  '';
+  services.journald.settings.Journal = {
+    SystemMaxUse="500M";
+    RuntimeMaxUse="100M";
+  };
 
   # ============================================================================
   # USER
