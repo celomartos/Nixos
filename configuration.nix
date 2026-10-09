@@ -15,7 +15,7 @@
 # User applications and application configuration are managed
 # through Home Manager in ./home.nix.
 
-{ config, pkgs, pkgs-stable, lanzaboote, lib, ... }:
+{ config, pkgs, pkgs-stable, lib, waybar, ... }:
 
 {
   imports = [
@@ -23,14 +23,9 @@
   ];
 
   boot = {
-    loader.systemd-boot.enable = lib.mkForce false;
+    loader.systemd-boot.enable = true;
     loader.efi.canTouchEfiVariables = true;
-    loader.timeout = 3;
-
-    lanzaboote = {
-      enable = true;
-      pkiBundle = "/var/lib/sbctl";
-    };
+    loader.timeout = 0;
 
     kernelPackages =
       pkgs.linuxPackages_latest;
@@ -44,13 +39,13 @@
       "rd.udev.log_level=3"
       "rd.systemd.show_status=auto"
       "amd_pstate=active"
-      "preempt=full"
-      "transparent_hugepage=always"
+ #     "preempt=full"
+      "transparent_hugepage=madvise"
     ];
 
     kernel.sysctl = {
       "net.ipv4.tcp_congestion_control" = "bbr";
-      "vm.swappiness" = 200;
+      "vm.swappiness" = 130;
       "vm.page-cluster" = 1;
       "kernel.nmi_watchdog" = 0;
       "net.core.netdev_max_backlog" = 4096;
@@ -64,6 +59,10 @@
   home-manager.useUserPackages = true;
 
   home-manager.backupFileExtension = "backup";
+
+  home-manager.extraSpecialArgs = {
+  inherit waybar;
+};
 
   home-manager.users.celin = import ./home.nix;
 
@@ -147,6 +146,16 @@
   enable = true;
   };
 
+  systemd.user.services.ydotoold = {
+  description = "ydotool daemon";
+  wantedBy = [ "default.target" ];
+
+  serviceConfig = {
+    ExecStart = "${pkgs.ydotool}/bin/ydotoold --socket-path=%t/.ydotool_socket";
+    Restart = "on-failure";
+  };
+};
+
   programs.hyprland = {
     enable = true;
     withUWSM = true;
@@ -199,6 +208,21 @@
   services.fstrim.enable = true;
 
   # ============================================================================
+  # Thunar
+  # ============================================================================
+
+  programs.thunar = {
+    enable = true;
+    plugins = with pkgs; [
+     thunar-archive-plugin
+     thunar-volman
+     thunar-media-tags-plugin
+    ];
+ };
+ services.gvfs.enable = true;
+ services.tumbler.enable = true;
+
+  # ============================================================================
   # GAMING
   # ============================================================================
 
@@ -226,8 +250,8 @@
 
     packages = [
       "org.vinegarhq.Sober"
-      "org.gtk.Gtk3theme.Breeze-Dark"
-      "org.gtk.Gtk3theme.Adwaita-dark"
+      "com.stremio.Stremio"
+      "com.usebottles.bottles"
     ];
 
     update.auto = {
@@ -235,6 +259,32 @@
       onCalendar = "daily";
     };
   };
+
+#flathub mt foda legal :)
+  systemd.services.flatpak-repo = {
+    wantedBy = [ "multi-user.target" ];
+    path = [ pkgs.flatpak ];
+    script = ''
+      flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+    '';
+  };
+
+  systemd.user.services.flatpak-graphite-theme = {
+  description = "Configurar tema Graphite nos Flatpaks";
+  wantedBy = [ "default.target" ];
+
+  serviceConfig = {
+    Type = "oneshot";
+    ExecStart = ''
+      ${pkgs.flatpak}/bin/flatpak override --user \
+        --filesystem=xdg-data/themes:ro \
+        --filesystem=xdg-config/Kvantum:ro \
+        --env=GTK_THEME=Graphite-Dark \
+        --env=QT_STYLE_OVERRIDE=kvantum
+    '';
+  };
+};
+
 
   # ============================================================================
   # SYSTEM LOGGING
@@ -258,7 +308,8 @@
       "networkmanager"
       "wheel"
       "gamemode"
-      "hamachi"
+      "input"
+      "libvirtd"
     ];
   };
 
@@ -288,6 +339,29 @@
     sbctl
     geekbench
     stress-ng
+    p7zip
+    unzip
+    zip
+    unrar
+    file-roller
+    grim 
+    slurp 
+    wineWow64Packages.stable
+    winetricks
+    fuse3
+    cargo
+    glib
+
+
+    (python3.withPackages (ps: with ps; [
+    opencv4
+    numpy
+    pillow
+    evdev
+    pyinstaller
+    pyqt5
+  ]))
+
 
   ];
 
@@ -321,7 +395,8 @@
     libglvnd
   ];
 };
-  
+
+
   # ============================================================================
   # Session variables
   # ============================================================================
@@ -356,8 +431,9 @@
 
   xdg.portal = {
   enable = true;
-  extraPortals = [
-    pkgs.xdg-desktop-portal-hyprland
+  extraPortals = with pkgs; [
+    xdg-desktop-portal-hyprland
+    xdg-desktop-portal-gtk
   ];
 };
 
@@ -377,6 +453,15 @@
      # RestartSec = 2;
     #};
   #};
+  
+  #VM
+  
+  virtualisation.libvirtd.enable = true;
+
+  programs.virt-manager.enable = true;
+
+
+
 
   # ============================================================================
   # FIREWALL

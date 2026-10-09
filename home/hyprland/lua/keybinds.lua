@@ -1,11 +1,11 @@
 local terminal = "kitty"
 local menu = "rofi -show drun"
 local screenshot = "hyprshot -m region -m active --clipboard-only"
-local waybar = "killall waybar || waybar"
+local waybar = "pkill waybar socat || waybar"
 local cliphist = "cliphist list | rofi -dmenu -display-columns 2 | cliphist decode | wl-copy"
 local filemanager = "thunar"
-local navegador = "firefox"
-local navegador_anonimo = "firefox --private-window"
+local navegador = "brave-origin"
+local navegador_anonimo = "brave-origin --incognito"
 local discord = "discord"
 
 local mainMod = "SUPER"
@@ -16,7 +16,17 @@ local mainMod = "SUPER"
 
 hl.bind(mainMod .. " + Q", hl.dsp.window.close())
 hl.bind(mainMod .. " + SPACE", hl.dsp.window.fullscreen())
-hl.bind(mainMod .. " + H", hl.dsp.window.float({ action = "toggle" }))
+hl.bind(mainMod .. " + O", hl.dsp.window.float({ action = "toggle" }))
+
+hl.bind(mainMod .. " + H", hl.dsp.focus({ direction = "left" }))
+hl.bind(mainMod .. " + L", hl.dsp.focus({ direction = "right" }))
+hl.bind(mainMod .. " + K", hl.dsp.focus({ direction = "up" }))
+hl.bind(mainMod .. " + J", hl.dsp.focus({ direction = "down" }))
+
+hl.bind(mainMod .. " + SHIFT + H", hl.dsp.window.move({ direction = "left" }))
+hl.bind(mainMod .. " + SHIFT + L", hl.dsp.window.move({ direction = "right" }))
+hl.bind(mainMod .. " + SHIFT + K", hl.dsp.window.move({ direction = "up" }))
+hl.bind(mainMod .. " + SHIFT + J", hl.dsp.window.move({ direction = "down" }))
 
 ------------------------
 ---- WORKSPACES ----
@@ -40,14 +50,14 @@ hl.bind(mainMod .. " + 5", hl.dsp.window.move({ workspace = 5 }))
 
 hl.bind("ALT + ESCAPE", hl.dsp.exec_cmd(menu))
 hl.bind(mainMod .. " + F", hl.dsp.exec_cmd(screenshot))
-hl.bind(mainMod .. " + K", hl.dsp.exec_cmd(waybar))
+hl.bind(mainMod .. " + W", hl.dsp.exec_cmd(waybar))
 hl.bind(mainMod .. " + T", hl.dsp.exec_cmd(terminal))
 hl.bind(mainMod .. " + V", hl.dsp.exec_cmd(cliphist))
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(filemanager))
 hl.bind(mainMod .. " + N", hl.dsp.exec_cmd(navegador))
+hl.bind("CTRL + SHIFT + N", hl.dsp.exec_cmd(navegador_anonimo))
 hl.bind(mainMod .. " + D", hl.dsp.exec_cmd(discord))
 hl.bind(mainMod .. " + P", hl.dsp.exec_cmd("hyprpicker -a"))
-hl.bind("CTRL + SHIFT + N", hl.dsp.exec_cmd(navegador_anonimo))
 
 ------------------------
 ---- MOUSE ----

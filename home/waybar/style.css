@@ -2,20 +2,21 @@
     border: none;
     border-radius: 1px;
     font-family: JetBrainsMono Nerd Font;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 700;
-    padding: 0.1rem;
 }
 
 window#waybar {
-    background: transparent;
+    background: rgba(0, 0, 0, 1);
+    border-radius: 0px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
 }
 
 
 tooltip {
-    background: rgba (0, 0, 0, 0.8);
+    background: rgba (0, 0, 0, 1);
     border-radius: 4px;
-    padding: 16px;
+    padding: 12px;
 }
 
 #workspaces,
@@ -37,21 +38,9 @@ tooltip {
 {
     margin-top: 0px;
     margin-left: 8px;
-
-    padding: 0px 18px;
-
-    background: rgba (0, 0, 0, 1);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-bottom: 2px solid rgba(255, 255, 255, 0.15);
-
-    color: #ffffff;
-
-    border-radius: 12px;
-
-
+    padding: 0px 12px;
 }
 
-#workspaces:hover,
 #cpu:hover,
 #memory:hover,
 #disk:hover,
@@ -64,19 +53,18 @@ tooltip {
 #custom-eww-dashboard:hover,
 #pulseaudio:hover,
 #battery:hover,
-#tray:hover,
 #custom-window:hover,
 #custom-mpris:hover,
 #custom-cava:hover,
 #keyboard-state:hover {
-    background: rgb(55, 55, 55);
-    
+    background: rgb(60, 60, 60);
+    border-radius: 12px;
     color: #ffffff;
 }
 
 #workspaces {
     padding: 4px 4px;
-    border-radius: 12px;
+    border-radius: 4px;
 }
 
 #workspaces button {
@@ -92,18 +80,29 @@ tooltip {
     margin-right: 4px;
 }
 
+#workspaces button:hover {
+    background: rgb(60, 60, 60);
+    color: #ffffff;
+    border-radius: 10px;
+}
+
 #workspaces button:last-child {
     margin-right: 0;
 }
 
 #workspaces button.active {
-    background: rgba(255, 255, 255, 0.200);
+    background: rgb(60, 60, 60);
     color: #ffffff;
 }
 
 #tray {
     padding-left: 10px;
     padding-right: 10px;
+}
+
+#tray > *:hover {
+    background: rgb(60, 60, 60);
+    border-radius: 12px;
 }
 
 

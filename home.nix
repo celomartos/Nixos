@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, waybar, ... }:
 
 {
   # ============================================================================
@@ -15,8 +15,8 @@
   # CONFIGURATION FILES
   # ============================================================================
 
-  home.file.".config/hypr".source = ./home/hyprland;
-  home.file.".config/waybar".source = ./home/waybar;
+ # home.file.".config/hypr".source = ./home/hyprland;
+ # home.file.".config/waybar".source = ./home/waybar;
   home.file.".config/rofi".source = ./home/rofi;
   home.file.".config/mako".source = ./home/mako;
   home.file.".config/cava".source = ./home/cava;
@@ -27,33 +27,63 @@
   # FISH
   # ============================================================================
 
-  programs.fish = {
-    enable = true;
+programs.fish = {
+  enable = true;
 
-    # Custom Fish prompt.
-    functions = {
-      fish_prompt = {
-        body = ''
-          set_color "#FFFFFF"
-          echo -n "in "(prompt_pwd)
-          set_color normal
-          echo -n " > "
-        '';
-      };
-    };
+  # Custom Fish prompt.
+  functions = {
+    fish_prompt = {
+  body = ''
+    set_color "#FFFFFF"
 
-    # Shell aliases.
-    shellAliases = {
-      nrs = "sudo nixos-rebuild switch";
-    };
+    if test "$PWD" = "$HOME"
+      echo -n "in ~"
+    else
+      echo -n "in "(basename $PWD)
+    end
 
-    # Commands executed when an interactive Fish shell starts.
-    interactiveShellInit = ''
-      set -g fish_greeting
+    set_color normal
+    echo -n " >_ "
+  '';
+};
+
+    extract = ''
+      switch $argv[1]
+        case '*.tar.gz' '*.tgz'
+          tar -xzf $argv[1]
+        case '*.tar.xz' '*.txz'
+          tar -xJf $argv[1]
+        case '*.tar.bz2' '*.tbz2'
+          tar -xjf $argv[1]
+        case '*.tar.zst' '*.tzst'
+          tar --zstd -xf $argv[1]
+        case '*.tar'
+          tar -xf $argv[1]
+        case '*.zip'
+          unzip $argv[1]
+        case '*.7z'
+          7z x $argv[1]
+        case '*.rar'
+          unrar x $argv[1]
+        case '*'
+          echo "Formato não suportado: $argv[1]"
+          return 1
+      end
+    '';
+
+        nrs = ''
+      cd ~/nixos
+      sudo nixos-rebuild switch --flake . --impure; and \
+      sudo nix-env --profile /nix/var/nix/profiles/system --delete-generations +3; and \
+      sudo nix-collect-garbage
     '';
   };
 
-  programs.firefox.enable = true;
+  # Commands executed when an interactive Fish shell starts.
+  interactiveShellInit = ''
+    set -g fish_greeting
+  '';
+};
 
   # ============================================================================
   # KITTY
@@ -64,8 +94,8 @@
 
     settings = {
       font_family = "JetBrainsMono Nerd Font";
-      font_size = 11;
-      background_opacity = "0.8";
+      font_size = 14;
+      background_opacity = "0.85";
       background_blur = "0";
     };
   };
@@ -78,7 +108,6 @@
   # FASTFETCH
   # ============================================================================
 
-  home.file.".config/fastfetch/fastfetch.png".source = /home/celin/Nixos/home/assets/fastfetch.jpg;
   home.file.".config/fastfetch/config.jsonc".text = ''
     {
       "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/master/doc/json_schema.json",
@@ -222,7 +251,7 @@ xdg.mimeApps = {
 
   defaultApplications = {
     "inode/directory" = [ "thunar.desktop" ];
-
+    #text editor
     "text/plain" = [ "neovim.desktop" ];
     "text/x-c" = [ "neovim.desktop" ];
     "text/x-c++" = [ "neovim.desktop" ];
@@ -232,6 +261,15 @@ xdg.mimeApps = {
     "text/x-makefile" = [ "neovim.desktop" ];
     "application/json" = [ "neovim.desktop" ];
     "application/xml" = [ "neovim.desktop" ];
+
+    #compacted archives
+    "application/zip" = "org.gnome.FileRoller.desktop";
+    "application/x-7z-compressed" = "org.gnome.FileRoller.desktop";
+    "application/x-rar" = "org.gnome.FileRoller.desktop";
+    "application/x-tar" = "org.gnome.FileRoller.desktop";
+    "application/gzip" = "org.gnome.FileRoller.desktop";
+    "application/x-bzip2" = "org.gnome.FileRoller.desktop";
+    "application/x-xz" = "org.gnome.FileRoller.desktop";
   };
 };
 
@@ -245,6 +283,24 @@ xdg.mimeApps = {
       "TerminalEmulator"
     ];
   };
+
+  # ============================================================================
+  # STEMIO
+  # ============================================================================
+
+  home.file.".local/share/applications/com.stremio.Stremio.desktop".text = ''
+    [Desktop Entry]
+    Name=Stremio
+    Comment=Freedom To Stream
+    Icon=com.stremio.Stremio
+    Categories=Utility;AudioVideo;Video;Player;
+    Type=Application
+    Exec=flatpak run --branch=stable --arch=x86_64 --command=stremio com.stremio.Stremio --no-window-decorations
+    Terminal=false
+    StartupNotify=true
+    DBusActivatable=false
+    MimeType=x-scheme-handler/stremio;
+  '';
 
   # ============================================================================
   # CURSOR
@@ -263,7 +319,7 @@ xdg.mimeApps = {
   # ============================================================================
   # USER PACKAGES
   # ============================================================================
-
+  
   home.packages = with pkgs; [
 
     # --------------------------------------------------------------------------
@@ -283,7 +339,7 @@ xdg.mimeApps = {
     jq
     socat
     android-tools
-    gnirehtet
+    yt-dlp
 
     # --------------------------------------------------------------------------
     # Development
@@ -302,23 +358,22 @@ xdg.mimeApps = {
     clang
     clang-tools
     lua-language-server
-    python313Packages.python
     pnpm
-    nodejs_24
     electron
-
+    ydotool
     # --------------------------------------------------------------------------
     # Desktop / Wayland
     # --------------------------------------------------------------------------
 
     hyprcursor
     hyprpolkitagent
-    waybar
     rofi
     cliphist
     wl-clipboard
     mako
     hyprpicker
+    hyprpaper
+    waybar.packages.${pkgs.stdenv.hostPlatform.system}.default
 
     # --------------------------------------------------------------------------
     # GTK / Qt
@@ -342,20 +397,12 @@ xdg.mimeApps = {
 
     qbittorrent
     qview
-    thunar
     xfce4-settings
-    tumbler
     libgsf
     poppler
     webp-pixbuf-loader
-    thunar-volman
-    thunar-archive-plugin
-    thunar-media-tags-plugin
-    zip
-    unzip
     tree
     file
-    unrar
 
     # --------------------------------------------------------------------------
     # Audio / Media
@@ -365,15 +412,13 @@ xdg.mimeApps = {
     mpv
     cava
     ffmpeg
-    stremio-linux-shell
-    kdePackages.kdenlive
 
     # --------------------------------------------------------------------------
     # Browser / Internet
     # --------------------------------------------------------------------------
 
-    qutebrowser
     proton-vpn
+    brave-origin
 
     # --------------------------------------------------------------------------
     # Gaming
@@ -382,7 +427,6 @@ xdg.mimeApps = {
     (pkgs.discord.override {
     withVencord = true;
     })
-    linux-wallpaperengine
     prismlauncher
     protonup-qt
     mangohud
@@ -400,6 +444,7 @@ xdg.mimeApps = {
     mesa-demos
     gimp
     hyprshot
+    slurp
     obs-studio
 
     # OBS plugins.

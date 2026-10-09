@@ -8,7 +8,7 @@ get_window() {
     echo "󰈹 Firefox"
     ;;
   kitty)
-    echo "󰆍 Kitty"
+    echo " Kitty"
     ;;
   discord)
     echo "󰙯 Discord"
@@ -24,6 +24,10 @@ get_window() {
 
   Minecraft*)
     echo "󰍳 Minecraft"
+    ;;
+
+  brave-origin)
+    echo "󰖟 Brave"
     ;;
 
   mpv)
