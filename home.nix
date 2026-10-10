@@ -425,7 +425,6 @@ xdg.mimeApps = {
     withVencord = true;
     })
     prismlauncher
-    protonup-qt
     mangohud
     lutris
     wine
