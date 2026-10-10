@@ -339,7 +339,6 @@ xdg.mimeApps = {
     jq
     socat
     android-tools
-    yt-dlp
 
     # --------------------------------------------------------------------------
     # Development
@@ -385,8 +384,6 @@ xdg.mimeApps = {
     gtk3
     gtk4
     tela-icon-theme
-    kdePackages.breeze
-    kdePackages.breeze-gtk
     kdePackages.kcolorscheme
     libsForQt5.qtstyleplugin-kvantum
     qt6Packages.qtstyleplugin-kvantum
