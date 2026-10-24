@@ -1,6 +1,8 @@
 { config, pkgs, waybar, ... }:
 
 {
+  imports = [ ./home/nixvim.nix ];
+
   # ============================================================================
   # HOME MANAGER
   # ============================================================================
@@ -15,25 +17,24 @@
   # CONFIGURATION FILES
   # ============================================================================
 
-  home.file.".config/hypr".source = ./home/hyprland;
-  home.file.".config/waybar".source = ./home/waybar;
-  home.file.".config/rofi".source = ./home/rofi;
+ # home.file.".config/hypr/".source = ./home/hyprland;
+ # home.file.".config/waybar".source = ./home/waybar;
+ # home.file.".config/rofi".source = ./home/rofi;
   home.file.".config/mako".source = ./home/mako;
   home.file.".config/cava".source = ./home/cava;
   home.file.".config/Kvantum/Graphite".source = ./home/Graphite;
-  home.file.".local/share/themes/Graphite-Dark".source = ./home/Graphite-Dark;
 
   # ============================================================================
   # FISH
   # ============================================================================
 
-programs.fish = {
-  enable = true;
+  programs.fish = {
+    enable = true;
 
-  # Custom Fish prompt.
-  functions = {
-    fish_prompt = {
-  body = ''
+    # Custom Fish prompt and helper functions.
+    functions = {
+      fish_prompt = {
+        body = ''
     set_color "#FFFFFF"
 
     if test "$PWD" = "$HOME"
@@ -45,45 +46,45 @@ programs.fish = {
     set_color normal
     echo -n " >_ "
   '';
-};
+      };
 
-    extract = ''
-      switch $argv[1]
-        case '*.tar.gz' '*.tgz'
-          tar -xzf $argv[1]
-        case '*.tar.xz' '*.txz'
-          tar -xJf $argv[1]
-        case '*.tar.bz2' '*.tbz2'
-          tar -xjf $argv[1]
-        case '*.tar.zst' '*.tzst'
-          tar --zstd -xf $argv[1]
-        case '*.tar'
-          tar -xf $argv[1]
-        case '*.zip'
-          unzip $argv[1]
-        case '*.7z'
-          7z x $argv[1]
-        case '*.rar'
-          unrar x $argv[1]
-        case '*'
-          echo "Formato não suportado: $argv[1]"
-          return 1
-      end
-    '';
+      extract = ''
+        switch $argv[1]
+          case '*.tar.gz' '*.tgz'
+            tar -xzf $argv[1]
+          case '*.tar.xz' '*.txz'
+            tar -xJf $argv[1]
+          case '*.tar.bz2' '*.tbz2'
+            tar -xjf $argv[1]
+          case '*.tar.zst' '*.tzst'
+            tar --zstd -xf $argv[1]
+          case '*.tar'
+            tar -xf $argv[1]
+          case '*.zip'
+            unzip $argv[1]
+          case '*.7z'
+            7z x $argv[1]
+          case '*.rar'
+            unrar x $argv[1]
+          case '*'
+            echo "Formato não suportado: $argv[1]"
+            return 1
+        end
+      '';
 
-        nrs = ''
+      nrs = ''
       cd ~/nixos
       sudo nixos-rebuild switch --flake . --impure; and \
       sudo nix-env --profile /nix/var/nix/profiles/system --delete-generations +3; and \
       sudo nix-collect-garbage
     '';
-  };
+    };
 
-  # Commands executed when an interactive Fish shell starts.
-  interactiveShellInit = ''
+    # Commands executed when an interactive Fish shell starts.
+    interactiveShellInit = ''
     set -g fish_greeting
   '';
-};
+  };
 
   # ============================================================================
   # KITTY
@@ -97,6 +98,7 @@ programs.fish = {
       font_size = 14;
       background_opacity = "0.85";
       background_blur = "0";
+      remember_window_size = "no";
     };
   };
 
@@ -219,59 +221,60 @@ programs.fish = {
   # MIMEAPPS
   # ============================================================================
 
-   xdg.enable = true;
+  xdg.enable = true;
 
-xdg.desktopEntries.neovim = {
-  name = "Neovim";
-  genericName = "Text Editor";
-  exec = "kitty nvim %F";
-  terminal = false;
-  type = "Application";
-  categories = [
-    "Utility"
-    "TextEditor"
-    "Development"
-  ];
+  xdg.desktopEntries.neovim = {
+    name = "Neovim";
+    genericName = "Text Editor";
+    exec = "kitty nvim %F";
+    terminal = false;
+    type = "Application";
+    categories = [
+      "Utility"
+      "TextEditor"
+      "Development"
+    ];
 
-  mimeType = [
-    "text/plain"
-    "text/x-c"
-    "text/x-c++"
-    "text/x-python"
-    "text/x-java"
-    "text/x-shellscript"
-    "text/x-makefile"
-    "application/json"
-    "application/xml"
-  ];
-};
-
-xdg.mimeApps = {
-  enable = true;
-
-  defaultApplications = {
-    "inode/directory" = [ "thunar.desktop" ];
-    #text editor
-    "text/plain" = [ "neovim.desktop" ];
-    "text/x-c" = [ "neovim.desktop" ];
-    "text/x-c++" = [ "neovim.desktop" ];
-    "text/x-python" = [ "neovim.desktop" ];
-    "text/x-java" = [ "neovim.desktop" ];
-    "text/x-shellscript" = [ "neovim.desktop" ];
-    "text/x-makefile" = [ "neovim.desktop" ];
-    "application/json" = [ "neovim.desktop" ];
-    "application/xml" = [ "neovim.desktop" ];
-
-    #compacted archives
-    "application/zip" = "org.gnome.FileRoller.desktop";
-    "application/x-7z-compressed" = "org.gnome.FileRoller.desktop";
-    "application/x-rar" = "org.gnome.FileRoller.desktop";
-    "application/x-tar" = "org.gnome.FileRoller.desktop";
-    "application/gzip" = "org.gnome.FileRoller.desktop";
-    "application/x-bzip2" = "org.gnome.FileRoller.desktop";
-    "application/x-xz" = "org.gnome.FileRoller.desktop";
+    mimeType = [
+      "text/plain"
+      "text/x-c"
+      "text/x-c++"
+      "text/x-python"
+      "text/x-java"
+      "text/x-shellscript"
+      "text/x-makefile"
+      "application/json"
+      "application/xml"
+    ];
   };
-};
+
+  xdg.mimeApps = {
+    enable = true;
+
+    defaultApplications = {
+      "inode/directory" = [ "thunar.desktop" ];
+
+      # Text editor.
+      "text/plain" = [ "neovim.desktop" ];
+      "text/x-c" = [ "neovim.desktop" ];
+      "text/x-c++" = [ "neovim.desktop" ];
+      "text/x-python" = [ "neovim.desktop" ];
+      "text/x-java" = [ "neovim.desktop" ];
+      "text/x-shellscript" = [ "neovim.desktop" ];
+      "text/x-makefile" = [ "neovim.desktop" ];
+      "application/json" = [ "neovim.desktop" ];
+      "application/xml" = [ "neovim.desktop" ];
+
+      # Compressed archives.
+      "application/zip" = "org.gnome.FileRoller.desktop";
+      "application/x-7z-compressed" = "org.gnome.FileRoller.desktop";
+      "application/x-rar" = "org.gnome.FileRoller.desktop";
+      "application/x-tar" = "org.gnome.FileRoller.desktop";
+      "application/gzip" = "org.gnome.FileRoller.desktop";
+      "application/x-bzip2" = "org.gnome.FileRoller.desktop";
+      "application/x-xz" = "org.gnome.FileRoller.desktop";
+    };
+  };
 
   xdg.desktopEntries.kitty = {
     name = "Kitty";
@@ -285,7 +288,7 @@ xdg.mimeApps = {
   };
 
   # ============================================================================
-  # STEMIO
+  # STREMIO
   # ============================================================================
 
   home.file.".local/share/applications/com.stremio.Stremio.desktop".text = ''
@@ -321,7 +324,6 @@ xdg.mimeApps = {
   # ============================================================================
   
   home.packages = with pkgs; [
-
     # --------------------------------------------------------------------------
     # Terminal / CLI
     # --------------------------------------------------------------------------
@@ -334,20 +336,17 @@ xdg.mimeApps = {
     lm_sensors
     pciutils
     psmisc
-    playerctl
-    wev
     jq
     socat
-    android-tools
 
     # --------------------------------------------------------------------------
     # Development
     # --------------------------------------------------------------------------
 
+    android-tools
     gdb
     cmake
     gnumake
-    neovim
     git
     luaPackages.tree-sitter-cli
     lazygit
@@ -355,11 +354,9 @@ xdg.mimeApps = {
     ripgrep
     fzf
     clang
-    clang-tools
-    lua-language-server
     pnpm
     electron
-    ydotool
+
     # --------------------------------------------------------------------------
     # Desktop / Wayland
     # --------------------------------------------------------------------------
@@ -371,7 +368,14 @@ xdg.mimeApps = {
     wl-clipboard
     mako
     hyprpicker
-    hyprpaper
+    awww
+    waypaper
+    ydotool
+    playerctl
+    wev
+    hyprshot
+    slurp
+    xfce4-settings
     waybar.packages.${pkgs.stdenv.hostPlatform.system}.default
 
     # --------------------------------------------------------------------------
@@ -389,12 +393,12 @@ xdg.mimeApps = {
     qt6Packages.qtstyleplugin-kvantum
 
     # --------------------------------------------------------------------------
-    # File management / utilities
+    # File management / storage
     # --------------------------------------------------------------------------
 
-    qbittorrent
-    qview
-    xfce4-settings
+    compsize
+    snapper
+    btrfs-assistant
     libgsf
     poppler
     webp-pixbuf-loader
@@ -409,6 +413,12 @@ xdg.mimeApps = {
     mpv
     cava
     ffmpeg
+    obs-studio
+
+    # OBS plugins.
+    obs-studio-plugins.obs-pipewire-audio-capture
+    obs-studio-plugins.obs-scene-as-transition
+    obs-studio-plugins.obs-vkcapture
 
     # --------------------------------------------------------------------------
     # Browser / Internet
@@ -416,20 +426,20 @@ xdg.mimeApps = {
 
     proton-vpn
     brave-origin
+    qbittorrent
 
     # --------------------------------------------------------------------------
     # Gaming
     # --------------------------------------------------------------------------
 
     (pkgs.discord.override {
-    withVencord = true;
+      withVencord = true;
     })
     prismlauncher
     mangohud
     lutris
     wine
     appimage-run
-    lact
     hydralauncher
 
     # --------------------------------------------------------------------------
@@ -439,13 +449,7 @@ xdg.mimeApps = {
     vulkan-tools
     mesa-demos
     gimp
-    hyprshot
-    slurp
-    obs-studio
-
-    # OBS plugins.
-    obs-studio-plugins.obs-pipewire-audio-capture
-    obs-studio-plugins.obs-scene-as-transition
-    obs-studio-plugins.obs-vkcapture
+    qview
+    lact
   ];
 }

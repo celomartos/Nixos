@@ -9,6 +9,8 @@ local navegador_anonimo = "brave-origin --incognito"
 local discord = "discord"
 
 local mainMod = "SUPER"
+local configHome = os.getenv("XDG_CONFIG_HOME") or (os.getenv("HOME") .. "/.config")
+local calendarClose = configHome .. "/waybar/eww/close-calendar-on-escape.sh"
 
 ------------------------
 ---- WINDOW CONTROL ----

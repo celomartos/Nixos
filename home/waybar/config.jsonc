@@ -5,7 +5,9 @@
 
   "modules-left": [
     "hyprland/workspaces",
-    "custom/window"
+    "custom/cava",
+    "custom/network-speed"
+
   ],
 
   "modules-center": [
@@ -20,13 +22,6 @@
     "custom/temp",
     "custom/power"
   ],
-
-"custom/window": {
-    "tooltip": false,
-    "exec": "~/.config/waybar/scripts/window.sh",
-    "format": "{}"
-    
-},
 
   "pulseaudio": {
     "tooltip": false,
@@ -48,8 +43,16 @@
     "spacing": 10
   },
 
+  "custom/network-speed": {
+    "exec": "\"${XDG_CONFIG_HOME:-$HOME/.config}/waybar/scripts/network-speed.sh\"",
+    "return-type": "json",
+    "format": "{text}",
+    "interval": 2,
+    "tooltip": true,
+  },
+
   "custom/cava": {
-    "exec": "/home/celin/.config/waybar/scripts/cava.sh",
+    "exec": "\"${XDG_CONFIG_HOME:-$HOME/.config}/waybar/scripts/cava.sh\"",
     "return-type": "text",
     "format": "{}",
     "tooltip": false,
@@ -64,7 +67,7 @@
   "custom/temp": {
     "format": " {}",
     "interval": 2,
-    "exec": "/home/celin/.config/waybar/scripts/tempinfo.sh",
+    "exec": "\"${XDG_CONFIG_HOME:-$HOME/.config}/waybar/scripts/tempinfo.sh\"",
     "tooltip": false,
   },
 
@@ -83,13 +86,27 @@
   "custom/power": {
     "format": "⏻ ",
     "tooltip": false,
-    "on-click": "bash ~/.config/rofi/powermenu.sh",
+    "on-click": "bash \"${XDG_CONFIG_HOME:-$HOME/.config}/rofi/powermenu.sh\"",
   },
 
   "clock": {
-    "tooltip":false,
+    "tooltip": true,
     "locale": "en_US.UTF-8",
     "format": " {:L%a %d %b 󰥔 %H:%M}",
+    "tooltip-format": "<big>{:%B %Y}</big>\n<tt>{calendar}</tt>",
+    "calendar": {
+      "mode": "month",
+      "on-scroll": 1,
+      "format": {
+        "today": "<span foreground='#000000' background='#ffffff'><b>{}</b></span>",
+      },
+    },
+    "actions": {
+      "on-click-left": "shift_reset",
+      "on-scroll-up": "shift_up",
+      "on-scroll-down": "shift_down",
+      "on-click-right": "mode",
+    },
   },
 
   "hyprland/workspaces": {
@@ -100,15 +117,17 @@
       "*": 5
     },
 
-    "window-rewrite-default": "",
+    "window-rewrite-default": "󰟢",
 
     "window-rewrite": {
       // --- Work ---
       "kitty": "",
       "brave-origin":"󰖟",
+      "Chatgpt": "󰚩",
 
       // --- Apps ---
       "discord": "",
+      "com.github.wwmm.easyeffects": "󰺢",
       "org.qbittorrent.qBittorrent": "󰘿",
       "steam": "",
       "stremio": "",

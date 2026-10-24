@@ -1,17 +1,19 @@
 #!/usr/bin/env bash
 
+set -o pipefail
+
 bars=("▁" "▂" "▃" "▄" "▅" "▆" "▇" "█")
+config="$(dirname -- "${BASH_SOURCE[0]}")/cava-waybar.conf"
 
-cava | while read -r line; do
+cava -p "$config" | while IFS= read -r line; do
     output=""
+    IFS=';' read -r -a levels <<< "$line"
 
-    for ((i=0; i<${#line}; i++)); do
-        char="${line:i:1}"
-
-        if [[ "$char" =~ [0-7] ]]; then
-            output+=${bars[$char]}
+    for level in "${levels[@]}"; do
+        if [[ "$level" =~ ^[0-7]$ ]]; then
+            output+="${bars[$level]}"
         fi
     done
 
-    echo "$output"
+    printf '%s\n' "$output"
 done

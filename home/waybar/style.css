@@ -3,7 +3,7 @@
     border-radius: 1px;
     font-family: JetBrainsMono Nerd Font;
     font-size: 16px;
-    font-weight: 700;
+    font-weight: 600;
 }
 
 window#waybar {
@@ -14,9 +14,33 @@ window#waybar {
 
 
 tooltip {
-    background: rgba (0, 0, 0, 1);
-    border-radius: 4px;
-    padding: 12px;
+    background: #000000;
+    color: #ffffff;
+    border: 1px solid #000000;
+    border-radius: 16px;
+    padding: 24px;
+}
+
+tooltip label {
+    color: #ffffff;
+    font-family: JetBrainsMono Nerd Font;
+    font-size: 20px;
+}
+
+tooltip .calendar-months,
+tooltip .calendar-weekdays {
+    color: #ffffff;
+    font-weight: bold;
+}
+
+tooltip .calendar-days,
+tooltip .calendar-weeks {
+    color: #dddddd;
+}
+
+tooltip .calendar-today {
+    color: #ffffff;
+    font-weight: bold;
 }
 
 #workspaces,
@@ -32,13 +56,21 @@ tooltip {
 #pulseaudio,
 #battery,
 #custom-mpris,
-#custom-window,
 #tray,
+#custom-network-speed,
 #custom-cava 
 {
     margin-top: 0px;
     margin-left: 8px;
     padding: 0px 12px;
+}
+
+#custom-network-speed.online {
+    color: #a6adc8;
+}
+
+#custom-network-speed.offline {
+    color: #f38ba8;
 }
 
 #cpu:hover,
@@ -50,10 +82,10 @@ tooltip {
 #custom-launcher:hover,
 #custom-keybinds:hover,
 #clock:hover,
+#custom-network-speed:hover,
 #custom-eww-dashboard:hover,
 #pulseaudio:hover,
 #battery:hover,
-#custom-window:hover,
 #custom-mpris:hover,
 #custom-cava:hover,
 #keyboard-state:hover {
@@ -102,7 +134,8 @@ tooltip {
 
 #tray > *:hover {
     background: rgb(60, 60, 60);
-    border-radius: 12px;
+    border-radius: 16px;
+    padding: 4px 8px;
 }
 
 

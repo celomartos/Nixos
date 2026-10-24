@@ -105,3 +105,8 @@ hl.animation({
 	bezier = "workspace",
 	style = "slide",
 })
+
+hl.layer_rule({
+	match = { namespace = "calendar" },
+	animation = "slide top",
+})
