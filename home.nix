@@ -1,4 +1,9 @@
-{ config, pkgs, waybar, ... }:
+{
+  config,
+  pkgs,
+  waybar,
+  ...
+}:
 
 {
   imports = [ ./home/nixvim.nix ];
@@ -17,9 +22,9 @@
   # CONFIGURATION FILES
   # ============================================================================
 
- # home.file.".config/hypr/".source = ./home/hyprland;
- # home.file.".config/waybar".source = ./home/waybar;
- # home.file.".config/rofi".source = ./home/rofi;
+  # home.file.".config/hypr/".source = ./home/hyprland;
+  # home.file.".config/waybar".source = ./home/waybar;
+  # home.file.".config/rofi".source = ./home/rofi;
   home.file.".config/mako".source = ./home/mako;
   home.file.".config/cava".source = ./home/cava;
   home.file.".config/Kvantum/Graphite".source = ./home/Graphite;
@@ -35,17 +40,17 @@
     functions = {
       fish_prompt = {
         body = ''
-    set_color "#FFFFFF"
+          set_color "#FFFFFF"
 
-    if test "$PWD" = "$HOME"
-      echo -n "in ~"
-    else
-      echo -n "in "(basename $PWD)
-    end
+          if test "$PWD" = "$HOME"
+            echo -n "in ~"
+          else
+            echo -n "in "(basename $PWD)
+          end
 
-    set_color normal
-    echo -n " >_ "
-  '';
+          set_color normal
+          echo -n " >_ "
+        '';
       };
 
       extract = ''
@@ -73,17 +78,17 @@
       '';
 
       nrs = ''
-      cd ~/nixos
-      sudo nixos-rebuild switch --flake . --impure; and \
-      sudo nix-env --profile /nix/var/nix/profiles/system --delete-generations +3; and \
-      sudo nix-collect-garbage
-    '';
+        cd ~/nixos
+        sudo nixos-rebuild switch --flake . --impure; and \
+        sudo nix-env --profile /nix/var/nix/profiles/system --delete-generations +3; and \
+        sudo nix-collect-garbage
+      '';
     };
 
     # Commands executed when an interactive Fish shell starts.
     interactiveShellInit = ''
-    set -g fish_greeting
-  '';
+      set -g fish_greeting
+    '';
   };
 
   # ============================================================================
@@ -111,110 +116,110 @@
   # ============================================================================
 
   home.file.".config/fastfetch/config.jsonc".text = ''
-    {
-      "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/master/doc/json_schema.json",
+        {
+          "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/master/doc/json_schema.json",
 
-      "logo": {
-        "type": "kitty",
-        "height": 16,
-        "source": "/home/celin/.config/fastfetch/fastfetch.png",
-        "padding": {
-          "right": 4
-        }
+          "logo": {
+            "type": "kitty",
+            "height": 16,
+            "source": "/home/celin/.config/fastfetch/fastfetch.png",
+            "padding": {
+              "right": 4
+            }
+          },
+
+          "display": {
+            "color": {
+              "keys": "white",
+              "output": "white"
+            },
+            "key": {
+              "width": 13,
+              "type": "both"
+            },
+            "brightColor": false
+          },
+
+        "modules": [
+
+      {
+        "type": "break"
       },
 
-      "display": {
-        "color": {
-          "keys": "white",
-          "output": "white"
-        },
-        "key": {
-          "width": 13,
-          "type": "both"
-        },
-        "brightColor": false
+      {
+        "type": "title",
+        "format": "{user-name}@{host-name}"
       },
 
-    "modules": [
+      {
+        "type": "os",
+        "key": "System  | ",
+        "keyIcon": "",
+        "format": "{name} {version}"
+      },
 
-  {
-    "type": "break"
-  },
+      {
+        "type": "kernel",
+        "key": "Kernel  | ",
+        "keyIcon": ""
+      },
 
-  {
-    "type": "title",
-    "format": "{user-name}@{host-name}"
-  },
+      {
+        "type": "shell",
+        "key": "Shell   | ",
+        "keyIcon": ""
+      },
 
-  {
-    "type": "os",
-    "key": "System  | ",
-    "keyIcon": "",
-    "format": "{name} {version}"
-  },
+      { "type": "packages",
+    	  "key": "Pkgs    | ",
+    	  "keyIcon": ""
+    	},
 
-  {
-    "type": "kernel",
-    "key": "Kernel  | ",
-    "keyIcon": ""
-  },
+    	{ "type": "wm",
+    	  "key": "WM      | ",
+    	  "keyIcon": ""
+    	},
 
-  {
-    "type": "shell",
-    "key": "Shell   | ",
-    "keyIcon": ""
-  },
+      {
+        "type": "uptime",
+        "key": "Uptime  | ",
+        "keyIcon": ""
+      },
 
-  { "type": "packages",
-	  "key": "Pkgs    | ",
-	  "keyIcon": ""
-	},
+    	{ "type": "custom",
+    	  "format": "────────────────────────────"
+    	},
 
-	{ "type": "wm",
-	  "key": "WM      | ",
-	  "keyIcon": ""
-	},
+    	{ "type": "gpu",
+    	  "key": "GPU     | ",
+    	  "keyIcon": ""
+            },
 
-  {
-    "type": "uptime",
-    "key": "Uptime  | ",
-    "keyIcon": ""
-  },
+    	{ "type": "cpu",
+    	  "key": "CPU     | ",
+    	  "keyIcon": ""
+    	},
 
-	{ "type": "custom",
-	  "format": "────────────────────────────"
-	},
+      {
+        "type": "memory",
+        "key": "Memory  | ",
+        "keyIcon": ""
+      },
 
-	{ "type": "gpu",
-	  "key": "GPU     | ",
-	  "keyIcon": ""
-        },
+      {
+        "type": "swap",
+        "key": "Swap    | ",
+        "keyIcon": ""
+      },
 
-	{ "type": "cpu",
-	  "key": "CPU     | ",
-	  "keyIcon": ""
-	},
-
-  {
-    "type": "memory",
-    "key": "Memory  | ",
-    "keyIcon": ""
-  },
-
-  {
-    "type": "swap",
-    "key": "Swap    | ",
-    "keyIcon": ""
-  },
-
-  {
-    "type": "disk",
-    "key": "Storage | ",
-    "keyIcon": "",
-    "folders": "/"
-     },
-    ]
-  }
+      {
+        "type": "disk",
+        "key": "Storage | ",
+        "keyIcon": "",
+        "folders": "/"
+         },
+        ]
+      }
   '';
 
   # ============================================================================
@@ -320,9 +325,31 @@
   };
 
   # ============================================================================
+  # CLIPHIST HISTORY CLEANUP
+  # ============================================================================
+
+  systemd.user.services.cliphist-clear = {
+    Unit.Description = "Clear the cliphist history";
+    Service = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.cliphist}/bin/cliphist wipe";
+    };
+  };
+
+  systemd.user.timers.cliphist-clear = {
+    Unit.Description = "Clear cliphist every 30 minutes";
+    Timer = {
+      OnBootSec = "30m";
+      OnUnitActiveSec = "30m";
+      Unit = "cliphist-clear.service";
+    };
+    Install.WantedBy = [ "timers.target" ];
+  };
+
+  # ============================================================================
   # USER PACKAGES
   # ============================================================================
-  
+
   home.packages = with pkgs; [
     # --------------------------------------------------------------------------
     # Terminal / CLI
@@ -337,7 +364,6 @@
     pciutils
     psmisc
     jq
-    socat
 
     # --------------------------------------------------------------------------
     # Development

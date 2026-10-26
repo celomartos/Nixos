@@ -45,7 +45,6 @@
     kernelModules = [ "tcp_bbr" ];
 
     consoleLogLevel = 3;
-    initrd.verbose = false;
 
     kernelParams = [
       "rd.udev.log_level=3"
@@ -333,7 +332,10 @@
     description = "Configurar tema Graphite nos Flatpaks";
     wantedBy = [ "default.target" ];
 
-    path = with pkgs; [ coreutils flatpak ];
+    path = with pkgs; [
+      coreutils
+      flatpak
+    ];
     script = ''
       themeDir="$HOME/.local/share/themes/Graphite-Dark"
       if [ -d "$themeDir" ] && [ ! -L "$themeDir" ]; then
