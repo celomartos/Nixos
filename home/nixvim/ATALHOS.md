@@ -1,6 +1,6 @@
 # Atalhos Neovim (Nixvim)
 
-Fonte: `home/nixvim/nixvim.nix` e fontes locais dos plugins instalados. **Configuração explícita** indica mapa definido aqui; **Padrão confirmado** indica mapa conferido no código instalado; **não testado em runtime** indica que não houve teste interativo.
+Fonte: módulos `home/nixvim/*.nix` e fontes locais dos plugins instalados. **Configuração explícita** indica mapa definido aqui; **Padrão confirmado** indica mapa conferido no código instalado; **não testado em runtime** indica que não houve teste interativo.
 
 Defaults auditados: Snacks 2.31.0, Trouble 3.7.1, Which-Key 3.17.0, Flash 2.1.0, mini.surround 0.18.0, Comment.nvim 0.8.0 e Telescope instalado. As ações abaixo foram conferidas no código; a interação visual não foi testada.
 

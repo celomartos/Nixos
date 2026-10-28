@@ -6,7 +6,7 @@
 }:
 
 {
-  imports = [ ./home/nixvim/nixvim.nix ];
+  imports = [ ./home/nixvim/default.nix ];
 
   # ============================================================================
   # HOME MANAGER
