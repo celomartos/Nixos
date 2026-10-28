@@ -3,16 +3,14 @@
 set -o pipefail
 
 bars=("▁" "▂" "▃" "▄" "▅" "▆" "▇" "█")
-config="$(dirname -- "${BASH_SOURCE[0]}")/cava-waybar.conf"
+config="${BASH_SOURCE[0]%/*}/cava-waybar.conf"
 
-cava -p "$config" | while IFS= read -r line; do
+cava -p "$config" | while IFS=';' read -r -a levels; do
     output=""
-    IFS=';' read -r -a levels <<< "$line"
 
     for level in "${levels[@]}"; do
-        if [[ "$level" =~ ^[0-7]$ ]]; then
-            output+="${bars[$level]}"
-        fi
+        [[ "$level" =~ ^[0-7]$ ]] || continue
+        output+="${bars[level]}"
     done
 
     printf '%s\n' "$output"

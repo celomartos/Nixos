@@ -466,6 +466,8 @@
 
     # Desktop application.
     chatgpt
+    codex
+    antigravity-cli
 
     # Python environment for computer vision and utilities.
     (python3.withPackages (

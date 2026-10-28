@@ -6,7 +6,7 @@
 }:
 
 {
-  imports = [ ./home/nixvim.nix ];
+  imports = [ ./home/nixvim/nixvim.nix ];
 
   # ============================================================================
   # HOME MANAGER
@@ -26,7 +26,6 @@
   # home.file.".config/waybar".source = ./home/waybar;
   # home.file.".config/rofi".source = ./home/rofi;
   home.file.".config/mako".source = ./home/mako;
-  home.file.".config/cava".source = ./home/cava;
   home.file.".config/Kvantum/Graphite".source = ./home/Graphite;
 
   # ============================================================================
