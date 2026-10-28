@@ -46,11 +46,6 @@
 
     nix-flatpak.url = "github:gmodena/nix-flatpak";
 
-    # Waybar package passed to the system modules.
-    waybar = {
-      url = "github:Alexays/Waybar";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   # ============================================================================
@@ -66,7 +61,6 @@
       home-manager,
       nix-flatpak,
       lanzaboote,
-      waybar,
       chaotic,
       ...
     }:
@@ -77,7 +71,7 @@
 
         # Pass additional inputs to configuration modules.
         specialArgs = {
-          inherit nixpkgs-stable waybar;
+          inherit nixpkgs-stable;
         };
 
         # Compose the system, Home Manager, and external modules.

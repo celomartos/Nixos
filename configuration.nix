@@ -20,7 +20,6 @@
   pkgs,
   pkgs-stable,
   lib,
-  waybar,
   ...
 }:
 
@@ -70,10 +69,6 @@
   home-manager.useUserPackages = true;
 
   home-manager.backupFileExtension = "backup";
-
-  home-manager.extraSpecialArgs = {
-    inherit waybar;
-  };
 
   home-manager.users.celin = import ./home.nix;
 

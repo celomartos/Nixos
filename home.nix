@@ -1,7 +1,6 @@
 {
   config,
   pkgs,
-  waybar,
   ...
 }:
 
@@ -401,7 +400,7 @@
     hyprshot
     slurp
     xfce4-settings
-    waybar.packages.${pkgs.stdenv.hostPlatform.system}.default
+    (pkgs.waybar.override { cavaSupport = true; })
 
     # --------------------------------------------------------------------------
     # GTK / Qt
