@@ -102,6 +102,25 @@
       background_opacity = "0.85";
       background_blur = "0";
       remember_window_size = "no";
+
+      # Abas
+      tab_bar_edge = "bottom";
+      tab_bar_style = "powerline";
+      tab_powerline_style = "slanted";
+      tab_bar_min_tabs = 2;
+
+      # Aba selecionada
+      active_tab_foreground = "#ffffff";
+      active_tab_background = "#7c3aed";
+      active_tab_font_style = "bold";
+
+      # Abas inativas
+      inactive_tab_foreground = "#a1a1aa";
+      inactive_tab_background = "#27272a";
+      inactive_tab_font_style = "normal";
+
+      # Fundo da barra
+      tab_bar_background = "#18181b";
     };
   };
 
@@ -401,9 +420,9 @@
     slurp
     xfce4-settings
     (pkgs.waybar.overrideAttrs (oldAttrs: {
-      mesonFlags =
-        (pkgs.lib.filter (flag: !(pkgs.lib.hasPrefix "-Dcava=" flag)) oldAttrs.mesonFlags)
-        ++ [ "-Dcava=enabled" ];
+      mesonFlags = (pkgs.lib.filter (flag: !(pkgs.lib.hasPrefix "-Dcava=" flag)) oldAttrs.mesonFlags) ++ [
+        "-Dcava=enabled"
+      ];
     }))
 
     # --------------------------------------------------------------------------

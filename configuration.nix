@@ -145,6 +145,8 @@
     };
   };
 
+  services.ratbagd.enable = true;
+
   programs.hyprland = {
     enable = true;
     withUWSM = true;
@@ -157,7 +159,7 @@
   #   wayland.enable = true;
   # };
 
-  programs.regreet = {
+  services.displayManager.regreet = {
     enable = true;
     theme = {
       name = "Graphite-Dark";
