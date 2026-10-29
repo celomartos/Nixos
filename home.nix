@@ -400,7 +400,11 @@
     hyprshot
     slurp
     xfce4-settings
-    (pkgs.waybar.override { cavaSupport = true; })
+    (pkgs.waybar.overrideAttrs (oldAttrs: {
+      mesonFlags =
+        (pkgs.lib.filter (flag: !(pkgs.lib.hasPrefix "-Dcava=" flag)) oldAttrs.mesonFlags)
+        ++ [ "-Dcava=enabled" ];
+    }))
 
     # --------------------------------------------------------------------------
     # GTK / Qt

@@ -26,6 +26,11 @@
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
     nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-26.05";
 
+    waybar = {
+      url = "github:Alexays/Waybar/e17c0d9";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Neovim configuration module.
     nixvim = {
       url = "github:nix-community/nixvim";
@@ -57,6 +62,7 @@
       self,
       nixpkgs,
       nixpkgs-stable,
+      waybar,
       nixvim,
       home-manager,
       nix-flatpak,
@@ -77,6 +83,8 @@
         # Compose the system, Home Manager, and external modules.
         modules = [
           ./configuration.nix
+
+          { nixpkgs.overlays = [ waybar.overlays.waybar ]; }
 
           home-manager.nixosModules.home-manager
           { home-manager.sharedModules = [ nixvim.homeModules.nixvim ]; }
