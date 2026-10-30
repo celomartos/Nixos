@@ -64,6 +64,36 @@
       local build_qf_items
       local build_previous_qf_id
       local build_trouble_view
+      local build_qf_winid
+
+      local function build_quickfix_window(winid)
+        if not winid or not vim.api.nvim_win_is_valid(winid) then
+          return nil
+        end
+
+        local window = vim.fn.getwininfo(winid)[1]
+        if window and window.quickfix == 1 and window.loclist == 0 then
+          return window
+        end
+      end
+
+      local function open_build_quickfix()
+        local existing_windows = {}
+        for _, window in ipairs(vim.fn.getwininfo()) do
+          existing_windows[window.winid] = true
+        end
+
+        vim.cmd("botright copen 8")
+
+        for _, window in ipairs(vim.fn.getwininfo()) do
+          if not existing_windows[window.winid]
+            and window.quickfix == 1
+            and window.loclist == 0 then
+            build_qf_winid = window.winid
+            return
+          end
+        end
+      end
 
       local function select_quickfix_list(id)
         local target = vim.fn.getqflist({ id = id, nr = 0 })
@@ -128,16 +158,8 @@
             end)
           end
 
-          for _, win in ipairs(vim.fn.getwininfo()) do
-            if win.quickfix == 1 then
-              local ok_window_list, window_list = pcall(vim.fn.getqflist, {
-                id = 0,
-                winid = win.winid,
-              })
-              if ok_window_list and window_list.id == build_qf_id then
-                pcall(vim.api.nvim_win_close, win.winid, true)
-              end
-            end
+          if build_quickfix_window(build_qf_winid) then
+            pcall(vim.api.nvim_win_close, build_qf_winid, true)
           end
 
           pcall(vim.fn.setqflist, {}, "r", {
@@ -156,6 +178,7 @@
         end
 
         build_trouble_view = nil
+        build_qf_winid = nil
       end
 
       local function show_build_diagnostics(title, lines)
@@ -196,10 +219,10 @@
           if ok_open and view and #build_qf_items > 0 then
             build_trouble_view = view
           else
-            vim.cmd("botright copen 8")
+            open_build_quickfix()
           end
         else
-          vim.cmd("botright copen 8")
+          open_build_quickfix()
         end
       end
 
@@ -207,21 +230,48 @@
         release_build_diagnostics()
       end
 
-      local function watch_cargo_run(output_path, status_path, project_root)
+      local function watch_cargo_run(output_path, status_path, timeout_path, project_root)
         local uv = vim.uv or vim.loop
         local timer = uv.new_timer()
+        local deadline = uv.now() + 10 * 60 * 1000
+        local finished = false
+
+        local function cleanup(mark_timeout)
+          if finished then
+            return false
+          end
+          finished = true
+          if not timer:is_closing() then
+            timer:stop()
+            timer:close()
+          end
+          if mark_timeout then
+            pcall(vim.fn.writefile, { "" }, timeout_path)
+          end
+          pcall(vim.fn.delete, output_path)
+          pcall(vim.fn.delete, status_path)
+          if not mark_timeout then
+            pcall(vim.fn.delete, timeout_path)
+          end
+          return true
+        end
+
         timer:start(250, 250, vim.schedule_wrap(function()
           local status_stat = uv.fs_stat(status_path)
           if not status_stat or status_stat.size == 0 then
+            if uv.now() >= deadline and cleanup(true) then
+              vim.notify("Cargo run status timed out; stopped build diagnostic watcher", vim.log.levels.WARN)
+            end
             return
           end
 
-          timer:stop()
-          timer:close()
-          local status = tonumber(table.concat(vim.fn.readfile(status_path), ""))
-          local output = vim.fn.readfile(output_path)
-          pcall(vim.fn.delete, output_path)
-          pcall(vim.fn.delete, status_path)
+          local ok_status, status_lines = pcall(vim.fn.readfile, status_path)
+          local ok_output, output = pcall(vim.fn.readfile, output_path)
+          if not cleanup(false) then
+            return
+          end
+          local status = ok_status and tonumber(table.concat(status_lines, ""))
+          output = ok_output and output or {}
 
           local cargo_started_program = false
           for _, line in ipairs(output) do
@@ -288,14 +338,19 @@
             local project_root = vim.fn.fnamemodify(manifest, ":h")
             local output_path = vim.fn.tempname()
             local status_path = vim.fn.tempname()
+            local timeout_path = vim.fn.tempname()
             local run_script = "cargo run --message-format=short 2> >(tee "
               .. vim.fn.shellescape(output_path)
               .. " >&2); status=$?; wait; printf '%s' \"$status\" > "
               .. vim.fn.shellescape(status_path)
+              .. "; if test -e " .. vim.fn.shellescape(timeout_path) .. "; then rm -f "
+              .. vim.fn.shellescape(output_path) .. " "
+              .. vim.fn.shellescape(status_path) .. " "
+              .. vim.fn.shellescape(timeout_path) .. "; fi"
               .. "; exit \"$status\""
             local run_cmd = "cd " .. vim.fn.shellescape(project_root)
               .. " && bash -o pipefail -c " .. vim.fn.shellescape(run_script)
-            watch_cargo_run(output_path, status_path, project_root)
+            watch_cargo_run(output_path, status_path, timeout_path, project_root)
             send_to_ide_terminal(run_cmd)
           else
             local executable = vim.fn.tempname()
