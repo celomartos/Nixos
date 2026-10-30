@@ -14,6 +14,7 @@
       termguicolors = true;
       clipboard = "unnamedplus";
       confirm = true;
+      autoread = true;
       number = true;
       relativenumber = false;
       autoindent = true;

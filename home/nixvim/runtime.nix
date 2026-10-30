@@ -3,21 +3,12 @@
 {
   programs.nixvim = {
     extraConfigLua = ''
-      -- Save modified files when leaving insert mode.
-      vim.api.nvim_create_autocmd("InsertLeave", {
-        desc = "Save modified files after leaving insert mode",
-        callback = function(event)
-          local buf = event.buf
-          if vim.bo[buf].buftype == ""
-            and vim.bo[buf].modifiable
-            and not vim.bo[buf].readonly
-            and vim.bo[buf].modified
-            and vim.api.nvim_buf_get_name(buf) ~= "" then
-            vim.api.nvim_buf_call(buf, function()
-              vim.cmd("silent update")
-            end)
-          end
-        end,
+      local external_file_changes = vim.api.nvim_create_augroup("external_file_changes", { clear = true })
+
+      vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold" }, {
+        group = external_file_changes,
+        desc = "Reload externally changed, unmodified buffers",
+        command = "checktime",
       })
 
       -- Keep one small terminal panel available for shell commands and running code.
@@ -68,40 +59,188 @@
         ide_terminal:send(cmd)
       end
 
-      local function show_build_diagnostics(title, lines)
-        local current_qf = vim.fn.getqflist({ title = 1 })
-        local action = (current_qf.title and current_qf.title:match("^Build: ")) and "r" or " "
-        vim.fn.setqflist({}, action, {
-          title = title,
-          lines = lines,
+      local build_qf_id
+      local build_qf_context
+      local build_qf_items
+      local build_previous_qf_id
+      local build_trouble_view
+
+      local function select_quickfix_list(id)
+        local target = vim.fn.getqflist({ id = id, nr = 0 })
+        if target.id ~= id or not target.nr or target.nr == 0 then
+          return false
+        end
+
+        local current = vim.fn.getqflist({ id = 0, nr = 0 })
+        local distance = target.nr - current.nr
+        if distance > 0 then
+          pcall(vim.cmd, "silent cnewer " .. distance)
+        elseif distance < 0 then
+          pcall(vim.cmd, "silent colder " .. -distance)
+        end
+        return vim.fn.getqflist({ id = 0 }).id == id
+      end
+
+      local function restore_previous_quickfix_list()
+        if not build_previous_qf_id or build_previous_qf_id == 0 then
+          return
+        end
+
+        local current = vim.fn.getqflist({ id = 0, nr = 0 })
+        if current.id ~= build_qf_id then
+          return
+        end
+
+        local previous = vim.fn.getqflist({ id = build_previous_qf_id, nr = 0 })
+        if previous.id ~= build_previous_qf_id or not previous.nr or previous.nr == 0 then
+          return
+        end
+
+        local distance = previous.nr - current.nr
+        if distance > 0 then
+          pcall(vim.cmd, "silent cnewer " .. distance)
+        elseif distance < 0 then
+          pcall(vim.cmd, "silent colder " .. -distance)
+        end
+      end
+
+      local function release_build_diagnostics()
+        if not build_qf_id then
+          return
+        end
+
+        local ok_list, current = pcall(vim.fn.getqflist, {
+          id = build_qf_id,
+          items = 1,
+          context = 1,
         })
-        local opened_trouble = false
+        local owned = ok_list
+          and current.id == build_qf_id
+          and current.context == build_qf_context
+          and vim.deep_equal(current.items, build_qf_items)
+
+        if owned then
+          if build_trouble_view then
+            pcall(function()
+              if build_trouble_view.opts.mode == "qflist" and build_trouble_view:is_open() then
+                build_trouble_view:close()
+              end
+            end)
+          end
+
+          for _, win in ipairs(vim.fn.getwininfo()) do
+            if win.quickfix == 1 then
+              local ok_window_list, window_list = pcall(vim.fn.getqflist, {
+                id = 0,
+                winid = win.winid,
+              })
+              if ok_window_list and window_list.id == build_qf_id then
+                pcall(vim.api.nvim_win_close, win.winid, true)
+              end
+            end
+          end
+
+          pcall(vim.fn.setqflist, {}, "r", {
+            id = build_qf_id,
+            title = "Build: clean",
+            items = {},
+            context = build_qf_context,
+          })
+          build_qf_items = vim.fn.getqflist({ id = build_qf_id, items = 1 }).items
+          restore_previous_quickfix_list()
+        else
+          build_qf_id = nil
+          build_qf_context = nil
+          build_qf_items = nil
+          build_previous_qf_id = nil
+        end
+
+        build_trouble_view = nil
+      end
+
+      local function show_build_diagnostics(title, lines)
+        release_build_diagnostics()
+        local current_qf = vim.fn.getqflist({ id = 0, nr = 0 })
+        if build_qf_id then
+          if current_qf.id ~= build_qf_id then
+            build_previous_qf_id = current_qf.id
+          end
+          vim.fn.setqflist({}, "r", {
+            id = build_qf_id,
+            title = title,
+            lines = lines,
+            context = build_qf_context,
+          })
+          build_qf_items = vim.fn.getqflist({ id = build_qf_id, items = 1 }).items
+        else
+          build_previous_qf_id = current_qf.id
+          build_qf_context = "nixvim-build-diagnostics:" .. tostring(vim.uv.hrtime())
+          vim.fn.setqflist({}, " ", {
+            nr = "$",
+            title = title,
+            lines = lines,
+            context = build_qf_context,
+          })
+          current_qf = vim.fn.getqflist({ id = 0, items = 1 })
+          build_qf_id = current_qf.id
+          build_qf_items = current_qf.items
+        end
+
+        select_quickfix_list(build_qf_id)
+
         local ok_trouble, trouble = pcall(require, "trouble")
         if ok_trouble then
-          local ok_open = pcall(function()
-            trouble.open("qflist")
+          local ok_open, view = pcall(function()
+            return trouble.open({ mode = "qflist", new = true })
           end)
-          if ok_open and trouble.is_open() then
-            opened_trouble = true
+          if ok_open and view and #build_qf_items > 0 then
+            build_trouble_view = view
+          else
+            vim.cmd("botright copen 8")
           end
-        end
-        if not opened_trouble then
+        else
           vim.cmd("botright copen 8")
         end
       end
 
       local function clear_build_diagnostics()
-        local current_qf = vim.fn.getqflist({ title = 1 })
-        if current_qf.title and current_qf.title:match("^Build: ") then
-          vim.fn.setqflist({}, "r", { title = "Build: clean", items = {} })
-          vim.cmd("cclose")
-          pcall(function()
-            local ok_trouble, trouble = pcall(require, "trouble")
-            if ok_trouble and trouble.is_open() then
-              trouble.close()
+        release_build_diagnostics()
+      end
+
+      local function watch_cargo_run(output_path, status_path, project_root)
+        local uv = vim.uv or vim.loop
+        local timer = uv.new_timer()
+        timer:start(250, 250, vim.schedule_wrap(function()
+          local status_stat = uv.fs_stat(status_path)
+          if not status_stat or status_stat.size == 0 then
+            return
+          end
+
+          timer:stop()
+          timer:close()
+          local status = tonumber(table.concat(vim.fn.readfile(status_path), ""))
+          local output = vim.fn.readfile(output_path)
+          pcall(vim.fn.delete, output_path)
+          pcall(vim.fn.delete, status_path)
+
+          local cargo_started_program = false
+          for _, line in ipairs(output) do
+            if line:match("^Running `.*`$") then
+              cargo_started_program = true
+              break
             end
-          end)
-        end
+          end
+
+          if status and status ~= 0 and not cargo_started_program then
+            show_build_diagnostics(
+              "Build: Cargo (" .. vim.fn.fnamemodify(project_root, ":t") .. ")",
+              output
+            )
+            vim.notify("Cargo build failed", vim.log.levels.ERROR)
+          else
+            clear_build_diagnostics()
+          end
+        end))
       end
 
       local function run_current_file()
@@ -112,7 +251,8 @@
         end
 
         if vim.bo.modified then
-          vim.cmd("silent update")
+          vim.notify("Save the file before running it", vim.log.levels.WARN)
+          return
         end
 
         local filetype = vim.bo.filetype
@@ -146,23 +286,17 @@
           local manifest = vim.fs.find("Cargo.toml", { path = directory, upward = true })[1]
           if manifest then
             local project_root = vim.fn.fnamemodify(manifest, ":h")
-            vim.notify("Checking Cargo project...", vim.log.levels.INFO)
-            vim.system(
-              { "cargo", "check", "--message-format=short" },
-              { cwd = project_root, text = true },
-              vim.schedule_wrap(function(obj)
-                if obj.code ~= 0 then
-                  local raw_output = (obj.stderr or "") .. "\n" .. (obj.stdout or "")
-                  local lines = vim.split(raw_output, "\n", { trimempty = true })
-                  show_build_diagnostics("Build: Cargo (" .. vim.fn.fnamemodify(project_root, ":t") .. ")", lines)
-                  vim.notify("Cargo check failed", vim.log.levels.ERROR)
-                else
-                  clear_build_diagnostics()
-                  local run_cmd = "cd " .. vim.fn.shellescape(project_root) .. " && cargo run"
-                  send_to_ide_terminal(run_cmd)
-                end
-              end)
-            )
+            local output_path = vim.fn.tempname()
+            local status_path = vim.fn.tempname()
+            local run_script = "cargo run --message-format=short 2> >(tee "
+              .. vim.fn.shellescape(output_path)
+              .. " >&2); status=$?; wait; printf '%s' \"$status\" > "
+              .. vim.fn.shellescape(status_path)
+              .. "; exit \"$status\""
+            local run_cmd = "cd " .. vim.fn.shellescape(project_root)
+              .. " && bash -o pipefail -c " .. vim.fn.shellescape(run_script)
+            watch_cargo_run(output_path, status_path, project_root)
+            send_to_ide_terminal(run_cmd)
           else
             local executable = vim.fn.tempname()
             vim.notify("Compiling " .. filename .. "...", vim.log.levels.INFO)
