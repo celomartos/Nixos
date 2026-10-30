@@ -1,179 +1,130 @@
 # Atalhos Neovim (Nixvim)
 
-Fonte: módulos `home/nixvim/*.nix` e fontes locais dos plugins instalados. **Configuração explícita** indica mapa definido aqui; **Padrão confirmado** indica mapa conferido no código instalado; **não testado em runtime** indica que não houve teste interativo.
-
-Defaults auditados: Snacks 2.31.0, Trouble 3.7.1, Which-Key 3.17.0, Flash 2.1.0, mini.surround 0.18.0, Comment.nvim 0.8.0 e Telescope instalado. As ações abaixo foram conferidas no código; a interação visual não foi testada.
-
-`<leader>` é `\`: não há `mapleader` ou `maplocalleader` personalizado.
-
-## Explorer
-
-| Atalho | Ação | Contexto/Observações |
-|---|---|---|
-| `<CR>` / `l` | Abrir arquivo / confirmar item; em diretório, expandir ou entrar | Padrão confirmado; Snacks 2.31.0, Explorer |
-| `h` / `<BS>` | Fechar diretório sob o cursor / subir um nível | Padrão confirmado; Snacks 2.31.0 |
-| `a` | Criar arquivo ou diretório | Padrão confirmado; `/` final cria diretório |
-| `r` | Renomear item atual | Padrão confirmado; Snacks 2.31.0 |
-| `c` | Copiar item(ns) selecionado(s) para diretório atual | Padrão confirmado; sem seleção, pergunta destino para o item atual |
-| `m` | Mover itens selecionados para diretório atual | Padrão confirmado; sem seleção, renomeia item atual; pede confirmação ao mover |
-| `o` | Abrir com aplicativo do sistema | Padrão confirmado; Snacks 2.31.0 |
-| `d` | Mover item(ns) selecionado(s) para a lixeira | Tecla padrão confirmada; ação personalizada. **ENTER** confirma; ESC ou outra tecla cancela |
-| `U` | Desfazer uma exclusão | Configuração explícita; restaura um item elegível, do mais recente para o mais antigo, sem sobrescrever destino |
-| `y` / `p` | Copiar caminho(s) para o registro / colar itens copiados | Padrão confirmado; `y` aceita modo normal e visual |
-| `<Tab>` / `<S-Tab>` | Alternar seleção e avançar / retroceder na lista | Padrão confirmado; picker Snacks |
-| `u` / `P` | Atualizar árvore / alternar preview | Padrão confirmado; Snacks 2.31.0 |
-| `H` / `I` / `Z` | Alternar ocultos / ignorados / fechar todos os diretórios | Padrão confirmado; Snacks 2.31.0 |
-| `.` | Definir diretório do item atual como diretório da aba | Padrão confirmado; Snacks 2.31.0 |
-| `<C-c>` / `<C-t>` | Definir diretório da aba / abrir terminal no diretório | Padrão confirmado; Snacks 2.31.0 |
-| `<leader>/` | Buscar texto no diretório do Explorer | Padrão confirmado; Snacks 2.31.0 |
-| `]g` / `[g` | Próximo / anterior item com mudança Git | Padrão confirmado; Snacks 2.31.0 |
-| `]d` / `[d`, `]e` / `[e`, `]w` / `[w` | Próximo/anterior diagnóstico, erro ou aviso | Padrão confirmado; Snacks 2.31.0 |
-
-Histórico persistente em `stdpath("state")/snacks-explorer-trash.json`: caminho original, identificador/caminho na lixeira, horário e tipo. `U` tenta restaurar uma entrada elegível por uso, da mais recente para a mais antiga. Itens ausentes/incompatíveis e falhas permanecem no histórico; conflito de destino interrompe o undo. Sem teste interativo.
-
-## Busca
-
-| Atalho | Ação | Contexto/Observações |
-|---|---|---|
-| `<leader>ff` | Buscar arquivos | Configuração explícita; Telescope |
-| `<leader>fg` | Busca textual no projeto | Configuração explícita; Telescope live grep |
-| `<CR>` | Abrir resultado | Padrão confirmado; Telescope e Snacks picker |
-| `<C-n>` / `<C-p>` | Próximo / anterior resultado | Padrão confirmado; Snacks navega lista (normal/visual) ou input (normal/inserção); Telescope move seleção em inserção |
-| `<Tab>` / `<S-Tab>` | Alternar seleção e avançar / retroceder | Padrão confirmado; Telescope e Snacks picker |
-| `<C-x>` / `<C-v>` / `<C-t>` | Abrir em split horizontal / vertical / nova aba | Padrão confirmado; Telescope |
-| `<C-s>` / `<C-v>` / `<C-t>` | Abrir em split horizontal / vertical / nova aba | Padrão confirmado; Snacks picker |
-| `<Esc>` / `<C-c>` | Cancelar picker | Padrão confirmado; Snacks `<Esc>` em normal/inserção e `<C-c>` em inserção; Telescope `<Esc>` em normal e `<C-c>` em inserção |
-
-## Dashboard
-
-| Atalho | Ação | Contexto/Observações |
-|---|---|---|
-| `<leader>sd` | Abrir dashboard | Configuração explícita |
-| `f` / `g` / `r` | Buscar arquivo / texto / arquivo recente | Configuração explícita; botões Snacks Dashboard, abrem pickers Snacks |
-| `n` | Criar arquivo novo | Configuração explícita; inicia inserção |
-| `t` | Abrir seletor de temas | Configuração explícita; preview ao navegar; ENTER confirma e grava estado; ESC cancela e restaura o tema anterior |
-| `s` | Restaurar sessão do diretório atual | Configuração explícita; botão do dashboard chama `persistence.load()` |
-| `q` | Sair do Neovim | Configuração explícita; botão do dashboard chama `:qa` |
-
-Oxocarbon segue como padrão; também estão disponíveis Catppuccin, Tokyo Night, Kanagawa e Gruvbox. O seletor `Snacks.picker.colorschemes()` lista os temas disponíveis no runtime. A escolha confirmada fica em `stdpath("state")/nixvim-colorscheme` e é restaurada após carregar plugins. Estado ausente, inválido ou tema indisponível usa Oxocarbon. `:NixvimThemePicker` abre o mesmo seletor. Preview/cancelamento não grava estado.
+`<leader>` é `\`. Não há `mapleader`/`maplocalleader` personalizado. `n`: normal; `i`: inserção; `v`: visual; `o`: operador-pendente; `t`: terminal. Mapas de plugins valem no contexto indicado. Padrões do plugin são distintos dos mapas definidos nesta configuração.
 
 ## LSP
 
-| Atalho | Ação | Contexto/Observações |
+| Atalho | Modo/contexto | Ação |
 |---|---|---|
-| `gd` / `gr` | Ir à definição / buscar referências | Configuração explícita; modo normal |
-| `K` | Mostrar documentação do símbolo | Configuração explícita; modo normal |
-| `<leader>rn` | Renomear símbolo | Configuração explícita; modo normal |
-| `<leader>ca` | Ações de código | Configuração explícita; modo normal |
+| `gd` | `n` | Ir à definição |
+| `gr` | `n` | Buscar referências |
+| `K` | `n` | Mostrar documentação do símbolo |
+| `<leader>rn` | `n` | Renomear símbolo |
+| `<leader>ca` | `n` | Ações de código |
 
-## Diagnósticos / Trouble
+## Navegação e busca
 
-| Atalho | Ação | Contexto/Observações |
+| Atalho | Modo/contexto | Ação |
 |---|---|---|
-| `<leader>e` | Mostrar diagnóstico sob o cursor | Configuração explícita; modo normal |
-| `<leader>xx` / `<leader>xX` | Alternar diagnósticos / diagnósticos do buffer | Configuração explícita; Trouble |
-| `<leader>cs` / `<leader>cl` | Alternar símbolos / navegação LSP | Configuração explícita; Trouble |
-| `<leader>xL` / `<leader>xQ` | Alternar lista local / quickfix | Configuração explícita; Trouble |
-| `<leader>co` | Abrir quickfix com 8 linhas | Configuração explícita; janela quickfix nativa |
-| `<leader>xt` | Alternar lista TODO/FIXME | Configuração explícita; Trouble |
-| `<Esc>` | Fechar Trouble; se fechado, limpar realce da busca | Configuração explícita; modo normal |
-| `<Esc>` | Fechar Trouble | Configuração explícita; modo normal, janela Trouble |
-| `<CR>` / `o` / `q` | Ir ao item / ir e fechar / fechar | Padrão confirmado; Trouble 3.7.1 |
-| `?` / `r` / `R` | Ajuda / atualizar / alternar atualização automática | Padrão confirmado; Trouble 3.7.1 |
-| `]]` / `[[` | Próximo / anterior item | Padrão confirmado; Trouble 3.7.1 |
-| `<C-s>` / `<C-v>` | Abrir item em split horizontal / vertical | Padrão confirmado; Trouble 3.7.1 |
-| `dd` / `d` | Remover item / remover seleção visual | Padrão confirmado; Trouble 3.7.1; remove da lista, não da lixeira |
+| `<leader>ff` | `n` | Telescope: buscar arquivos |
+| `<leader>fg` | `n` | Telescope: busca textual no projeto |
+| `<leader>j` | `n`, `v`, `o` | Flash: busca rápida |
+| `<leader>J` | `n`, `v`, `o` | Flash: busca por Treesitter |
+| `r` | `o` | Flash: movimento remoto |
+| `<leader>sd` | `n` | Abrir dashboard Snacks |
+| `f` / `g` / `r` / `n` / `t` / `s` / `q` | Dashboard | Buscar arquivos / buscar texto / recentes / novo arquivo / temas / restaurar sessão / sair |
+
+## Explorer e pickers
+
+| Atalho | Modo/contexto | Ação |
+|---|---|---|
+| `<CR>` / `l` | Explorer / picker | Abrir/confirmar item; no Explorer, entrar no diretório |
+| `h` / `<BS>` | Explorer | Fechar diretório / subir um nível |
+| `a` / `r` | Explorer | Criar arquivo ou diretório / renomear item |
+| `c` / `m` | Explorer | Copiar / mover item selecionado; sem seleção, `c` copia item atual e `m` renomeia |
+| `d` / `U` | Explorer | Enviar à lixeira (confirme com Enter) / desfazer exclusão elegível |
+| `y` / `p` | Explorer (`y`: `n`/`v`) | Copiar caminho(s) / colar itens copiados |
+| `o` | Explorer | Abrir com aplicativo do sistema |
+| `<Tab>` / `<S-Tab>` | Explorer / picker | Alternar seleção e avançar / retroceder |
+| `u` / `P` | Explorer | Atualizar árvore / alternar preview |
+| `H` / `I` / `Z` | Explorer | Alternar ocultos / ignorados / fechar diretórios |
+| `.` / `<C-c>` / `<C-t>` | Explorer | Definir diretório da aba / definir diretório da aba / abrir terminal no diretório |
+| `<leader>/` | Explorer | Buscar texto no diretório |
+| `]g` / `[g` | Explorer | Próximo / anterior item com mudança Git |
+| `]d` / `[d`, `]e` / `[e`, `]w` / `[w` | Explorer | Próximo/anterior diagnóstico, erro ou aviso |
+| `<CR>` | Picker | Abrir resultado |
+| `<C-n>` / `<C-p>` | Picker | Próximo / anterior resultado |
+| `<C-x>` / `<C-v>` / `<C-t>` | Telescope | Abrir em split horizontal / vertical / nova aba |
+| `<C-s>` / `<C-v>` / `<C-t>` | Snacks picker | Abrir em split horizontal / vertical / nova aba |
+| `<Esc>` / `<C-c>` | Picker | Cancelar; tecla/mode variam entre Snacks e Telescope |
+
+## Edição e snippets
+
+| Atalho | Modo/contexto | Ação |
+|---|---|---|
+| `gcc` / `gbc` | `n` | Comment.nvim: alternar comentário de linha / bloco |
+| `gc{movimento}` / `gb{movimento}` | `n`, `o`; seleção `v` | Comentar linha / bloco sobre movimento ou seleção |
+| `gco` / `gcO` / `gcA` | `n` | Inserir comentário abaixo / acima / no fim da linha |
+| `sa` / `sd` / `sr` | mini.surround: `sa` em `n`/`v`; `sd`/`sr` em `n` | Adicionar / remover / substituir surround |
+| `sf` / `sF` / `sh` | `n` | mini.surround: encontrar à direita / à esquerda / realçar surround |
+| `<C-l>` / `<C-h>` | `i` | Próximo / anterior campo do snippet |
+| `main` | Snippet LuaSnip em C/C++ | Expandir esqueleto da função principal; texto de expansão, não atalho de teclado |
+| `<C-Space>` | `i` | Abrir conclusão |
+| `<C-n>` / `<C-p>` | `i` | Próxima / anterior sugestão |
+| `<C-e>` | `i` | Fechar conclusão |
+| `<CR>` | `i` | Aceitar sugestão; seleciona primeiro item se nenhum selecionado |
 
 ## Git
 
-| Atalho | Ação | Contexto/Observações |
+| Atalho | Modo/contexto | Ação |
 |---|---|---|
-| `]h` / `[h`, `]c` / `[c` | Próximo / anterior hunk | Configuração explícita; buffer com Gitsigns; em diff, `]c`/`[c` usam navegação nativa |
-| `<leader>hp` / `<leader>hd` | Preview do hunk / diff inline | Configuração explícita; buffer com Gitsigns |
-| `<leader>hD` | Diff do arquivo contra HEAD | Configuração explícita; buffer com Gitsigns |
-| `<leader>hr` | Resetar hunk | Configuração explícita; normal ou seleção visual (linhas selecionadas) |
-| `<leader>hR` | Resetar buffer inteiro | Configuração explícita; buffer com Gitsigns |
-| `<leader>hb` / `<leader>hB` | Histórico/blame da linha / alternar blame virtual | Configuração explícita; buffer com Gitsigns |
-| `<leader>hq` | Enviar todos os hunks ao quickfix | Configuração explícita; buffer com Gitsigns |
+| `]h` / `[h`, `]c` / `[c` | `n`, buffer com Gitsigns | Próximo / anterior hunk; em diff, `]c`/`[c` usam navegação nativa |
+| `<leader>hp` / `<leader>hd` | `n`, buffer com Gitsigns | Preview do hunk / diff inline |
+| `<leader>hD` | `n`, buffer com Gitsigns | Diff do arquivo contra HEAD |
+| `<leader>hr` | `n` / `v`, buffer com Gitsigns | Resetar hunk / linhas selecionadas |
+| `<leader>hR` | `n`, buffer com Gitsigns | Resetar buffer inteiro |
+| `<leader>hb` / `<leader>hB` | `n`, buffer com Gitsigns | Histórico/blame da linha / alternar blame virtual |
+| `<leader>hq` | `n`, buffer com Gitsigns | Enviar hunks ao Quickfix |
 
-## Terminal
+## Diagnósticos e listas
 
-| Atalho | Ação | Contexto/Observações |
+| Atalho | Modo/contexto | Ação |
 |---|---|---|
-| `<leader>tt` | Alternar painel de terminal | Configuração explícita; modo normal; painel horizontal |
-| `<leader>tt` | Fechar painel de terminal | Configuração explícita; modo terminal |
-| `<Esc>` | Sair do modo de entrada do terminal | Configuração explícita; modo terminal; permanece no terminal |
+| `<leader>e` | `n` | Mostrar diagnóstico sob o cursor |
+| `<leader>xx` / `<leader>xX` | `n` | Alternar todos os diagnósticos / diagnósticos do buffer |
+| `<leader>cs` / `<leader>cl` | `n` | Alternar símbolos / navegação LSP |
+| `<leader>xL` / `<leader>xQ` | `n` | Alternar lista local / Quickfix via Trouble |
+| `<leader>co` | `n` | Abrir Quickfix nativo com 8 linhas |
+| `<leader>xt` | `n` | Alternar lista TODO/FIXME |
+| `<Esc>` | `n` | Fechar Trouble se aberto; caso contrário, limpar realce da busca |
+| `<Esc>` | `n`, janela Trouble | Fechar Trouble |
+| `<CR>` / `o` / `q` | Janela Trouble | Ir ao item / ir e fechar / fechar |
+| `?` / `r` / `R` | Janela Trouble | Ajuda / atualizar / alternar atualização automática |
+| `]]` / `[[` | Janela Trouble | Próximo / anterior item |
+| `<C-s>` / `<C-v>` | Janela Trouble | Abrir item em split horizontal / vertical |
+| `dd` / `d` | Janela Trouble (`d` em visual) | Remover item / remover seleção da lista |
 
-## Execução
+## Execução e terminal
 
-| Atalho | Ação | Contexto/Observações |
+| Atalho | Modo/contexto | Ação |
 |---|---|---|
-| `<leader>rr` | Executar arquivo atual | Configuração explícita; C/C++ compila antes; Rust verifica/compila antes; Lua executa diretamente |
-| `:RunCurrentFile` | Mesmo que `<leader>rr` | Comando personalizado |
+| `<leader>rr` | `n` | Executar arquivo: C/C++ compila; Cargo executa `cargo run` no projeto; Rust sem Cargo compila com `rustc`; Lua executa diretamente |
+| `<leader>tt` | `n` | Alternar painel ToggleTerm horizontal |
+| `<leader>tt` | `t`, terminal integrado | Fechar painel |
+| `<Esc>` | `t`, terminal integrado | Sair do modo de entrada do terminal |
 
-## Debug
+## Depuração
 
-| Atalho | Ação | Contexto/Observações |
+| Atalho | Modo/contexto | Ação |
 |---|---|---|
-| `<leader>dc` / `<leader>db` | Iniciar/continuar / alternar breakpoint | Configuração explícita; modo normal |
-| `<leader>dB` | Definir breakpoint condicional | Configuração explícita; modo normal; solicita condição |
-| `<leader>dn` / `<leader>di` / `<leader>do` | Step over / into / out | Configuração explícita; modo normal |
-| `<leader>dq` | Encerrar sessão de debug | Configuração explícita; modo normal; fecha painel DAP UI |
-| `<leader>du` | Alternar painel DAP UI | Configuração explícita; modo normal |
-| `<leader>de` | Avaliar expressão sob o cursor | Configuração explícita; normal ou visual |
-| `<leader>dh` / `<leader>ds` | Inspecionar variável / mostrar escopos | Configuração explícita; modo normal |
+| `<leader>dc` / `<leader>db` | `n` | Iniciar/continuar / alternar breakpoint |
+| `<leader>dB` | `n` | Definir breakpoint condicional; solicita condição |
+| `<leader>dn` / `<leader>di` / `<leader>do` | `n` | Step over / into / out |
+| `<leader>dq` | `n` | Encerrar depuração e fechar painel DAP UI |
+| `<leader>du` | `n` | Alternar painel DAP UI |
+| `<leader>de` | `n`, `v` | Avaliar expressão sob o cursor / seleção |
+| `<leader>dh` / `<leader>ds` | `n` | Inspecionar variável / mostrar escopos |
 
-## Sessões
+## Sessões e comandos
 
-| Atalho | Ação | Contexto/Observações |
+| Atalho/comando | Modo/contexto | Ação |
 |---|---|---|
-| `<leader>qs` | Restaurar sessão do diretório atual | Configuração explícita; persistence.nvim |
-| `<leader>ql` | Restaurar última sessão | Configuração explícita; persistence.nvim |
-| `<leader>qd` | Apagar sessão do diretório atual e parar persistência | Configuração explícita; persistence.nvim |
-| `:SessionRestore` / `:SessionRestoreLast` / `:SessionDelete` | Restaurar atual / última / apagar atual | Comandos personalizados |
-| `s` | Restaurar sessão atual | Botão do dashboard |
+| `<leader>qs` / `<leader>ql` / `<leader>qd` | `n` | Restaurar sessão do diretório atual / última sessão / apagar sessão atual |
+| `:RunCurrentFile` | Comando | Mesmo que `<leader>rr` |
+| `:NixvimThemePicker` | Comando | Abrir seletor de temas |
+| `:map` / `:nmap` / `:imap` / `:tmap` | Comandos | Listar mapas / mapas normais / inserção / terminal |
+| `:verbose nmap <leader>ff` | Comando | Mostrar mapa e origem; troque modo e tecla conforme necessário |
+| `:Telescope keymaps` | Comando | Pesquisar mapas no Telescope |
+| `\` e aguardar | `n`, Which-Key | Abrir menu de mapas após atraso padrão |
 
-## Flash
-
-| Atalho | Ação | Contexto/Observações |
-|---|---|---|
-| `<leader>j` | Busca rápida Flash | Configuração explícita; normal, visual e operador-pendente |
-| `<leader>J` | Busca Flash por Treesitter | Configuração explícita; normal, visual e operador-pendente |
-| `r` | Flash remoto | Configuração explícita; operador-pendente |
-
-## Snippets
-
-| Atalho | Ação | Contexto/Observações |
-|---|---|---|
-| `<C-l>` / `<C-h>` | Próximo / anterior campo do snippet | Configuração explícita; modo inserção |
-| `main` | Trigger do snippet de função principal | LuaSnip; disponível em C e C++; não é atalho de teclado; aparece como fonte de nvim-cmp |
-
-## Autocomplete
-
-| Atalho | Ação | Contexto/Observações |
-|---|---|---|
-| `<C-Space>` | Abrir conclusão | Configuração explícita; modo inserção |
-| `<C-n>` / `<C-p>` | Próxima / anterior sugestão | Configuração explícita; modo inserção |
-| `<C-e>` | Fechar conclusão | Configuração explícita; modo inserção |
-| `<CR>` | Aceitar sugestão | Configuração explícita; modo inserção; aceita também o primeiro item se nada estiver selecionado |
-
-## Outros
-
-| Atalho | Ação | Contexto/Observações |
-|---|---|---|
-| `gcc` / `gbc` | Alternar comentário de linha / bloco | Padrão confirmado; Comment.nvim 0.8.0, normal |
-| `gc{movimento}` / `gb{movimento}` | Comentar linha / bloco sobre movimento | Padrão confirmado; Comment.nvim 0.8.0, normal e operador-pendente; seleção visual aceita `gc`/`gb` |
-| `gco` / `gcO` / `gcA` | Inserir comentário abaixo / acima / no fim da linha | Padrão confirmado; Comment.nvim 0.8.0 |
-| `sa` / `sd` / `sr` | Adicionar / remover / substituir surround | Padrão confirmado; mini.surround 0.18.0; `sa` em normal/visual, demais em normal |
-| `sf` / `sF` / `sh` | Encontrar à direita / à esquerda / realçar surround | Padrão confirmado; mini.surround 0.18.0, normal |
-
-`nvim-autopairs` fecha pares automaticamente após digitação; não define atalho próprio nesta configuração.
-
-## Descobrir atalhos no Neovim
-
-| Atalho | Ação | Contexto/Observações |
-|---|---|---|
-| `:map` / `:nmap` / `:imap` / `:tmap` | Listar mapeamentos | Todos / normal / inserção / terminal |
-| `:verbose nmap <leader>ff` | Mostrar definição e origem de um mapeamento | Troque modo e atalho conforme necessário |
-| `:Telescope keymaps` | Pesquisar mapeamentos | Picker Telescope |
-| `\` e aguardar | Abrir menu Which-Key | Padrão confirmado; Which-Key 3.17.0 ativa gatilhos automáticos; atraso padrão de 200 ms; modo normal |
+`nvim-autopairs` insere pares automaticamente; não define mapa próprio nesta configuração. Não há atalho de salvamento personalizado.
