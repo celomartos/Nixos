@@ -336,10 +336,45 @@
           local manifest = vim.fs.find("Cargo.toml", { path = directory, upward = true })[1]
           if manifest then
             local project_root = vim.fn.fnamemodify(manifest, ":h")
+            local metadata = vim.system({ "cargo", "metadata", "--no-deps", "--format-version", "1", "--manifest-path", manifest }, { cwd = project_root, text = true }):wait()
+            if metadata.code ~= 0 then
+              vim.notify("Cargo metadata failed: " .. vim.fn.trim(metadata.stderr or ""), vim.log.levels.ERROR)
+              return
+            end
+            local ok_metadata, cargo = pcall(vim.json.decode, metadata.stdout)
+            if not ok_metadata then
+              vim.notify("Could not read Cargo project metadata: " .. tostring(cargo), vim.log.levels.ERROR)
+              return
+            end
+            local binaries = {}
+            for _, package in ipairs(cargo.packages or {}) do
+              for _, target in ipairs(package.targets or {}) do
+                if vim.tbl_contains(target.kind or {}, "bin") then
+                  table.insert(binaries, { package = package, target = target })
+                end
+              end
+            end
+            local current_file = vim.uv.fs_realpath(file) or file
+            local selected
+            for _, binary in ipairs(binaries) do
+              local source = vim.uv.fs_realpath(binary.target.src_path) or binary.target.src_path
+              if source == current_file then selected = binary; break end
+            end
+            if not selected and #binaries == 1 then selected = binaries[1]
+            elseif not selected and #binaries > 1 then
+              local choices = { "Select Cargo binary:" }
+              for _, binary in ipairs(binaries) do table.insert(choices, binary.package.name .. "/" .. binary.target.name) end
+              selected = binaries[vim.fn.inputlist(choices)]
+            end
+            if not selected then
+              vim.notify("No Cargo binary selected", vim.log.levels.WARN)
+              return
+            end
             local output_path = vim.fn.tempname()
             local status_path = vim.fn.tempname()
             local timeout_path = vim.fn.tempname()
-            local run_script = "cargo run --message-format=short 2> >(tee "
+            local run_script = "cargo run --message-format=short --manifest-path " .. vim.fn.shellescape(selected.package.manifest_path)
+              .. " --bin " .. vim.fn.shellescape(selected.target.name) .. " 2> >(tee "
               .. vim.fn.shellescape(output_path)
               .. " >&2); status=$?; wait; printf '%s' \"$status\" > "
               .. vim.fn.shellescape(status_path)
@@ -643,7 +678,7 @@
 
       -- Session persistence safety: exclude temporary paths and special panel buffers.
       local cwd = vim.fn.getcwd()
-      if cwd:match("^/tmp") or cwd:match("^/var/tmp") then
+      if cwd:match("^/tmp/") or cwd == "/tmp" or cwd:match("^/var/tmp/") or cwd == "/var/tmp" then
         pcall(function()
           require("persistence").stop()
         end)
