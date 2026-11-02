@@ -55,7 +55,7 @@
 
     kernel.sysctl = {
       "net.ipv4.tcp_congestion_control" = "bbr";
-      "vm.swappiness" = 130;
+      "vm.swappiness" = 150;
       "vm.page-cluster" = 1;
       "kernel.nmi_watchdog" = 0;
       "net.core.netdev_max_backlog" = 4096;
@@ -222,7 +222,19 @@
 
     pulse.enable = true;
 
-    # jack.enable = true;
+    jack.enable = true;
+
+    extraConfig.pipewire = {
+      "92-low-latency" = {
+        "context.properties" = {
+          "default.clock.rate" = 48000;
+          "default.clock.allowed-rates" = [ 44100 48000 96000 ];
+          "default.clock.quantum" = 128;
+          "default.clock.min-quantum" = 32;
+          "default.clock.max-quantum" = 1024;
+        };
+      };
+    };
   };
 
   # ============================================================================
