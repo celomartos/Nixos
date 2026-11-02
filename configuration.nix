@@ -39,7 +39,7 @@
       pkiBundle = "/var/lib/sbctl";
     };
 
-    kernelPackages = pkgs.linuxPackages_cachyos-bore;
+    kernelPackages = pkgs.linuxPackages_cachyos;
 
     kernelModules = [ "tcp_bbr" ];
 
@@ -153,12 +153,6 @@
     xwayland.enable = true;
   };
 
-  # SDDM mantido aqui como referência, mas desativado.
-  # services.displayManager.sddm = {
-  #   enable = true;
-  #   wayland.enable = true;
-  # };
-
   services.displayManager.regreet = {
     enable = true;
     theme = {
@@ -194,6 +188,8 @@
       xdg-desktop-portal-gtk
     ];
   };
+
+  services.gnome.gnome-keyring.enable = true;
 
   # ============================================================================
   # FILE MANAGER
