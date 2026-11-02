@@ -119,7 +119,7 @@
 
 | Atalho/comando | Modo/contexto | Ação |
 |---|---|---|
-| `<leader>qs` / `<leader>ql` / `<leader>qd` | `n` | Restaurar sessão do diretório atual / última sessão / apagar sessão atual |
+| `<leader>qs` / `<leader>ql` / `<leader>qd` | `n` | Restaurar sessão do diretório atual / última sessão / apagar sessão atual e desativar salvamento automático |
 | `:RunCurrentFile` | Comando | Mesmo que `<leader>rr` |
 | `:NixvimThemePicker` | Comando | Abrir seletor de temas |
 | `:map` / `:nmap` / `:imap` / `:tmap` | Comandos | Listar mapas / mapas normais / inserção / terminal |

@@ -258,7 +258,12 @@
                         require("snacks.explorer.tree"):refresh(parent)
                         require("snacks.explorer.actions").update(picker)
                         if saved then
-                          notify("info", "Restored: " .. item.original)
+                          local ok_remove, remove_err = pcall(uv.fs_unlink, item.identifier)
+                          if ok_remove then
+                            notify("info", "Restored: " .. item.original)
+                          else
+                            notify("error", "Restored; trash metadata cleanup failed: " .. tostring(remove_err))
+                          end
                         else
                           notify("error", "Restored, but history update failed: " .. tostring(save_err))
                         end

@@ -678,11 +678,27 @@
 
       -- Session persistence safety: exclude temporary paths and special panel buffers.
       local cwd = vim.fn.getcwd()
-      if cwd:match("^/tmp/") or cwd == "/tmp" or cwd:match("^/var/tmp/") or cwd == "/var/tmp" then
+      local function is_temporary_directory(path)
+        return path:match("^/tmp/") or path == "/tmp" or path:match("^/var/tmp/") or path == "/var/tmp"
+      end
+      local persistence_paused = is_temporary_directory(cwd)
+      if persistence_paused then
         pcall(function()
           require("persistence").stop()
         end)
       end
+      vim.api.nvim_create_autocmd("DirChanged", {
+        desc = "Toggle session persistence in temporary directories",
+        callback = function(event)
+          local paused = is_temporary_directory(event.file)
+          if paused == persistence_paused then return end
+          persistence_paused = paused
+          pcall(function()
+            local persistence = require("persistence")
+            if paused then persistence.stop() else persistence.start() end
+          end)
+        end,
+      })
 
       vim.api.nvim_create_autocmd("User", {
         pattern = "PersistenceSavePre",

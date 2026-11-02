@@ -41,7 +41,7 @@
               -- Diff and hunk preview
               map("n", "<leader>hp", gs.preview_hunk, "Preview git hunk")
               map("n", "<leader>hd", gs.preview_hunk_inline, "Diff current line/hunk inline")
-              map("n", "<leader>hD", function() gs.diffthis("~") end, "Diff file against HEAD")
+              map("n", "<leader>hD", function() gs.diffthis("HEAD") end, "Diff file against HEAD")
 
               -- Explicit restoration (never automatic)
               map("n", "<leader>hr", gs.reset_hunk, "Reset git hunk")
