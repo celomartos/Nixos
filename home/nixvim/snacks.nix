@@ -255,17 +255,25 @@
                         end
                         table.remove(items, index)
                         local saved, save_err = save(items)
+                        if not saved then
+                          local rollback_ok = pcall(vim.fn.system, { "mv", "-nT", "--", item.original, item.trash })
+                          require("snacks.explorer.tree"):refresh(parent)
+                          require("snacks.explorer.actions").update(picker)
+                          if rollback_ok and vim.v.shell_error == 0 and not exists(item.original) and exists(item.trash) then
+                            table.insert(items, index, item)
+                            notify("error", "Restore rolled back; history and trash metadata preserved: " .. tostring(save_err))
+                          else
+                            notify("error", "History update failed and restore rollback failed; item remains at " .. item.original .. ": " .. tostring(save_err))
+                          end
+                          return
+                        end
                         require("snacks.explorer.tree"):refresh(parent)
                         require("snacks.explorer.actions").update(picker)
-                        if saved then
-                          local ok_remove, remove_err = pcall(uv.fs_unlink, item.identifier)
-                          if ok_remove then
-                            notify("info", "Restored: " .. item.original)
-                          else
-                            notify("error", "Restored; trash metadata cleanup failed: " .. tostring(remove_err))
-                          end
+                        local ok_remove, removed, remove_err = pcall(uv.fs_unlink, item.identifier)
+                        if ok_remove and removed then
+                          notify("info", "Restored: " .. item.original)
                         else
-                          notify("error", "Restored, but history update failed: " .. tostring(save_err))
+                          notify("error", "Restored; history updated, but trash metadata cleanup failed: " .. tostring(remove_err or removed))
                         end
                         return
                       end

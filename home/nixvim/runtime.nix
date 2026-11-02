@@ -679,9 +679,11 @@
       -- Session persistence safety: exclude temporary paths and special panel buffers.
       local cwd = vim.fn.getcwd()
       local function is_temporary_directory(path)
-        return path:match("^/tmp/") or path == "/tmp" or path:match("^/var/tmp/") or path == "/var/tmp"
+        return path == "/tmp" or path:match("^/tmp/") ~= nil or path == "/var/tmp" or path:match("^/var/tmp/") ~= nil
       end
       local persistence_paused = is_temporary_directory(cwd)
+      local persistence_manually_stopped = false
+      local persistence_active = not persistence_paused
       if persistence_paused then
         pcall(function()
           require("persistence").stop()
@@ -690,13 +692,17 @@
       vim.api.nvim_create_autocmd("DirChanged", {
         desc = "Toggle session persistence in temporary directories",
         callback = function(event)
-          local paused = is_temporary_directory(event.file)
+          local paused = is_temporary_directory(vim.fn.getcwd())
           if paused == persistence_paused then return end
           persistence_paused = paused
-          pcall(function()
-            local persistence = require("persistence")
-            if paused then persistence.stop() else persistence.start() end
-          end)
+          local should_be_active = not persistence_paused and not persistence_manually_stopped
+          if should_be_active == persistence_active then return end
+          persistence_active = should_be_active
+          if not persistence_active then
+            pcall(function() require("persistence").stop() end)
+          else
+            pcall(function() require("persistence").start() end)
+          end
         end,
       })
 
@@ -744,7 +750,8 @@
         if vim.fn.filereadable(branch_file) ~= 0 then
           vim.fn.delete(branch_file)
         end
-        persistence.stop()
+        persistence_manually_stopped = true
+        if persistence_active then persistence.stop(); persistence_active = false end
         vim.notify("Session deleted for current directory", vim.log.levels.INFO)
       end, { desc = "Delete session for current directory" })
 
