@@ -14,7 +14,7 @@ Item {
 
     Process {
         id: proc
-        command: ["bash", (Quickshell.env("XDG_CONFIG_HOME") || (Quickshell.env("HOME") + "/.config")) + "/waybar/scripts/tempinfo.sh"]
+        command: ["bash", (Quickshell.env("XDG_CONFIG_HOME") || (Quickshell.env("HOME") + "/.config")) + "/quickshell/scripts/tempinfo.sh"]
         stdout: StdioCollector {
             onTextChanged: {
                 if (text && text.trim().length > 0) {

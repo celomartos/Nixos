@@ -14,7 +14,7 @@ Item {
 
     Process {
         id: proc
-        command: ["bash", (Quickshell.env("XDG_CONFIG_HOME") || (Quickshell.env("HOME") + "/.config")) + "/waybar/scripts/cava.sh"]
+        command: ["bash", (Quickshell.env("XDG_CONFIG_HOME") || (Quickshell.env("HOME") + "/.config")) + "/quickshell/scripts/cava.sh"]
         running: true
         stdout: SplitParser {
             splitMarker: "\n"

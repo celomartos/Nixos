@@ -67,26 +67,22 @@ Item {
         }
     }
 
-    Connections {
-        target: Hyprland
+Connections {
+    target: Hyprland
 
-        function onRawEvent(event) {
-            const events = [
-                "openwindow",
-                "closewindow",
-                "activewindow",
-                "activewindowv2",
-                "movewindow",
-                "movewindowv2"
-            ];
+    function onRawEvent(event) {
+        switch (event.name) {
+        case "openwindow":
+            Hyprland.refreshToplevels();
+            break;
 
-            if (events.includes(event.name)) {
-                Hyprland.refreshToplevels();
-                Hyprland.refreshWorkspaces();
-            }
+        case "movewindow":
+            Hyprland.refreshToplevels();
+            Hyprland.refreshWorkspaces();
+            break;
         }
     }
-
+}
     Row {
         id: wsRow
 

@@ -38,9 +38,7 @@ Item {
 
         onClicked: {
             if (calendarPopup.monthOffset !== 0) {
-                calendarPopup.shiftReset();
-            } else {
-                root.pinned = !root.pinned;
+                calendarPopup.resetToCurrentMonth();
             }
         }
 

@@ -10,8 +10,8 @@ Item {
     implicitHeight: Theme.barHeight
     implicitWidth: barItem.implicitWidth
 
-    property int lastTotalTime: 0
-    property int lastIdleTime: 0
+    property real lastTotalTime: 0
+    property real lastIdleTime: 0
     property int usage: 0
 
     FileView {
