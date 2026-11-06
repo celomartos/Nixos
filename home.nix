@@ -22,8 +22,9 @@
   # ============================================================================
 
   # home.file.".config/hypr/".source = ./home/hyprland;
-  # home.file.".config/waybar".source = ./home/waybar;
   # home.file.".config/rofi".source = ./home/rofi;
+  # home.file.".config/quickshell".source = ./home/quickshell;
+  home.file.".config/waybar".source = ./home/waybar;
   home.file.".config/mako".source = ./home/mako;
   home.file.".config/Kvantum/Graphite".source = ./home/Graphite;
 

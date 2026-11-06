@@ -81,60 +81,60 @@ Item {
                     return t || d;
                 }
                 PopupWindow {
-               id: tooltipPopup
+                    id: tooltipPopup
 
-               anchor.window: trayItem.QsWindow.window
+                    anchor.window: trayItem.QsWindow.window
 
-    anchor.edges: Edges.Top | Edges.Left
-    anchor.gravity: Edges.Bottom | Edges.Right
-    anchor.adjustment: PopupAdjustment.SlideX
+                    anchor.edges: Edges.Top | Edges.Left
+                    anchor.gravity: Edges.Bottom | Edges.Right
+                    anchor.adjustment: PopupAdjustment.SlideX
 
-    anchor.onAnchoring: {
-        const pos = trayItem.mapToItem(
-            trayItem.QsWindow.window.contentItem,
-            0,
-            0
-        );
+                    anchor.onAnchoring: {
+                        const pos = trayItem.mapToItem(
+                            trayItem.QsWindow.window.contentItem,
+                            0,
+                            0
+                        );
 
-        anchor.rect.x = pos.x + (trayItem.width - width) / 2;
-        anchor.rect.y = pos.y + trayItem.height;
-        anchor.rect.width = 1;
-        anchor.rect.height = 1;
-    }
+                        anchor.rect.x = pos.x + (trayItem.width - width) / 2;
+                        anchor.rect.y = pos.y + trayItem.height;
+                        anchor.rect.width = 1;
+                        anchor.rect.height = 1;
+                    }
 
-    visible: mouseArea.containsMouse && trayItem.tipString.length > 0
+                    visible: mouseArea.containsMouse && trayItem.tipString.length > 0
 
-    color: "transparent"
+                    color: "transparent"
 
-    width: tipBox.implicitWidth
-    height: tipBox.implicitHeight
+                    width: tipBox.implicitWidth
+                    height: tipBox.implicitHeight
 
-    Rectangle {
-        id: tipBox
+                    Rectangle {
+                        id: tipBox
 
-        anchors.fill: parent
+                        anchors.fill: parent
 
-        color: Theme.background
-        border.color: Theme.borderColor
-        border.width: 1
-        radius: 8
+                        color: Theme.background
+                        border.color: Theme.borderColor
+                        border.width: 1
+                        radius: 8
 
-        implicitWidth: tipText.implicitWidth + 24
-        implicitHeight: tipText.implicitHeight + 16
+                        implicitWidth: tipText.implicitWidth + 24
+                        implicitHeight: tipText.implicitHeight + 16
 
-        Text {
-            id: tipText
+                        Text {
+                            id: tipText
 
-            anchors.centerIn: parent
+                            anchors.centerIn: parent
 
-            font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSize - 3
-            color: Theme.text
+                            font.family: Theme.fontFamily
+                            font.pixelSize: Theme.fontSize - 3
+                            color: Theme.text
 
-            text: trayItem.tipString
-        }
-    }
-}
+                            text: trayItem.tipString
+                        }
+                    }
+                }
             }
         }
     }

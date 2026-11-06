@@ -1,7 +1,8 @@
 local terminal = "kitty"
 local menu = "rofi -show drun"
 local screenshot = "hyprshot -m region -m active --clipboard-only"
-local quickshell = "(pkill -x .quickshell-wra || pkill -x quickshell) && (pkill -f 'cava.*cava-waybar.conf' 2>/dev/null || true) || quickshell"
+local quickshell =
+	"(pkill -x .quickshell-wra || pkill -x quickshell) && (pkill -f 'cava.*cava.conf' 2>/dev/null || true) || quickshell"
 local waybar = "pkill waybar socat || waybar"
 local cliphist = "cliphist list | rofi -dmenu -display-columns 2 | cliphist decode | wl-copy"
 local filemanager = "thunar"

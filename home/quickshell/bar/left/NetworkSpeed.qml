@@ -63,53 +63,53 @@ Item {
         clickable: false
         text: root.speedText
         textColor: (root.statusClass === "offline") ? Theme.textDanger : Theme.textMuted
-      }
-
-      PopupWindow {
-    id: tooltipPopup
-
-    anchor.window: barItem.QsWindow.window
-    anchor.edges: Edges.Top | Edges.Left
-    anchor.gravity: Edges.Bottom | Edges.Right
-    anchor.adjustment: PopupAdjustment.SlideX
-
-    anchor.onAnchoring: {
-        const pos = barItem.mapToItem(
-            barItem.QsWindow.window.contentItem,
-            0,
-            0
-        );
-
-        anchor.rect.x = pos.x + (barItem.width - width) / 2;
-        anchor.rect.y = pos.y + barItem.height;
-        anchor.rect.width = 1;
-        anchor.rect.height = 1;
     }
 
-    visible: barItem.hovered && root.tooltipText.length > 0
-    color: "transparent"
-    width: tipBox.implicitWidth
-    height: tipBox.implicitHeight
+    PopupWindow {
+        id: tooltipPopup
 
-    Rectangle {
-        id: tipBox
-        anchors.fill: parent
-        color: Theme.background
-        border.color: Theme.borderColor
-        border.width: 1
-        radius: 8
-        implicitWidth: tipText.implicitWidth + 24
-        implicitHeight: tipText.implicitHeight + 16
+        anchor.window: barItem.QsWindow.window
+        anchor.edges: Edges.Top | Edges.Left
+        anchor.gravity: Edges.Bottom | Edges.Right
+        anchor.adjustment: PopupAdjustment.SlideX
 
-        Text {
-            id: tipText
-            anchors.centerIn: parent
-            font.family: Theme.fontFamily
-            font.pixelSize: 13
-            color: Theme.text
-            text: root.tooltipText
+        anchor.onAnchoring: {
+            const pos = barItem.mapToItem(
+                barItem.QsWindow.window.contentItem,
+                0,
+                0
+            );
+
+            anchor.rect.x = pos.x + (barItem.width - width) / 2;
+            anchor.rect.y = pos.y + barItem.height;
+            anchor.rect.width = 1;
+            anchor.rect.height = 1;
+        }
+
+        visible: barItem.hovered && root.tooltipText.length > 0
+        color: "transparent"
+        width: tipBox.implicitWidth
+        height: tipBox.implicitHeight
+
+        Rectangle {
+            id: tipBox
+            anchors.fill: parent
+            color: Theme.background
+            border.color: Theme.borderColor
+            border.width: 1
+            radius: 8
+            implicitWidth: tipText.implicitWidth + 24
+            implicitHeight: tipText.implicitHeight + 16
+
+            Text {
+                id: tipText
+                anchors.centerIn: parent
+                font.family: Theme.fontFamily
+                font.pixelSize: 13
+                color: Theme.text
+                text: root.tooltipText
+            }
         }
     }
-}
 
 }
