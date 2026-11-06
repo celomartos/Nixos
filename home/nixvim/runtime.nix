@@ -677,11 +677,11 @@
       })
 
       -- Session persistence safety: exclude temporary paths and special panel buffers.
-      local cwd = vim.fn.getcwd()
+      local initial_cwd = vim.fn.getcwd()
       local function is_temporary_directory(path)
         return path == "/tmp" or path:match("^/tmp/") ~= nil or path == "/var/tmp" or path:match("^/var/tmp/") ~= nil
       end
-      local persistence_paused = is_temporary_directory(cwd)
+      local persistence_paused = is_temporary_directory(initial_cwd)
       local persistence_manually_stopped = false
       local persistence_active = not persistence_paused
       if persistence_paused then

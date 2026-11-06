@@ -1,6 +1,7 @@
 local terminal = "kitty"
 local menu = "rofi -show drun"
 local screenshot = "hyprshot -m region -m active --clipboard-only"
+local quickshell = "(pkill -x .quickshell-wra || pkill -x quickshell) && (pkill -f 'cava.*cava-waybar.conf' 2>/dev/null || true) || quickshell"
 local waybar = "pkill waybar socat || waybar"
 local cliphist = "cliphist list | rofi -dmenu -display-columns 2 | cliphist decode | wl-copy"
 local filemanager = "thunar"
@@ -52,7 +53,8 @@ hl.bind(mainMod .. " + 5", hl.dsp.window.move({ workspace = 5 }))
 
 hl.bind("ALT + ESCAPE", hl.dsp.exec_cmd(menu))
 hl.bind(mainMod .. " + F", hl.dsp.exec_cmd(screenshot))
-hl.bind(mainMod .. " + W", hl.dsp.exec_cmd(waybar))
+hl.bind(mainMod .. " + W", hl.dsp.exec_cmd(quickshell))
+-- hl.bind(mainMod .. " + W", hl.dsp.exec_cmd(waybar)) -- Fallback Waybar
 hl.bind(mainMod .. " + T", hl.dsp.exec_cmd(terminal))
 hl.bind(mainMod .. " + V", hl.dsp.exec_cmd(cliphist))
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(filemanager))

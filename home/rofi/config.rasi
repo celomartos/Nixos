@@ -1,7 +1,7 @@
 configuration {
     modi: "drun";
     show-icons: true;
-    icon-theme: "Papirus";
+    icon-theme: "Tela-black";
     terminal: "kitty";
     drun-display-format: "{icon} {name}";
     location: 0;

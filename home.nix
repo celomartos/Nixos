@@ -400,6 +400,7 @@
     clang
     pnpm
     electron
+    obsidian
 
     # --------------------------------------------------------------------------
     # Desktop / Wayland
@@ -420,11 +421,8 @@
     hyprshot
     slurp
     xfce4-settings
-    (pkgs.waybar.overrideAttrs (oldAttrs: {
-      mesonFlags = (pkgs.lib.filter (flag: !(pkgs.lib.hasPrefix "-Dcava=" flag)) oldAttrs.mesonFlags) ++ [
-        "-Dcava=enabled"
-      ];
-    }))
+    waybar
+    quickshell
 
     # --------------------------------------------------------------------------
     # GTK / Qt
@@ -436,6 +434,7 @@
     gtk3
     gtk4
     tela-icon-theme
+    faba-mono-icons
     kdePackages.kcolorscheme
     libsForQt5.qtstyleplugin-kvantum
     qt6Packages.qtstyleplugin-kvantum
@@ -485,7 +484,6 @@
     })
     prismlauncher
     mangohud
-    lutris
     wine
     appimage-run
     hydralauncher

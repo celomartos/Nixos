@@ -106,7 +106,7 @@ hl.animation({
 	style = "slide",
 })
 
-hl.layer_rule({
-	match = { namespace = "calendar" },
-	animation = "slide top",
+hl.window_rule({
+	match = { class = ".*" },
+	no_xdg_drags = true,
 })

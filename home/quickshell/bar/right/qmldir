@@ -1,0 +1,6 @@
+Tray 1.0 Tray.qml
+Audio 1.0 Audio.qml
+Memory 1.0 Memory.qml
+Cpu 1.0 Cpu.qml
+Temp 1.0 Temp.qml
+Power 1.0 Power.qml

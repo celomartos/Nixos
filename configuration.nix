@@ -63,6 +63,11 @@
     };
   };
 
+  programs.appimage = {
+    enable = true;
+    binfmt = true;
+  };
+
   nixpkgs.config.allowUnfree = true;
 
   home-manager.useGlobalPkgs = true;
@@ -228,7 +233,11 @@
       "92-low-latency" = {
         "context.properties" = {
           "default.clock.rate" = 48000;
-          "default.clock.allowed-rates" = [ 44100 48000 96000 ];
+          "default.clock.allowed-rates" = [
+            44100
+            48000
+            96000
+          ];
           "default.clock.quantum" = 128;
           "default.clock.min-quantum" = 32;
           "default.clock.max-quantum" = 1024;

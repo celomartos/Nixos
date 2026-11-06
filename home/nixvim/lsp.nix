@@ -5,9 +5,6 @@
   programs.nixvim.plugins = {
     lsp = {
       enable = true;
-      capabilities = ''
-        capabilities = vim.tbl_deep_extend("force", capabilities, require('cmp_nvim_lsp').default_capabilities())
-      '';
       servers = {
         lua_ls = {
           enable = true;
@@ -21,6 +18,14 @@
           enable = true;
           installCargo = false;
           installRustc = false;
+          settings = {
+            checkOnSave = true;
+            cargo.allFeatures = false;
+            inlayHints = {
+              enable = true;
+              bindingModeHints.enable = false;
+            };
+          };
         };
         clangd = {
           enable = true;

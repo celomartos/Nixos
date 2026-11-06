@@ -99,11 +99,18 @@
         action = "<cmd>Trouble todo toggle focus=true<CR>";
         options.desc = "Toggle TODO and FIXME list";
       }
+      # Snacks picker (substitui Telescope)
       {
         mode = "n";
-        key = "<Esc>";
-        action = "<cmd>lua local ok, trouble = pcall(require, 'trouble'); if ok and trouble.is_open() then trouble.close() else vim.cmd('nohlsearch') end<CR>";
-        options.desc = "Close Trouble or clear search highlighting";
+        key = "<leader>ff";
+        action = "<cmd>lua Snacks.picker.files()<CR>";
+        options.desc = "Find files";
+      }
+      {
+        mode = "n";
+        key = "<leader>fg";
+        action = "<cmd>lua Snacks.picker.grep()<CR>";
+        options.desc = "Live grep";
       }
       {
         mode = "n";
@@ -114,13 +121,13 @@
       {
         mode = "n";
         key = "<leader>qs";
-        action = "<cmd>lua require('persistence').load()<CR>";
+        action = "<cmd>SessionRestore<CR>";
         options.desc = "Restore session for current directory";
       }
       {
         mode = "n";
         key = "<leader>ql";
-        action = "<cmd>lua require('persistence').load({ last = true })<CR>";
+        action = "<cmd>SessionRestoreLast<CR>";
         options.desc = "Restore last session";
       }
       {
@@ -154,6 +161,12 @@
         key = "r";
         action = "<cmd>lua require('flash').remote()<CR>";
         options.desc = "Remote flash";
+      }
+      {
+        mode = "n";
+        key = "<Esc>";
+        action = "<cmd>nohlsearch<CR><Esc>";
+        options.desc = "Clear search";
       }
     ];
   };

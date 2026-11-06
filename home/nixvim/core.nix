@@ -23,6 +23,7 @@
       shiftwidth = 2;
       tabstop = 2;
       shiftround = true;
+      undofile = true;
       sessionoptions = [
         "buffers"
         "curdir"
@@ -46,7 +47,6 @@
       nixfmt
       rustfmt
       stylua
-      vscode-extensions.vadimcn.vscode-lldb.adapter
     ];
   };
 }
