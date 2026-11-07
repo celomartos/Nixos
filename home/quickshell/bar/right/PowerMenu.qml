@@ -30,6 +30,26 @@ PanelWindow {
     property bool canReboot: true
     property bool canPowerOff: true
 
+    property Item anchorItem: null
+    property real cardTargetX: 0
+    property real cardTargetY: 0
+
+    function updatePosition() {
+        if (!anchorItem || !anchorItem.QsWindow || !anchorItem.QsWindow.window) {
+            return;
+        }
+
+        const window = anchorItem.QsWindow.window;
+        const pos = anchorItem.mapToItem(
+            window.contentItem,
+            0,
+            0
+        );
+
+        root.cardTargetX = pos.x + anchorItem.width - menuCard.width;
+        root.cardTargetY = pos.y + anchorItem.height - 35;
+    }
+
     property real cardYOffset: -28
     property real cardOpacity: 0.0
 
@@ -150,6 +170,7 @@ PanelWindow {
             cardYOffset = -28;
             cardOpacity = 0.0;
         } else {
+            updatePosition();
             probeProcess.running = true;
             selectedIndex = 0;
             Qt.callLater(() => {
@@ -248,6 +269,7 @@ PanelWindow {
     }
 
     function open() {
+        updatePosition();
         closeAnim.stop();
         probeProcess.running = true;
         cancelHold();
@@ -285,15 +307,13 @@ PanelWindow {
         onClicked: root.close()
     }
 
-    // Main menu card positioned at top-right below bar
+    // Main menu card anchored to power module
     Rectangle {
         id: menuCard
 
+        x: root.cardTargetX
+        y: root.cardTargetY
         width: 340
-        anchors.top: parent.top
-        anchors.topMargin: Theme.barHeight + Theme.borderBottomWidth + -35
-        anchors.right: parent.right
-        anchors.rightMargin: 0
 
         implicitHeight: cardColumn.implicitHeight + 28
         color: Theme.background

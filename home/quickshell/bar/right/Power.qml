@@ -22,5 +22,6 @@ Item {
 
     PowerMenu {
         id: powerMenu
+        anchorItem: powerItem
     }
 }
