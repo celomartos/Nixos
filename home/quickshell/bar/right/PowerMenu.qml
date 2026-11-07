@@ -1,23 +1,19 @@
+
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import Quickshell.Wayland
 import "../../theme"
 
-PanelWindow {
+PopupWindow {
     id: root
 
     visible: false
     color: "transparent"
 
-    anchors.top: true
-    anchors.bottom: true
-    anchors.left: true
-    anchors.right: true
+    implicitWidth: 340
+    implicitHeight: cardColumn.implicitHeight + 28
 
-    WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.keyboardFocus: root.visible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
-    WlrLayershell.namespace: "quickshell:powermenu"
+    grabFocus: true
 
     property int selectedIndex: 0
     property bool isHolding: false
@@ -31,23 +27,33 @@ PanelWindow {
     property bool canPowerOff: true
 
     property Item anchorItem: null
-    property real cardTargetX: 0
-    property real cardTargetY: 0
 
-    function updatePosition() {
-        if (!anchorItem || !anchorItem.QsWindow || !anchorItem.QsWindow.window) {
+    // Anchoring relative to the power module, following CalendarPopup.
+    anchor.window: anchorItem ? anchorItem.QsWindow.window : null
+    anchor.edges: Edges.Top | Edges.Left
+    anchor.gravity: Edges.Bottom | Edges.Right
+    anchor.adjustment: PopupAdjustment.SlideX
+
+    anchor.onAnchoring: {
+        if (!root.anchorItem ||
+            !root.anchorItem.QsWindow ||
+            !root.anchorItem.QsWindow.window) {
             return;
         }
 
-        const window = anchorItem.QsWindow.window;
-        const pos = anchorItem.mapToItem(
+        const window = root.anchorItem.QsWindow.window;
+        const pos = root.anchorItem.mapToItem(
             window.contentItem,
             0,
             0
         );
 
-        root.cardTargetX = pos.x + anchorItem.width - menuCard.width;
-        root.cardTargetY = pos.y + anchorItem.height - 35;
+        anchor.rect.x = pos.x + root.anchorItem.width - root.width;
+        anchor.rect.y = pos.y + root.anchorItem.height
+            + Theme.borderBottomWidth - 8;
+
+        anchor.rect.width = 1;
+        anchor.rect.height = 1;
     }
 
     property real cardYOffset: -28
@@ -110,7 +116,11 @@ PanelWindow {
             key: "E",
             altKeys: ["Q"],
             dangerous: true,
-            command: ["sh", "-c", "hyprctl dispatch exit 2>/dev/null || loginctl terminate-session ${XDG_SESSION_ID:-self}"]
+            command: [
+                "sh",
+                "-c",
+                "hyprctl dispatch exit 2>/dev/null || loginctl terminate-session ${XDG_SESSION_ID:-self}"
+            ]
         },
         {
             id: "reboot",
@@ -138,23 +148,34 @@ PanelWindow {
 
     function updateVisibleActions() {
         var filtered = [];
+
         for (var i = 0; i < allActions.length; i++) {
             var action = allActions[i];
+
             if (action.id === "hibernate") {
-                if (root.canHibernate) filtered.push(action);
+                if (root.canHibernate)
+                    filtered.push(action);
             } else if (action.id === "suspend") {
-                if (root.canSuspend) filtered.push(action);
+                if (root.canSuspend)
+                    filtered.push(action);
             } else if (action.id === "reboot") {
-                if (root.canReboot) filtered.push(action);
+                if (root.canReboot)
+                    filtered.push(action);
             } else if (action.id === "poweroff") {
-                if (root.canPowerOff) filtered.push(action);
+                if (root.canPowerOff)
+                    filtered.push(action);
             } else {
                 filtered.push(action);
             }
         }
+
         root.visibleActions = filtered;
+
         if (root.selectedIndex >= root.visibleActions.length) {
-            root.selectedIndex = Math.max(0, root.visibleActions.length - 1);
+            root.selectedIndex = Math.max(
+                0,
+                root.visibleActions.length - 1
+            );
         }
     }
 
@@ -170,9 +191,9 @@ PanelWindow {
             cardYOffset = -28;
             cardOpacity = 0.0;
         } else {
-            updatePosition();
             probeProcess.running = true;
             selectedIndex = 0;
+
             Qt.callLater(() => {
                 keyHandler.forceActiveFocus();
             });
@@ -181,24 +202,40 @@ PanelWindow {
 
     Process {
         id: probeProcess
-        command: ["sh", "-c", "hib=$(busctl call org.freedesktop.login1 /org/freedesktop/login1 org.freedesktop.login1.Manager CanHibernate 2>/dev/null | awk '{print $2}' | tr -d '\"'); sus=$(busctl call org.freedesktop.login1 /org/freedesktop/login1 org.freedesktop.login1.Manager CanSuspend 2>/dev/null | awk '{print $2}' | tr -d '\"'); reb=$(busctl call org.freedesktop.login1 /org/freedesktop/login1 org.freedesktop.login1.Manager CanReboot 2>/dev/null | awk '{print $2}' | tr -d '\"'); pwr=$(busctl call org.freedesktop.login1 /org/freedesktop/login1 org.freedesktop.login1.Manager CanPowerOff 2>/dev/null | awk '{print $2}' | tr -d '\"'); printf 'hibernate=%s\\nsuspend=%s\\nreboot=%s\\npoweroff=%s\\n' \"$hib\" \"$sus\" \"$reb\" \"$pwr\""]
+
+        command: [
+            "sh",
+            "-c",
+            "hib=$(busctl call org.freedesktop.login1 /org/freedesktop/login1 org.freedesktop.login1.Manager CanHibernate 2>/dev/null | awk '{print $2}' | tr -d '\"'); sus=$(busctl call org.freedesktop.login1 /org/freedesktop/login1 org.freedesktop.login1.Manager CanSuspend 2>/dev/null | awk '{print $2}' | tr -d '\"'); reb=$(busctl call org.freedesktop.login1 /org/freedesktop/login1 org.freedesktop.login1.Manager CanReboot 2>/dev/null | awk '{print $2}' | tr -d '\"'); pwr=$(busctl call org.freedesktop.login1 /org/freedesktop/login1 org.freedesktop.login1.Manager CanPowerOff 2>/dev/null | awk '{print $2}' | tr -d '\"'); printf 'hibernate=%s\\nsuspend=%s\\nreboot=%s\\npoweroff=%s\\n' \"$hib\" \"$sus\" \"$reb\" \"$pwr\""
+        ]
+
         running: true
 
         stdout: StdioCollector {
             onTextChanged: {
-                if (!text || text.trim().length === 0) return;
+                if (!text || text.trim().length === 0)
+                    return;
+
                 var lines = text.trim().split("\n");
+
                 for (var i = 0; i < lines.length; i++) {
                     var parts = lines[i].split("=");
+
                     if (parts.length === 2) {
                         var k = parts[0].trim();
                         var v = parts[1].trim();
-                        if (k === "hibernate") root.canHibernate = (v === "yes");
-                        else if (k === "suspend") root.canSuspend = (v === "yes");
-                        else if (k === "reboot") root.canReboot = (v === "yes");
-                        else if (k === "poweroff") root.canPowerOff = (v === "yes");
+
+                        if (k === "hibernate")
+                            root.canHibernate = (v === "yes");
+                        else if (k === "suspend")
+                            root.canSuspend = (v === "yes");
+                        else if (k === "reboot")
+                            root.canReboot = (v === "yes");
+                        else if (k === "poweroff")
+                            root.canPowerOff = (v === "yes");
                     }
                 }
+
                 root.updateVisibleActions();
             }
         }
@@ -210,20 +247,28 @@ PanelWindow {
     }
 
     function executeAction(action) {
-        if (!action) return;
+        if (!action)
+            return;
+
         close();
+
         execProcess.command = action.command;
         execProcess.running = true;
     }
 
     Timer {
         id: holdTimer
+
         interval: 16
         repeat: true
         running: false
 
         onTriggered: {
-            root.holdProgress = Math.min(1.0, root.holdProgress + (16 / root.holdDurationMs));
+            root.holdProgress = Math.min(
+                1.0,
+                root.holdProgress + (16 / root.holdDurationMs)
+            );
+
             if (root.holdProgress >= 1.0) {
                 stop();
                 root.completeHold();
@@ -232,14 +277,18 @@ PanelWindow {
     }
 
     function startHold(action) {
-        if (!action) return;
+        if (!action)
+            return;
+
         if (!action.dangerous) {
             executeAction(action);
             return;
         }
+
         root.holdActionId = action.id;
         root.holdProgress = 0.0;
         root.isHolding = true;
+
         holdTimer.start();
     }
 
@@ -252,32 +301,42 @@ PanelWindow {
 
     function completeHold() {
         holdTimer.stop();
+
         var currentAction = getCurrentAction();
+
         root.isHolding = false;
         root.holdProgress = 0.0;
         root.holdActionId = "";
+
         if (currentAction) {
             executeAction(currentAction);
         }
     }
 
     function getCurrentAction() {
-        if (root.selectedIndex >= 0 && root.selectedIndex < root.visibleActions.length) {
+        if (
+            root.selectedIndex >= 0 &&
+            root.selectedIndex < root.visibleActions.length
+        ) {
             return root.visibleActions[root.selectedIndex];
         }
+
         return null;
     }
 
     function open() {
-        updatePosition();
         closeAnim.stop();
+
         probeProcess.running = true;
         cancelHold();
+
         root.selectedIndex = 0;
         root.cardYOffset = -28;
         root.cardOpacity = 0.0;
         root.visible = true;
+
         openAnim.restart();
+
         Qt.callLater(() => {
             keyHandler.forceActiveFocus();
         });
@@ -285,9 +344,10 @@ PanelWindow {
 
     function close() {
         cancelHold();
-        if (!root.visible || closeAnim.running) {
+
+        if (!root.visible || closeAnim.running)
             return;
-        }
+
         openAnim.stop();
         closeAnim.restart();
     }
@@ -300,22 +360,12 @@ PanelWindow {
         }
     }
 
-    // Transparent click-catcher - clicking outside closes the menu without darkening the screen
-    MouseArea {
-        id: dismissArea
-        anchors.fill: parent
-        onClicked: root.close()
-    }
-
-    // Main menu card anchored to power module
+    // Main menu card
     Rectangle {
         id: menuCard
 
-        x: root.cardTargetX
-        y: root.cardTargetY
-        width: 340
+        anchors.fill: parent
 
-        implicitHeight: cardColumn.implicitHeight + 28
         color: Theme.background
         border.color: Theme.borderColor
         border.width: 1
@@ -323,6 +373,7 @@ PanelWindow {
         clip: true
 
         opacity: root.cardOpacity
+
         transform: Translate {
             y: root.cardYOffset
         }
@@ -334,10 +385,12 @@ PanelWindow {
 
         Column {
             id: cardColumn
+
             anchors.top: parent.top
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.margins: 14
+
             spacing: 10
 
             // Header
@@ -347,32 +400,40 @@ PanelWindow {
 
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
+
                     font.family: Theme.fontFamily
                     font.pixelSize: 16
+
                     color: Theme.text
                     text: "⏻"
                 }
 
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
+
                     font.family: Theme.fontFamily
                     font.pixelSize: 14
                     font.weight: Font.Bold
+
                     color: Theme.text
                     text: "Menu de Energia"
                 }
 
                 Item {
                     id: headerSpacer
+
                     width: parent.width - 24 - 150 - closeBadge.width
                     height: 1
                 }
 
                 Rectangle {
                     id: closeBadge
+
                     anchors.verticalCenter: parent.verticalCenter
+
                     width: 36
                     height: 22
+
                     radius: 6
                     color: Qt.rgba(1, 1, 1, 0.06)
                     border.color: Theme.borderColor
@@ -380,8 +441,10 @@ PanelWindow {
 
                     Text {
                         anchors.centerIn: parent
+
                         font.family: Theme.fontFamily
                         font.pixelSize: 11
+
                         color: Theme.textMuted
                         text: "Esc"
                     }
@@ -389,6 +452,7 @@ PanelWindow {
                     MouseArea {
                         anchors.fill: parent
                         cursorShape: Qt.PointingHandCursor
+
                         onClicked: root.close()
                     }
                 }
@@ -398,12 +462,14 @@ PanelWindow {
             Rectangle {
                 width: parent.width
                 height: 1
+
                 color: Theme.borderColor
             }
 
             // Actions list
             Column {
                 id: actionsColumn
+
                 width: parent.width
                 spacing: 4
 
@@ -415,8 +481,13 @@ PanelWindow {
                         required property int index
 
                         actionData: modelData
+
                         isSelected: (index === root.selectedIndex)
-                        isHolding: (root.isHolding && root.holdActionId === modelData.id)
+                        isHolding: (
+                            root.isHolding &&
+                            root.holdActionId === modelData.id
+                        )
+
                         holdProgress: root.holdProgress
 
                         onHovered: {
@@ -444,8 +515,10 @@ PanelWindow {
             // Hint / Status bar
             Rectangle {
                 id: hintBar
+
                 width: parent.width
                 height: 32
+
                 radius: 8
                 color: Qt.rgba(1, 1, 1, 0.04)
                 border.color: Qt.rgba(1, 1, 1, 0.08)
@@ -457,31 +530,53 @@ PanelWindow {
 
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
+
                         font.family: Theme.fontFamily
                         font.pixelSize: 13
-                        color: root.isHolding ? Theme.textDanger : Theme.textMuted
+
+                        color: root.isHolding
+                            ? Theme.textDanger
+                            : Theme.textMuted
+
                         text: {
-                            if (root.isHolding) return "󰔟";
+                            if (root.isHolding)
+                                return "󰔟";
+
                             var cur = root.getCurrentAction();
-                            if (cur && cur.dangerous) return "";
+
+                            if (cur && cur.dangerous)
+                                return "";
+
                             return "󰌌";
                         }
                     }
 
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
+
                         font.family: Theme.fontFamily
                         font.pixelSize: 11
-                        font.weight: root.isHolding ? Font.Bold : Font.Normal
-                        color: root.isHolding ? Theme.textDanger : Theme.textMuted
+                        font.weight: root.isHolding
+                            ? Font.Bold
+                            : Font.Normal
+
+                        color: root.isHolding
+                            ? Theme.textDanger
+                            : Theme.textMuted
+
                         text: {
                             if (root.isHolding) {
-                                return "Confirmando... " + Math.round(root.holdProgress * 100) + "%";
+                                return "Confirmando... " +
+                                    Math.round(root.holdProgress * 100) +
+                                    "%";
                             }
+
                             var cur = root.getCurrentAction();
+
                             if (cur && cur.dangerous) {
                                 return "Mantenha pressionado para confirmar";
                             }
+
                             return "Pressione para executar imediatamente";
                         }
                     }
@@ -489,19 +584,23 @@ PanelWindow {
             }
         }
 
-        // Bottom progress indicator bar
+        // Bottom progress indicator
         Rectangle {
             anchors.bottom: parent.bottom
             anchors.left: parent.left
+
             height: 3
             width: parent.width * root.holdProgress
+
             color: Theme.textDanger
             visible: root.isHolding
         }
     }
 
+    // Keyboard handler
     Item {
         id: keyHandler
+
         anchors.fill: parent
         focus: true
 
@@ -512,28 +611,49 @@ PanelWindow {
                 return;
             }
 
-            if (event.key === Qt.Key_Up || event.key === Qt.Key_Backtab || event.key === Qt.Key_K) {
+            if (
+                event.key === Qt.Key_Up ||
+                event.key === Qt.Key_Backtab ||
+                event.key === Qt.Key_K
+            ) {
                 if (root.visibleActions.length > 0) {
-                    root.selectedIndex = (root.selectedIndex - 1 + root.visibleActions.length) % root.visibleActions.length;
+                    root.selectedIndex = (
+                        root.selectedIndex - 1 +
+                        root.visibleActions.length
+                    ) % root.visibleActions.length;
                 }
+
                 event.accepted = true;
                 return;
             }
 
-            if (event.key === Qt.Key_Down || event.key === Qt.Key_Tab || event.key === Qt.Key_J) {
+            if (
+                event.key === Qt.Key_Down ||
+                event.key === Qt.Key_Tab ||
+                event.key === Qt.Key_J
+            ) {
                 if (root.visibleActions.length > 0) {
-                    root.selectedIndex = (root.selectedIndex + 1) % root.visibleActions.length;
+                    root.selectedIndex = (
+                        root.selectedIndex + 1
+                    ) % root.visibleActions.length;
                 }
+
                 event.accepted = true;
                 return;
             }
 
-            if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
+            if (
+                event.key === Qt.Key_Return ||
+                event.key === Qt.Key_Enter ||
+                event.key === Qt.Key_Space
+            ) {
                 if (event.isAutoRepeat) {
                     event.accepted = true;
                     return;
                 }
+
                 var curAction = root.getCurrentAction();
+
                 if (curAction) {
                     if (curAction.dangerous) {
                         root.startHold(curAction);
@@ -541,16 +661,19 @@ PanelWindow {
                         root.executeAction(curAction);
                     }
                 }
+
                 event.accepted = true;
                 return;
             }
 
             // Shortcut keys matching
             var keyChar = (event.text || "").toUpperCase();
+
             if (keyChar.length > 0 && !event.isAutoRepeat) {
                 for (var i = 0; i < root.visibleActions.length; i++) {
                     var act = root.visibleActions[i];
                     var matches = (act.key === keyChar);
+
                     if (!matches && act.altKeys) {
                         for (var k = 0; k < act.altKeys.length; k++) {
                             if (act.altKeys[k] === keyChar) {
@@ -559,13 +682,16 @@ PanelWindow {
                             }
                         }
                     }
+
                     if (matches) {
                         root.selectedIndex = i;
+
                         if (act.dangerous) {
                             root.startHold(act);
                         } else {
                             root.executeAction(act);
                         }
+
                         event.accepted = true;
                         return;
                     }
@@ -574,7 +700,9 @@ PanelWindow {
         }
 
         Keys.onReleased: event => {
-            if (event.isAutoRepeat) return;
+            if (event.isAutoRepeat)
+                return;
+
             if (root.isHolding) {
                 root.cancelHold();
                 event.accepted = true;
@@ -582,3 +710,4 @@ PanelWindow {
         }
     }
 }
+
