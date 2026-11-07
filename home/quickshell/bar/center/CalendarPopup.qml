@@ -4,7 +4,9 @@ import Quickshell
 import "../../theme"
 
 PopupWindow {
-    id: root
+  id: root
+
+    grabFocus: true
 
     required property Item anchorItem
 
