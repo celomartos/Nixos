@@ -1,6 +1,5 @@
 import QtQuick
 import Quickshell
-import Quickshell.Io
 import "../../theme"
 import "../../components"
 
@@ -10,11 +9,6 @@ Item {
     implicitHeight: Theme.barHeight
     implicitWidth: powerItem.implicitWidth
 
-    Process {
-        id: proc
-        command: ["bash", (Quickshell.env("XDG_CONFIG_HOME") || (Quickshell.env("HOME") + "/.config")) + "/rofi/powermenu.sh"]
-    }
-
     BarItem {
         id: powerItem
         anchors.centerIn: parent
@@ -22,11 +16,11 @@ Item {
         text: "⏻ "
 
         onClicked: {
-            if (proc.running) {
-                proc.running = false;
-            } else {
-                proc.running = true;
-            }
+            powerMenu.toggle();
         }
+    }
+
+    PowerMenu {
+        id: powerMenu
     }
 }

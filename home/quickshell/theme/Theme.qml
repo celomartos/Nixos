@@ -21,5 +21,5 @@ QtObject {
     readonly property int itemRadius: 12
     readonly property int itemPaddingHorizontal: 12
     readonly property int itemSpacing: 8
-    readonly property int animDuration: 150
+    readonly property int animDuration: 100
 }

@@ -27,6 +27,7 @@
   home.file.".config/waybar".source = ./home/waybar;
   home.file.".config/mako".source = ./home/mako;
   home.file.".config/Kvantum/Graphite".source = ./home/Graphite;
+  home.file.".config/Vencord".source = ./home/Vencord;
 
   # ============================================================================
   # FISH
@@ -382,7 +383,6 @@
     pciutils
     psmisc
     jq
-    proton-drive-cli
 
     # --------------------------------------------------------------------------
     # Development
@@ -480,9 +480,10 @@
     # Gaming
     # --------------------------------------------------------------------------
 
-    (pkgs.discord.override {
-      withVencord = true;
-    })
+    #(pkgs.discord.override {
+    #  withVencord = true;
+    #})
+    discord
     prismlauncher
     mangohud
     wine

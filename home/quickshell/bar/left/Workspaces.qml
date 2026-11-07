@@ -144,7 +144,7 @@ Connections {
 
                         color: Theme.text
 
-                        text: (isFocused || isUrgent || windowCount > 0)
+                        text: (isFocused || isUrgent)
                             ? ""
                             : ""
                     }

@@ -92,7 +92,7 @@ hl.animation({
 
 hl.animation({
 	leaf = "layersIn",
-	enabled = true,
+	enabled = false,
 	speed = 5,
 	bezier = "layerIn",
 	style = "slide",
