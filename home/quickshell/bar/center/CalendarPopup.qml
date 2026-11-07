@@ -1,41 +1,47 @@
 
 import QtQuick
 import Quickshell
+import Quickshell.Hyprland
 import "../../theme"
 
 PopupWindow {
-  id: root
-
-    grabFocus: true
+    id: root
 
     required property Item anchorItem
 
+    visible: false
+    color: "transparent"
+
+    implicitWidth: 320
+    implicitHeight: col.implicitHeight + 48
+
+    // Position relative to the clock module.
     anchor.window: anchorItem ? anchorItem.QsWindow.window : null
     anchor.edges: Edges.Top | Edges.Left
     anchor.gravity: Edges.Bottom | Edges.Right
     anchor.adjustment: PopupAdjustment.SlideX
 
     anchor.onAnchoring: {
-        if (!anchorItem || !anchorItem.QsWindow.window)
+        if (!root.anchorItem ||
+            !root.anchorItem.QsWindow ||
+            !root.anchorItem.QsWindow.window) {
             return;
+        }
 
-        const window = anchorItem.QsWindow.window;
-        const pos = anchorItem.mapToItem(
+        const window = root.anchorItem.QsWindow.window;
+        const pos = root.anchorItem.mapToItem(
             window.contentItem,
             0,
             0
         );
 
-        anchor.rect.x = pos.x + (anchorItem.width - width) / 2;
-        anchor.rect.y = pos.y + anchorItem.height;
+        anchor.rect.x = pos.x + (root.anchorItem.width - root.width) / 2;
+        anchor.rect.y = pos.y + root.anchorItem.height;
         anchor.rect.width = 1;
         anchor.rect.height = 1;
     }
 
-    implicitWidth: 320
-    implicitHeight: col.implicitHeight + 48
-    color: "transparent"
-
+    // Calendar state
     property int monthOffset: 0
     property var currentDate: new Date()
 
@@ -49,10 +55,133 @@ PopupWindow {
 
     readonly property alias hovered: popupMouseArea.containsMouse
 
+    // Animation state
+    property real popupYOffset: -28
+    property real popupOpacity: 0.0
+
+    // Opening animation - same as PowerMenu
+    ParallelAnimation {
+        id: openAnim
+
+        NumberAnimation {
+            target: root
+            property: "popupYOffset"
+            from: -28
+            to: 0
+            duration: 180
+            easing.type: Easing.OutCubic
+        }
+
+        NumberAnimation {
+            target: root
+            property: "popupOpacity"
+            from: 0.0
+            to: 1.0
+            duration: 180
+            easing.type: Easing.OutQuad
+        }
+    }
+
+    // Closing animation - same as PowerMenu
+    ParallelAnimation {
+        id: closeAnim
+
+        NumberAnimation {
+            target: root
+            property: "popupYOffset"
+            from: 0
+            to: -20
+            duration: 120
+            easing.type: Easing.InCubic
+        }
+
+        NumberAnimation {
+            target: root
+            property: "popupOpacity"
+            from: 1.0
+            to: 0.0
+            duration: 120
+            easing.type: Easing.InQuad
+        }
+
+        onFinished: {
+            root.visible = false;
+        }
+    }
+
+    // Wait until the popup window is visible before grabbing focus.
+    Timer {
+        id: grabDelay
+
+        interval: 60
+        repeat: false
+
+        onTriggered: {
+          if (root.visible && !closeAnim.running) {
+                bg.forceActiveFocus();
+                outsideGrab.active = true;
+            }
+        }
+    }
+
+    // Detect clicks outside the calendar.
+    HyprlandFocusGrab {
+        id: outsideGrab
+
+        active: false
+        windows: [root]
+
+        onCleared: {
+            root.closePopup();
+        }
+    }
+
+    // Open calendar
+    function openPopup() {
+        grabDelay.stop();
+
+        openAnim.stop();
+        closeAnim.stop();
+
+        currentDate = new Date();
+
+        popupYOffset = -28;
+        popupOpacity = 0.0;
+
+        root.visible = true;
+
+        openAnim.restart();
+        grabDelay.restart();
+    }
+
+    // Close calendar
+    function closePopup() {
+        if (!root.visible || closeAnim.running)
+            return;
+
+        grabDelay.stop();
+        openAnim.stop();
+
+        // Start animation before disabling the focus grab.
+        closeAnim.restart();
+        outsideGrab.active = false;
+    }
+
+    // Toggle calendar visibility
+    function toggle() {
+        if (root.visible && !closeAnim.running) {
+            closePopup();
+        } else {
+            openPopup();
+        }
+    }
+
+    // Reset to current month
     function resetToCurrentMonth() {
         monthOffset = 0;
     }
 
+    // Navigate months
     function shiftUp() {
         monthOffset -= 1;
     }
@@ -61,13 +190,21 @@ PopupWindow {
         monthOffset += 1;
     }
 
-    // Atualiza a data ao abrir o calendário.
+    // Cleanup when the popup is hidden.
     onVisibleChanged: {
-        if (visible)
-            currentDate = new Date();
+        if (!visible) {
+            grabDelay.stop();
+            outsideGrab.active = false;
+
+            openAnim.stop();
+            closeAnim.stop();
+
+            popupYOffset = -28;
+            popupOpacity = 0.0;
+        }
     }
 
-    // Mantém a data atualizada enquanto o calendário estiver aberto.
+    // Keep date updated while calendar is open.
     Timer {
         interval: 60000
         repeat: true
@@ -82,10 +219,26 @@ PopupWindow {
         id: bg
 
         anchors.fill: parent
+        focus: true
+
+        Keys.onPressed: event => {
+          if (event.key === Qt.Key_Escape) {
+            root.closePopup();
+            event.accepted = true;
+        }
+    }
+
         color: Theme.background
         border.color: Theme.borderColor
         border.width: 1
         radius: 16
+
+        // QML animation applied to the calendar itself.
+        opacity: root.popupOpacity
+
+        transform: Translate {
+            y: root.popupYOffset
+        }
 
         MouseArea {
             id: popupMouseArea
@@ -108,7 +261,7 @@ PopupWindow {
             spacing: 12
             width: 272
 
-            // Mês e ano
+            // Month and year
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
 
@@ -124,7 +277,7 @@ PopupWindow {
                 )
             }
 
-            // Dias da semana
+            // Weekdays
             Row {
                 anchors.horizontalCenter: parent.horizontalCenter
                 spacing: 8
@@ -148,7 +301,7 @@ PopupWindow {
                 }
             }
 
-            // Grade do calendário
+            // Calendar grid
             Grid {
                 id: grid
 
@@ -180,7 +333,8 @@ PopupWindow {
                             index - grid.firstDayOfWeek + 1
 
                         readonly property bool isValidDay:
-                            dayNumber >= 1 && dayNumber <= grid.daysInMonth
+                            dayNumber >= 1 &&
+                            dayNumber <= grid.daysInMonth
 
                         readonly property bool isToday:
                             isValidDay &&

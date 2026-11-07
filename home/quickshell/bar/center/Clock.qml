@@ -11,7 +11,6 @@ Item {
     implicitWidth: clockItem.implicitWidth
 
     property var currentTime: new Date()
-    property bool calendarVisible: false
 
     readonly property alias calendarPopup: calendarPopup
 
@@ -41,13 +40,12 @@ Item {
         text: root.formatClock(root.currentTime)
 
         onClicked: {
-          if (calendarPopup.visible) {
-          calendarPopup.visible = false;
-            } else {
+            if (!calendarPopup.visible) {
                 calendarPopup.resetToCurrentMonth();
-                calendarPopup.visible = true;
             }
-          }
+
+            calendarPopup.toggle();
+        }
 
         onWheel: wheel => {
             if (wheel.angleDelta.y > 0) {
@@ -62,7 +60,6 @@ Item {
         id: calendarPopup
 
         anchorItem: clockItem
-        visible: root.calendarVisible
     }
 }
 

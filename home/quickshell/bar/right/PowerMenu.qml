@@ -50,7 +50,6 @@ PopupWindow {
 
         anchor.rect.x = pos.x + root.anchorItem.width - root.width;
         anchor.rect.y = pos.y + root.anchorItem.height
-            + Theme.borderBottomWidth - 8;
 
         anchor.rect.width = 1;
         anchor.rect.height = 1;
@@ -110,8 +109,7 @@ PopupWindow {
     readonly property var allActions: [
         {
             id: "logout",
-            label: "Encerrar sessão",
-            desc: "Finaliza a sessão do Hyprland",
+            label: "Exit",
             icon: "󰍃",
             key: "E",
             altKeys: ["Q"],
@@ -124,8 +122,7 @@ PopupWindow {
         },
         {
             id: "reboot",
-            label: "Reiniciar",
-            desc: "Reinicia o sistema operacional",
+            label: "Reboot",
             icon: "",
             key: "R",
             altKeys: [],
@@ -134,8 +131,7 @@ PopupWindow {
         },
         {
             id: "poweroff",
-            label: "Desligar",
-            desc: "Desliga o computador completamente",
+            label: "Shutdown",
             icon: "",
             key: "D",
             altKeys: ["P"],
@@ -152,13 +148,7 @@ PopupWindow {
         for (var i = 0; i < allActions.length; i++) {
             var action = allActions[i];
 
-            if (action.id === "hibernate") {
-                if (root.canHibernate)
-                    filtered.push(action);
-            } else if (action.id === "suspend") {
-                if (root.canSuspend)
-                    filtered.push(action);
-            } else if (action.id === "reboot") {
+            if (action.id === "reboot") {
                 if (root.canReboot)
                     filtered.push(action);
             } else if (action.id === "poweroff") {
@@ -393,79 +383,6 @@ PopupWindow {
 
             spacing: 10
 
-            // Header
-            Row {
-                width: parent.width
-                spacing: 8
-
-                Text {
-                    anchors.verticalCenter: parent.verticalCenter
-
-                    font.family: Theme.fontFamily
-                    font.pixelSize: 16
-
-                    color: Theme.text
-                    text: "⏻"
-                }
-
-                Text {
-                    anchors.verticalCenter: parent.verticalCenter
-
-                    font.family: Theme.fontFamily
-                    font.pixelSize: 14
-                    font.weight: Font.Bold
-
-                    color: Theme.text
-                    text: "Menu de Energia"
-                }
-
-                Item {
-                    id: headerSpacer
-
-                    width: parent.width - 24 - 150 - closeBadge.width
-                    height: 1
-                }
-
-                Rectangle {
-                    id: closeBadge
-
-                    anchors.verticalCenter: parent.verticalCenter
-
-                    width: 36
-                    height: 22
-
-                    radius: 6
-                    color: Qt.rgba(1, 1, 1, 0.06)
-                    border.color: Theme.borderColor
-                    border.width: 1
-
-                    Text {
-                        anchors.centerIn: parent
-
-                        font.family: Theme.fontFamily
-                        font.pixelSize: 11
-
-                        color: Theme.textMuted
-                        text: "Esc"
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-
-                        onClicked: root.close()
-                    }
-                }
-            }
-
-            // Divider
-            Rectangle {
-                width: parent.width
-                height: 1
-
-                color: Theme.borderColor
-            }
-
             // Actions list
             Column {
                 id: actionsColumn
@@ -517,7 +434,6 @@ PopupWindow {
                 id: hintBar
 
                 width: parent.width
-                height: 32
 
                 radius: 8
                 color: Qt.rgba(1, 1, 1, 0.04)
@@ -537,19 +453,7 @@ PopupWindow {
                         color: root.isHolding
                             ? Theme.textDanger
                             : Theme.textMuted
-
-                        text: {
-                            if (root.isHolding)
-                                return "󰔟";
-
-                            var cur = root.getCurrentAction();
-
-                            if (cur && cur.dangerous)
-                                return "";
-
-                            return "󰌌";
-                        }
-                    }
+                          }
 
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
@@ -564,37 +468,11 @@ PopupWindow {
                             ? Theme.textDanger
                             : Theme.textMuted
 
-                        text: {
-                            if (root.isHolding) {
-                                return "Confirmando... " +
-                                    Math.round(root.holdProgress * 100) +
-                                    "%";
-                            }
-
-                            var cur = root.getCurrentAction();
-
-                            if (cur && cur.dangerous) {
-                                return "Mantenha pressionado para confirmar";
-                            }
-
-                            return "Pressione para executar imediatamente";
-                        }
                     }
                 }
             }
         }
 
-        // Bottom progress indicator
-        Rectangle {
-            anchors.bottom: parent.bottom
-            anchors.left: parent.left
-
-            height: 3
-            width: parent.width * root.holdProgress
-
-            color: Theme.textDanger
-            visible: root.isHolding
-        }
     }
 
     // Keyboard handler
