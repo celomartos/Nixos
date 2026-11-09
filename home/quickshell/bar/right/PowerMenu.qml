@@ -10,7 +10,7 @@ PopupWindow {
     visible: false
     color: "transparent"
 
-    implicitWidth: 340
+    implicitWidth: 220
     implicitHeight: cardColumn.implicitHeight + 28
 
     grabFocus: true
