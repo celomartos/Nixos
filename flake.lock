@@ -7,11 +7,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1794014811,
-        "narHash": "sha256-1kahbxlsma1KNavOrhBjgRnyzieWTwlij7DkkfDVxEQ=",
+        "lastModified": 1794098541,
+        "narHash": "sha256-BcItUzUgcKeWxMr5ccY4Fyd26RnVPKCd/5DJAayhCgQ=",
         "ref": "main",
-        "rev": "35bfbc3349e6145f9b4cc840b8c0ced7121c55a2",
-        "revCount": 5,
+        "rev": "5a80e5bfadb4ba376038656f7dd840848a355b28",
+        "revCount": 6,
         "type": "git",
         "url": "https://codeberg.org/buckley310/brave-browser-nix"
       },
@@ -28,11 +28,11 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1794043983,
-        "narHash": "sha256-QyBTtw55XM1kSJbgb+AOr3Dj3PloHJ3DayXOuQaGwpo=",
+        "lastModified": 1794162997,
+        "narHash": "sha256-rDx2VyQz/cIIImhj9/50M+ZoKayR79++pPjf+W1cl3k=",
         "owner": "chaotic-cx",
         "repo": "nyx",
-        "rev": "de6de8e3ff4373d7718507baa79eb15c1ddcfb60",
+        "rev": "df878a1ce1e9dc84f8e4f2b7617868906d3e9e08",
         "type": "github"
       },
       "original": {
@@ -233,11 +233,11 @@
     },
     "nixpkgs_3": {
       "locked": {
-        "lastModified": 1793876309,
-        "narHash": "sha256-Wojg9lIH/hDH91iDVH2/EPw8oDSpxjxhXONbU1yf4Zg=",
+        "lastModified": 1794042290,
+        "narHash": "sha256-ziZn2PvCJE5JEEpqTdxXwJpPB+L3YqoCpTAMCzyaP3U=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "f9a75f41be3a74eab55d3a7679d34ad6cc0da977",
+        "rev": "f4a03c008967841f2a0b3cb7c436fc6fc31671f6",
         "type": "github"
       },
       "original": {

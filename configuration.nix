@@ -227,7 +227,7 @@
 
     pulse.enable = true;
 
-    jack.enable = true;
+    #jack.enable = true;
 
     extraConfig.pipewire = {
       "92-low-latency" = {
@@ -324,6 +324,7 @@
       "org.vinegarhq.Sober"
       "com.stremio.Stremio"
       "com.usebottles.bottles"
+      "com.discordapp.Discord"
     ];
 
     update.auto = {
@@ -365,7 +366,8 @@
         --filesystem=xdg-data/themes:ro \
         --filesystem=xdg-config/Kvantum:ro \
         --env=GTK_THEME=Graphite-Dark \
-        --env=QT_STYLE_OVERRIDE=kvantum
+        --env=QT_STYLE_OVERRIDE=kvantum \
+        --env=TZ=America/Sao_Paulo
     '';
 
     serviceConfig.Type = "oneshot";
@@ -479,8 +481,6 @@
     glib
 
     # Desktop application.
-    chatgpt
-    codex
     antigravity-cli
 
     # Python environment for computer vision and utilities.

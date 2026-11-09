@@ -8,7 +8,7 @@ local cliphist = "cliphist list | rofi -dmenu -display-columns 2 | cliphist deco
 local filemanager = "thunar"
 local navegador = "brave-origin"
 local navegador_anonimo = "brave-origin --incognito"
-local discord = "discord"
+local discord = "flatpak run com.discordapp.Discord"
 
 local mainMod = "SUPER"
 local configHome = os.getenv("XDG_CONFIG_HOME") or (os.getenv("HOME") .. "/.config")
