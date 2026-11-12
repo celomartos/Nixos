@@ -43,5 +43,7 @@ format_rate() {
 
 download_text=$(format_rate "$download")
 upload_text=$(format_rate "$upload")
-printf '{"text":"↓ %s  ↑ %s","class":"online","tooltip":"Download: %s\\nUpload: %s"}\n' \
+
+# ALTERAÇÃO AQUI: Removido o espaço duplo entre ↓ e ↑
+printf '{"text":"↓ %s ↑ %s","class":"online","tooltip":"Download: %s\\nUpload: %s"}\n' \
   "$download_text" "$upload_text" "$download_text" "$upload_text"

@@ -41,10 +41,17 @@ Item {
             height: Theme.barHeight
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
+            
+            // Ajustes de renderização para manter os blocos nítidos
+            renderType: Theme.textRenderType
+            renderTypeQuality: Theme.textRenderQuality
+            font.hintingPreference: Theme.fontHinting
+            
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSize
             font.weight: Theme.fontWeight
             color: Theme.text
+            
             text: "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁"
             clip: true
         }

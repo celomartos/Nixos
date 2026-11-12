@@ -47,9 +47,10 @@ PanelWindow {
             Row {
                 id: leftSection
                 anchors.left: parent.left
-                anchors.leftMargin: Theme.itemSpacing
+                // Margem externa para não colar na borda da tela
+                anchors.leftMargin: Theme.itemPaddingHorizontal 
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: Theme.itemSpacing
+                spacing: Theme.itemSpacing // Espaçamento entre os módulos (6)
 
                 Workspaces {}
                 Cava {}
@@ -69,9 +70,10 @@ PanelWindow {
             Row {
                 id: rightSection
                 anchors.right: parent.right
-                anchors.rightMargin: Theme.itemSpacing
+                // Margem externa para não colar na borda da tela
+                anchors.rightMargin: Theme.itemPaddingHorizontal
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: Theme.itemSpacing
+                spacing: Theme.itemSpacing // Espaçamento entre os módulos (6)
 
                 Tray {}
                 Audio {}

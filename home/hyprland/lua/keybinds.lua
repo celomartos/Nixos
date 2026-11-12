@@ -1,18 +1,18 @@
 local terminal = "kitty"
 local menu = "rofi -show drun"
-local screenshot = "hyprshot -m region -m active --clipboard-only"
+local screenshot = "hyprshot --freeze -m region -o ~/Pictures/Screenshots"
 local quickshell =
 	"(pkill -x .quickshell-wra || pkill -x quickshell) && (pkill -f 'cava.*cava.conf' 2>/dev/null || true) || quickshell"
 local waybar = "pkill waybar socat || waybar"
-local cliphist = "cliphist list | rofi -dmenu -display-columns 2 | cliphist decode | wl-copy"
+local cliphist = "rofi -modi clipboard:$HOME/.config/rofi/scripts/cliphist-rofi-img -show clipboard -show-icons"
 local filemanager = "thunar"
 local navegador = "brave-origin"
 local navegador_anonimo = "brave-origin --incognito"
 local discord = "flatpak run com.discordapp.Discord"
+local screenshot_menu = os.getenv("HOME") .. "/.config/rofi/scripts/screenshotmenu.sh"
 
 local mainMod = "SUPER"
 local configHome = os.getenv("XDG_CONFIG_HOME") or (os.getenv("HOME") .. "/.config")
-local calendarClose = configHome .. "/waybar/eww/close-calendar-on-escape.sh"
 
 ------------------------
 ---- WINDOW CONTROL ----
@@ -54,6 +54,7 @@ hl.bind(mainMod .. " + 5", hl.dsp.window.move({ workspace = 5 }))
 
 hl.bind("ALT + ESCAPE", hl.dsp.exec_cmd(menu))
 hl.bind(mainMod .. " + F", hl.dsp.exec_cmd(screenshot))
+hl.bind(mainMod .. " + SHIFT + F", hl.dsp.exec_cmd("bash " .. screenshot_menu))
 hl.bind(mainMod .. " + W", hl.dsp.exec_cmd(quickshell))
 -- hl.bind(mainMod .. " + W", hl.dsp.exec_cmd(waybar)) -- Fallback Waybar
 hl.bind(mainMod .. " + T", hl.dsp.exec_cmd(terminal))

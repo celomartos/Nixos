@@ -1,4 +1,3 @@
-
 import QtQuick
 import Quickshell
 import Quickshell.Hyprland
@@ -220,14 +219,6 @@ PopupWindow {
 
         anchors.fill: parent
         focus: true
-
-        Keys.onPressed: event => {
-          if (event.key === Qt.Key_Escape) {
-            root.closePopup();
-            event.accepted = true;
-        }
-    }
-
         color: Theme.background
         border.color: Theme.borderColor
         border.width: 1
@@ -238,6 +229,13 @@ PopupWindow {
 
         transform: Translate {
             y: root.popupYOffset
+        }
+
+        Keys.onPressed: event => {
+            if (event.key === Qt.Key_Escape) {
+                root.closePopup();
+                event.accepted = true;
+            }
         }
 
         MouseArea {
@@ -264,11 +262,14 @@ PopupWindow {
             // Month and year
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
-
+                
+                renderType: Theme.textRenderType
+                renderTypeQuality: Theme.textRenderQuality
+                font.hintingPreference: Theme.fontHinting
+                
                 font.family: Theme.fontFamily
-                font.pixelSize: 20
+                font.pixelSize: Theme.fontSizeLarge
                 font.weight: Font.Bold
-
                 color: Theme.text
 
                 text: root.displayedDate.toLocaleDateString(
@@ -290,12 +291,15 @@ PopupWindow {
 
                         width: 32
                         horizontalAlignment: Text.AlignHCenter
-
+                        
+                        renderType: Theme.textRenderType
+                        renderTypeQuality: Theme.textRenderQuality
+                        font.hintingPreference: Theme.fontHinting
+                        
                         font.family: Theme.fontFamily
-                        font.pixelSize: 15
+                        font.pixelSize: Theme.fontSize
                         font.weight: Font.Bold
-
-                        color: Theme.text
+                        color: Theme.textMuted // Usando a cor cinza do tema
                         text: modelData
                     }
                 }
@@ -347,7 +351,6 @@ PopupWindow {
 
                         Rectangle {
                             anchors.fill: parent
-
                             visible: parent.isToday
                             color: "#ffffff"
                             radius: 6
@@ -355,22 +358,18 @@ PopupWindow {
 
                         Text {
                             anchors.centerIn: parent
-
                             visible: parent.isValidDay
-
+                            
+                            renderType: Theme.textRenderType
+                            renderTypeQuality: Theme.textRenderQuality
+                            font.hintingPreference: Theme.fontHinting
+                            
                             font.family: Theme.fontFamily
-                            font.pixelSize: 15
-                            font.weight: parent.isToday
-                                ? Font.Bold
-                                : Font.Normal
+                            font.pixelSize: Theme.fontSize
+                            font.weight: parent.isToday ? Font.Bold : Font.Normal
+                            color: parent.isToday ? "#000000" : Theme.text
 
-                            color: parent.isToday
-                                ? "#000000"
-                                : "#dddddd"
-
-                            text: parent.isValidDay
-                                ? parent.dayNumber
-                                : ""
+                            text: parent.isValidDay ? parent.dayNumber : ""
                         }
                     }
                 }
@@ -378,4 +377,3 @@ PopupWindow {
         }
     }
 }
-

@@ -1,4 +1,3 @@
-
 import QtQuick
 import Quickshell
 import "../../theme"
@@ -29,6 +28,7 @@ Item {
         var datePart = date.toLocaleDateString(enLocale, "ddd dd MMM");
         var timePart = Qt.formatTime(date, "hh:mm");
 
+        // Reduzido para um espaço entre a data e o ícone do relógio
         return " " + datePart + " 󰥔 " + timePart;
     }
 
@@ -38,6 +38,8 @@ Item {
         anchors.centerIn: parent
         clickable: true
         text: root.formatClock(root.currentTime)
+        // Opcional: Se quiser que o relógio fique branco puro e não cinza
+        // textColor: Theme.text 
 
         onClicked: {
             if (!calendarPopup.visible) {
@@ -62,4 +64,3 @@ Item {
         anchorItem: clockItem
     }
 }
-

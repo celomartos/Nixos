@@ -1,9 +1,9 @@
 configuration {
-    modi: "drun";
+    modi: "drun,filebrowser";
     show-icons: true;
-    icon-theme: "Tela-black";
+    //icon-theme: "";
     terminal: "kitty";
-    drun-display-format: "{icon} {name}";
+    drun-display-format: "{name}";
     location: 0;
     disable-history: false;
     hide-scrollbar: true;
@@ -11,8 +11,10 @@ configuration {
     me-select-entry: "";
     me-accept-entry: [ MousePrimary, MouseSecondary, MouseDPrimary ];
     hover-select: true;
+    ml-row-up: "";
+    ml-row-down: "";
 
-    drun-exclude-categories: "Settings;System;Development;Utility;AudioVideo;Audio;";
+    drun-exclude-categories: "Settings;System;AudioVideo;Audio;";
     drun-show-actions: false;
     drun-use-desktop-cache: false;
 }

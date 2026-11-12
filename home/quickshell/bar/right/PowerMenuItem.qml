@@ -1,4 +1,3 @@
-
 import QtQuick
 import "../../theme"
 
@@ -19,7 +18,7 @@ Rectangle {
     implicitWidth: parent ? parent.width : 312
     radius: Theme.itemRadius
 
-    color: root.isSelected ? "#ffffff" : "transparent"
+    color: root.isSelected ? Theme.text : "transparent"
     clip: true
 
     Behavior on color {
@@ -102,9 +101,17 @@ Rectangle {
 
             Text {
                 anchors.centerIn: parent
-
+                
+                // Renderização de alta qualidade
+                renderType: Theme.textRenderType
+                renderTypeQuality: Theme.textRenderQuality
+                font.hintingPreference: Theme.fontHinting
+                
                 font.family: Theme.fontFamily
-                font.pixelSize: 18
+                font.pixelSize: Theme.fontSizeLarge // Era 18
+                
+                // Alinha o ícone verticalmente
+                anchors.verticalCenterOffset: Theme.iconVerticalOffset
 
                 color: root.isSelected
                     ? "#000000"
@@ -130,9 +137,14 @@ Rectangle {
 
             Text {
                 id: titleText
+                
+                // Renderização de alta qualidade
+                renderType: Theme.textRenderType
+                renderTypeQuality: Theme.textRenderQuality
+                font.hintingPreference: Theme.fontHinting
 
                 font.family: Theme.fontFamily
-                font.pixelSize: 14
+                font.pixelSize: Theme.fontSize // Era 14
                 font.weight: root.isSelected
                     ? Font.Bold
                     : Font.Normal
@@ -151,9 +163,14 @@ Rectangle {
 
             Text {
                 id: descText
+                
+                // Renderização de alta qualidade
+                renderType: Theme.textRenderType
+                renderTypeQuality: Theme.textRenderQuality
+                font.hintingPreference: Theme.fontHinting
 
                 font.family: Theme.fontFamily
-                font.pixelSize: 11
+                font.pixelSize: Theme.fontSizeSmall // Era 11
 
                 color: root.isSelected
                     ? "#444444"
@@ -190,9 +207,14 @@ Rectangle {
 
             Text {
                 anchors.centerIn: parent
+                
+                // Renderização de alta qualidade
+                renderType: Theme.textRenderType
+                renderTypeQuality: Theme.textRenderQuality
+                font.hintingPreference: Theme.fontHinting
 
                 font.family: Theme.fontFamily
-                font.pixelSize: 11
+                font.pixelSize: Theme.fontSizeSmall // Era 11
                 font.weight: Font.Bold
 
                 color: root.isSelected
@@ -235,4 +257,3 @@ Rectangle {
         }
     }
 }
-

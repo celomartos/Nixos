@@ -311,7 +311,7 @@
     capSysNice = false;
   };
 
-  programs.gamemode.enable = true;
+  #programs.gamemode.enable = true;
 
   # ============================================================================
   # FLATPAK
@@ -428,7 +428,7 @@
     extraGroups = [
       "networkmanager"
       "wheel"
-      "gamemode"
+      #"gamemode"
       "input"
       "libvirtd"
     ];
@@ -469,6 +469,7 @@
     zip
     unrar
     file-roller
+    gdk-pixbuf
 
     # Screenshot tools.
     grim
@@ -537,6 +538,10 @@
     GSK_RENDERER = "gl";
   };
 
+  environment.pathsToLink = [
+    "/share/thumbnailers"
+  ];
+
   # ============================================================================
   # NEXTDNS
   # ============================================================================
@@ -563,6 +568,16 @@
   # ============================================================================
   # SCHEDULER
   # ============================================================================
+
+  services.ananicy = {
+    enable = true;
+
+    # Substitui o Ananicy tradicional pelo C++
+    package = pkgs.ananicy-cpp;
+
+    # Regras oficiais do CachyOS
+    rulesProvider = pkgs.ananicy-rules-cachyos;
+  };
 
   # systemd.services.scx-lavd = {
   #  description = "LAVD sched-ext scheduler";

@@ -101,18 +101,21 @@ Item {
             border.width: 1
             radius: 8
 
-            implicitWidth: tipText.implicitWidth + 24
-            implicitHeight: tipText.implicitHeight + 16
+            // Padding reduzido para ficar mais compacto
+            implicitWidth: tipText.implicitWidth + 16
+            implicitHeight: tipText.implicitHeight + 12
 
             Text {
                 id: tipText
                 anchors.centerIn: parent
+                renderType: Theme.textRenderType
+                renderTypeQuality: Theme.textRenderQuality
+                font.hintingPreference: Theme.fontHinting
                 font.family: Theme.fontFamily
-                font.pixelSize: 13
+                font.pixelSize: Theme.fontSizeSmall // Puxando do Theme
                 color: Theme.text
                 text: root.tooltipInfo
             }
         }
     }
-
 }

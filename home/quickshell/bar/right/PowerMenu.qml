@@ -1,4 +1,3 @@
-
 import QtQuick
 import Quickshell
 import Quickshell.Io
@@ -246,6 +245,7 @@ PopupWindow {
         execProcess.running = true;
     }
 
+    // Lógica do Hold
     Timer {
         id: holdTimer
 
@@ -381,98 +381,63 @@ PopupWindow {
             anchors.right: parent.right
             anchors.margins: 14
 
-            spacing: 10
-
             // Actions list
             Column {
                 id: actionsColumn
-
                 width: parent.width
-                spacing: 4
 
                 Repeater {
                     model: root.visibleActions
 
-                    delegate: PowerMenuItem {
+                    delegate: Column {
                         required property var modelData
                         required property int index
+                        width: parent.width
 
-                        actionData: modelData
+                        PowerMenuItem {
+                            width: parent.width
+                            actionData: modelData
 
-                        isSelected: (index === root.selectedIndex)
-                        isHolding: (
-                            root.isHolding &&
-                            root.holdActionId === modelData.id
-                        )
+                            isSelected: (index === root.selectedIndex)
+                            isHolding: (
+                                root.isHolding &&
+                                root.holdActionId === modelData.id
+                            )
+                            holdProgress: root.holdProgress
 
-                        holdProgress: root.holdProgress
+                            onHovered: {
+                                root.selectedIndex = index;
+                            }
 
-                        onHovered: {
-                            root.selectedIndex = index;
+                            onItemPressed: {
+                                root.selectedIndex = index;
+                                root.startHold(modelData);
+                            }
+
+                            onItemReleased: {
+                                root.cancelHold();
+                            }
+
+                            onItemClicked: {} 
                         }
 
-                        onItemPressed: {
-                            root.selectedIndex = index;
-                            root.startHold(modelData);
-                        }
+                        // Separação entre as opções (Agora visível)
+                        Item {
+                            width: parent.width
+                            height: 12 // Mais espaço vertical
+                            visible: index < root.visibleActions.length - 1
 
-                        onItemReleased: {
-                            root.cancelHold();
-                        }
-
-                        onItemClicked: {
-                            if (!modelData.dangerous) {
-                                root.executeAction(modelData);
+                            Rectangle {
+                                anchors.centerIn: parent
+                                width: parent.width - 16 // Margem lateral menor (linha mais larga)
+                                height: 1
+                                color: Qt.rgba(1, 1, 1, 0.25) // Opacidade de 15% (antes era 0.08)
                             }
                         }
                     }
                 }
             }
-
-            // Hint / Status bar
-            Rectangle {
-                id: hintBar
-
-                width: parent.width
-
-                radius: 8
-                color: Qt.rgba(1, 1, 1, 0.04)
-                border.color: Qt.rgba(1, 1, 1, 0.08)
-                border.width: 1
-
-                Row {
-                    anchors.centerIn: parent
-                    spacing: 8
-
-                    Text {
-                        anchors.verticalCenter: parent.verticalCenter
-
-                        font.family: Theme.fontFamily
-                        font.pixelSize: 13
-
-                        color: root.isHolding
-                            ? Theme.textDanger
-                            : Theme.textMuted
-                          }
-
-                    Text {
-                        anchors.verticalCenter: parent.verticalCenter
-
-                        font.family: Theme.fontFamily
-                        font.pixelSize: 11
-                        font.weight: root.isHolding
-                            ? Font.Bold
-                            : Font.Normal
-
-                        color: root.isHolding
-                            ? Theme.textDanger
-                            : Theme.textMuted
-
-                    }
-                }
-            }
         }
-
     }
 
     // Keyboard handler
@@ -533,11 +498,7 @@ PopupWindow {
                 var curAction = root.getCurrentAction();
 
                 if (curAction) {
-                    if (curAction.dangerous) {
-                        root.startHold(curAction);
-                    } else {
-                        root.executeAction(curAction);
-                    }
+                    root.startHold(curAction);
                 }
 
                 event.accepted = true;
@@ -563,12 +524,7 @@ PopupWindow {
 
                     if (matches) {
                         root.selectedIndex = i;
-
-                        if (act.dangerous) {
-                            root.startHold(act);
-                        } else {
-                            root.executeAction(act);
-                        }
+                        root.startHold(act);
 
                         event.accepted = true;
                         return;
@@ -588,4 +544,3 @@ PopupWindow {
         }
     }
 }
-

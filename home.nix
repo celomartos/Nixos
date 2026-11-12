@@ -247,6 +247,59 @@
 
   xdg.enable = true;
 
+  xdg.desktopEntries = {
+    "thunar" = {
+      name = "Thunar";
+      exec = "thunar %U";
+      noDisplay = true;
+    };
+    "thunar-bulk-rename" = {
+      name = "Thunar Bulk Rename";
+      exec = "thunar --bulk-rename %F";
+      noDisplay = true;
+    };
+    "thunar-settings" = {
+      name = "Thunar Settings";
+      exec = "thunar-settings";
+      noDisplay = true;
+    };
+    "thunar-volman-settings" = {
+      name = "Thunar Volume Manager";
+      exec = "thunar-volman-settings";
+      noDisplay = true;
+    };
+    "org.gnome.FileRoller" = {
+      name = "File Roller";
+      exec = "file-roller %U";
+      noDisplay = true;
+    };
+    "nvim" = {
+      name = "Neovim";
+      exec = "nvim"; # Valor simbólico; a entrada não será executada.
+      noDisplay = true;
+    };
+    "org.gtk.PrintEditor4" = {
+      name = "GTK4 Print Editor";
+      exec = "gtk4-print-editor";
+      noDisplay = true;
+    };
+    "org.gtk.Demo4" = {
+      name = "GTK4 Demo";
+      exec = "gtk4-demo";
+      noDisplay = true;
+    };
+    "org.gtk.WidgetFactory4" = {
+      name = "GTK4 Widget Factory";
+      exec = "gtk4-widget-factory";
+      noDisplay = true;
+    };
+    "org.gtk.gtk4.NodeEditor" = {
+      name = "GTK4 Node Editor";
+      exec = "gtk4-node-editor";
+      noDisplay = true;
+    };
+  };
+
   xdg.desktopEntries.neovim = {
     name = "Neovim";
     genericName = "Text Editor";
@@ -425,6 +478,8 @@
     waybar
     quickshell
     linux-wallpaperengine
+    satty
+    gawk
 
     # --------------------------------------------------------------------------
     # GTK / Qt

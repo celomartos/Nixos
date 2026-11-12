@@ -14,7 +14,7 @@ Item {
     Row {
         id: trayRow
         anchors.centerIn: parent
-        spacing: 10
+        spacing: 8 // Reduzido de 10 para 8 (mais compacto)
 
         Repeater {
             model: SystemTray.items
@@ -119,16 +119,22 @@ Item {
                         border.width: 1
                         radius: 8
 
-                        implicitWidth: tipText.implicitWidth + 24
-                        implicitHeight: tipText.implicitHeight + 16
+                        // Padding reduzido para ficar igual aos outros tooltips
+                        implicitWidth: tipText.implicitWidth + 16
+                        implicitHeight: tipText.implicitHeight + 12
 
                         Text {
                             id: tipText
 
                             anchors.centerIn: parent
-
+                            
+                            // Renderização de alta qualidade
+                            renderType: Theme.textRenderType
+                            renderTypeQuality: Theme.textRenderQuality
+                            font.hintingPreference: Theme.fontHinting
+                            
                             font.family: Theme.fontFamily
-                            font.pixelSize: Theme.fontSize - 3
+                            font.pixelSize: Theme.fontSizeSmall // Era Theme.fontSize - 3
                             color: Theme.text
 
                             text: trayItem.tipString

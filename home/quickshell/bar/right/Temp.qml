@@ -11,6 +11,17 @@ Item {
     implicitWidth: barItem.implicitWidth
 
     property string temperature: "--°C"
+    
+    // Extrai o número da string (ex: "51°C" -> 51)
+    readonly property int tempValue: parseInt(root.temperature) || 0
+
+    // Função que decide a cor baseada na temperatura
+    function getTempColor() {
+        if (root.tempValue === 0) return Theme.textMuted; // Carregando/Erro
+        if (root.tempValue >= 80) return Theme.textDanger; // Vermelho (Perigo)
+        if (root.tempValue >= 65) return "#f9e2af";        // Amarelo (Alerta)
+        return Theme.text;                                 // Branco (Normal)
+    }
 
     Process {
         id: proc
@@ -48,5 +59,8 @@ Item {
         anchors.centerIn: parent
         clickable: false
         text: " " + root.temperature
+        
+        // Aplica a cor calculada pela função
+        textColor: root.getTempColor() 
     }
 }

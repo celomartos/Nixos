@@ -1,4 +1,3 @@
-
 import QtQuick
 import Quickshell
 import Quickshell.Hyprland
@@ -67,22 +66,23 @@ Item {
         }
     }
 
-Connections {
-    target: Hyprland
+    Connections {
+        target: Hyprland
 
-    function onRawEvent(event) {
-        switch (event.name) {
-        case "openwindow":
-            Hyprland.refreshToplevels();
-            break;
+        function onRawEvent(event) {
+            switch (event.name) {
+            case "openwindow":
+                Hyprland.refreshToplevels();
+                break;
 
-        case "movewindow":
-            Hyprland.refreshToplevels();
-            Hyprland.refreshWorkspaces();
-            break;
+            case "movewindow":
+                Hyprland.refreshToplevels();
+                Hyprland.refreshWorkspaces();
+                break;
+            }
         }
     }
-}
+
     Row {
         id: wsRow
 
@@ -115,7 +115,8 @@ Connections {
                     mouseArea.containsMouse
 
                 implicitHeight: Theme.barHeight - 6
-                implicitWidth: labelRow.implicitWidth + 16
+                // Reduzi de + 16 para + 12 para ficar mais compacto como o Waybar
+                implicitWidth: labelRow.implicitWidth + 12 
 
                 radius: 10
 
@@ -125,7 +126,7 @@ Connections {
 
                 Behavior on color {
                     ColorAnimation {
-                        duration: 100
+                        duration: Theme.animDuration
                     }
                 }
 
@@ -133,14 +134,21 @@ Connections {
                     id: labelRow
 
                     anchors.centerIn: parent
-                    spacing: 6
+                    spacing: 4 // Reduzido de 6 para 4 (mais colado no Waybar)
 
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
-
+                        // Ajustes de renderização para nitidez
+                        renderType: Theme.textRenderType
+                        renderTypeQuality: Theme.textRenderQuality
+                        font.hintingPreference: Theme.fontHinting
+                        
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSize
                         font.weight: Theme.fontWeight
+
+                        // Alinha o ícone do workspace com os ícones dos apps
+                        anchors.verticalCenterOffset: Theme.iconVerticalOffset
 
                         color: Theme.text
 
@@ -156,6 +164,8 @@ Connections {
                             required property var modelData
 
                             anchors.verticalCenter: parent.verticalCenter
+                            // Um micro-ajuste para alinhar com a fonte
+                            anchors.verticalCenterOffset: -1 
 
                             width: 18
                             height: 18
@@ -189,4 +199,3 @@ Connections {
         }
     }
 }
-

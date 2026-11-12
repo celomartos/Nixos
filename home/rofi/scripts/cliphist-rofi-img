@@ -1,0 +1,35 @@
+
+#!/usr/bin/env bash
+
+cache="/tmp/cliphist"
+mkdir -p "$cache"
+
+if [[ -n "${1:-}" ]]; then
+    id="${1%%$'\t'*}"
+    cliphist decode "$id" | wl-copy
+    exit
+fi
+
+cliphist list | gawk -v cache="$cache" '
+{
+    id = $1
+    preview = $0
+    sub(/^[0-9]+\t/, "", preview)
+
+    if (preview ~ /^\[\[ binary data / &&
+        match(preview, /(png|jpg|jpeg|bmp|gif|tiff)/, ext)) {
+
+        file = cache "/" id "." ext[1]
+
+        if (system("test -s \"" file "\"") != 0)
+            system("cliphist decode " id " > \"" file "\"")
+
+        printf "%s\t%s%cdisplay\x1f%s\x1ficon\x1f%s\n",
+            id, preview, 0, preview, file
+        next
+    }
+
+    printf "%s\t%s%cdisplay\x1f%s\n",
+        id, preview, 0, preview
+}'
+

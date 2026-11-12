@@ -98,18 +98,25 @@ Item {
             border.color: Theme.borderColor
             border.width: 1
             radius: 8
-            implicitWidth: tipText.implicitWidth + 24
-            implicitHeight: tipText.implicitHeight + 16
+            
+            // Padding mais compacto (estilo Waybar)
+            implicitWidth: tipText.implicitWidth + 16 
+            implicitHeight: tipText.implicitHeight + 12
 
             Text {
                 id: tipText
                 anchors.centerIn: parent
+                
+                // Correções de renderização aplicadas ao Tooltip
+                renderType: Theme.textRenderType
+                renderTypeQuality: Theme.textRenderQuality
+                font.hintingPreference: Theme.fontHinting
+                
                 font.family: Theme.fontFamily
-                font.pixelSize: 13
+                font.pixelSize: Theme.fontSizeSmall // Tamanho padronizado
                 color: Theme.text
                 text: root.tooltipText
             }
         }
     }
-
 }

@@ -21,6 +21,7 @@ Item {
     }
 
     function getAudioIcon() {
+        if (root.muted) return "󰖁"; // Ícone de mudo
         if (root.volumePercent <= 33) return "";
         if (root.volumePercent <= 66) return "";
         return "";
@@ -30,7 +31,9 @@ Item {
         id: audioItem
         anchors.centerIn: parent
         clickable: true
-        text: root.muted ? "muted" : (root.getAudioIcon() + "  " + root.volumePercent + "%")
+        
+        // Removido o espaço duplo e adicionado o ícone de mudo
+        text: root.getAudioIcon() + "  " + root.volumePercent + "%"
 
         onClicked: {
             if (root.sink && root.sink.ready && root.sink.audio) {

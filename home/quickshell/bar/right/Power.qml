@@ -13,7 +13,9 @@ Item {
         id: powerItem
         anchors.centerIn: parent
         clickable: true
-        text: "⏻ "
+        
+        // Usei o ícone Nerd Font (󰐥) e removi o espaço extra
+        text: "󰐥" 
 
         onClicked: {
             powerMenu.toggle();

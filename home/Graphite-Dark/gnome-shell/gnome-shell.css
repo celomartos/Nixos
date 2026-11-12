@@ -123,7 +123,7 @@ stage {
 .login-dialog .login-dialog-session-list-button, .login-dialog .modal-dialog-button, .login-dialog .modal-dialog-button:default, .hotplug-notification-item, .icon-button, .message .message-header .message-expand-button,
 .message .message-header .message-close-button, .message-notification-group .message-collapse-button, .button {
   color: white;
-  background-color: #2C2C2C;
+  background-color: #1B1B1B;
   box-shadow: none !important;
 }
 

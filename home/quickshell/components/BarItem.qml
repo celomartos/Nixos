@@ -47,16 +47,26 @@ Rectangle {
     Row {
         id: innerRow
         anchors.centerIn: parent
-        spacing: 6
+        spacing: Theme.itemSpacing // Puxa o espaçamento (6) do Theme
 
         Text {
             id: label
             visible: text.length > 0
             color: root.textColor
+            Behavior on color { ColorAnimation { duration: 300 } }
+            
+            // Configurações de fonte puxadas do Theme
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSize
             font.weight: Theme.fontWeight
+            
+            // Renderização de alta qualidade (Waybar-like)
+            font.hintingPreference: Theme.fontHinting
+            renderType: Theme.textRenderType
+            renderTypeQuality: Theme.textRenderQuality
+            
             anchors.verticalCenter: parent.verticalCenter
+            anchors.verticalCenterOffset: Theme.iconVerticalOffset // Alinha com os ícones
         }
     }
 }
