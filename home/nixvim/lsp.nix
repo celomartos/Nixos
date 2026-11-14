@@ -31,6 +31,10 @@
           enable = true;
           package = pkgs.clang-tools;
         };
+        qmlls = {
+          enable = true;
+          package = pkgs.kdePackages.qtdeclarative;
+        };
       };
     };
 

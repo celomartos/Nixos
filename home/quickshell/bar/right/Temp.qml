@@ -18,7 +18,7 @@ Item {
     // Função que decide a cor baseada na temperatura
     function getTempColor() {
         if (root.tempValue === 0) return Theme.textMuted; // Carregando/Erro
-        if (root.tempValue >= 80) return Theme.textDanger; // Vermelho (Perigo)
+        if (root.tempValue >= 75) return Theme.textDanger; // Vermelho (Perigo)
         if (root.tempValue >= 65) return "#f9e2af";        // Amarelo (Alerta)
         return Theme.text;                                 // Branco (Normal)
     }

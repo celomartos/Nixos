@@ -67,6 +67,6 @@ Item {
         id: barItem
         anchors.centerIn: parent
         clickable: false
-        text: " " + root.usage + "%" // Removido o espaço duplo
+        text: "  " + root.usage + "%" // Removido o espaço duplo
     }
 }

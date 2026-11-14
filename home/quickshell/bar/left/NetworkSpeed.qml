@@ -22,9 +22,12 @@ Item {
                 if (text && text.trim().length > 0) {
                     try {
                         var data = JSON.parse(text.trim());
-                        if (data.text) root.speedText = data.text;
-                        if (data.class) root.statusClass = data.class;
-                        if (data.tooltip) root.tooltipText = data.tooltip;
+                        if (data.text)
+                            root.speedText = data.text;
+                        if (data.class)
+                            root.statusClass = data.class;
+                        if (data.tooltip)
+                            root.tooltipText = data.tooltip;
                     } catch (e) {
                         // Resposta não JSON (fallback texto)
                         root.speedText = text.trim();
@@ -74,11 +77,7 @@ Item {
         anchor.adjustment: PopupAdjustment.SlideX
 
         anchor.onAnchoring: {
-            const pos = barItem.mapToItem(
-                barItem.QsWindow.window.contentItem,
-                0,
-                0
-            );
+            const pos = barItem.mapToItem(barItem.QsWindow.window.contentItem, 0, 0);
 
             anchor.rect.x = pos.x + (barItem.width - width) / 2;
             anchor.rect.y = pos.y + barItem.height;
@@ -88,8 +87,8 @@ Item {
 
         visible: barItem.hovered && root.tooltipText.length > 0
         color: "transparent"
-        width: tipBox.implicitWidth
-        height: tipBox.implicitHeight
+        implicitWidth: tipBox.implicitWidth
+        implicitHeight: tipBox.implicitHeight
 
         Rectangle {
             id: tipBox
@@ -98,20 +97,20 @@ Item {
             border.color: Theme.borderColor
             border.width: 1
             radius: 8
-            
+
             // Padding mais compacto (estilo Waybar)
-            implicitWidth: tipText.implicitWidth + 16 
+            implicitWidth: tipText.implicitWidth + 16
             implicitHeight: tipText.implicitHeight + 12
 
             Text {
                 id: tipText
                 anchors.centerIn: parent
-                
+
                 // Correções de renderização aplicadas ao Tooltip
                 renderType: Theme.textRenderType
                 renderTypeQuality: Theme.textRenderQuality
                 font.hintingPreference: Theme.fontHinting
-                
+
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeSmall // Tamanho padronizado
                 color: Theme.text

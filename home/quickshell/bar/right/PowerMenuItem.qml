@@ -9,10 +9,10 @@ Rectangle {
     property bool isHolding: false
     property real holdProgress: 0.0
 
-    signal itemPressed()
-    signal itemReleased()
-    signal itemClicked()
-    signal hovered()
+    signal itemPressed
+    signal itemReleased
+    signal itemClicked
+    signal hovered
 
     implicitHeight: 52
     implicitWidth: parent ? parent.width : 312
@@ -35,13 +35,9 @@ Rectangle {
         anchors.top: parent.top
         anchors.bottom: parent.bottom
 
-        width: root.isHolding
-            ? parent.width * root.holdProgress
-            : 0
+        width: root.isHolding ? parent.width * root.holdProgress : 0
 
-        color: (root.actionData && root.actionData.dangerous)
-            ? Theme.textDanger
-            : Theme.text
+        color: (root.actionData && root.actionData.dangerous) ? Theme.textDanger : Theme.text
 
         opacity: 0.8
         radius: Theme.itemRadius
@@ -95,29 +91,24 @@ Rectangle {
             height: 32
             radius: 8
 
-            color: root.isSelected
-                ? Qt.rgba(0, 0, 0, 0.08)
-                : "transparent"
+            color: root.isSelected ? Qt.rgba(0, 0, 0, 0.08) : "transparent"
 
             Text {
                 anchors.centerIn: parent
-                
-                // Renderização de alta qualidade
+
                 renderType: Theme.textRenderType
                 renderTypeQuality: Theme.textRenderQuality
                 font.hintingPreference: Theme.fontHinting
-                
+
                 font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSizeLarge // Era 18
-                
-                // Alinha o ícone verticalmente
+                font.pixelSize: Theme.fontSizeLarge
+
                 anchors.verticalCenterOffset: Theme.iconVerticalOffset
 
-                color: root.isSelected
-                    ? "#000000"
-                    : Theme.text
+                color: root.isSelected ? "#000000" : Theme.text
 
-                text: root.actionData ? root.actionData.icon : ""
+                // Correção: fallback seguro para string vazia
+                text: (root.actionData && root.actionData.icon) || ""
             }
         }
 
@@ -129,33 +120,23 @@ Rectangle {
 
             spacing: 2
 
-            width: contentRow.width
-                - iconBox.width
-                - contentRow.spacing
-                - shortcutBadge.width
-                - contentRow.spacing
+            width: contentRow.width - iconBox.width - contentRow.spacing - shortcutBadge.width - contentRow.spacing
 
             Text {
                 id: titleText
-                
-                // Renderização de alta qualidade
+
                 renderType: Theme.textRenderType
                 renderTypeQuality: Theme.textRenderQuality
                 font.hintingPreference: Theme.fontHinting
 
                 font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSize // Era 14
-                font.weight: root.isSelected
-                    ? Font.Bold
-                    : Font.Normal
+                font.pixelSize: Theme.fontSize
+                font.weight: root.isSelected ? Font.Bold : Font.Normal
 
-                color: root.isSelected
-                    ? "#000000"
-                    : Theme.text
+                color: root.isSelected ? "#000000" : Theme.text
 
-                text: root.actionData
-                    ? root.actionData.label
-                    : ""
+                // Correção: fallback seguro para string vazia
+                text: (root.actionData && root.actionData.label) || ""
 
                 elide: Text.ElideRight
                 width: parent.width
@@ -163,22 +144,18 @@ Rectangle {
 
             Text {
                 id: descText
-                
-                // Renderização de alta qualidade
+
                 renderType: Theme.textRenderType
                 renderTypeQuality: Theme.textRenderQuality
                 font.hintingPreference: Theme.fontHinting
 
                 font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSizeSmall // Era 11
+                font.pixelSize: Theme.fontSizeSmall
 
-                color: root.isSelected
-                    ? "#444444"
-                    : Theme.textMuted
+                color: root.isSelected ? "#444444" : Theme.textMuted
 
-                text: root.actionData
-                    ? root.actionData.desc
-                    : ""
+                // Correção: fallback seguro para string vazia
+                text: (root.actionData && root.actionData.desc) || ""
 
                 elide: Text.ElideRight
                 width: parent.width
@@ -195,35 +172,27 @@ Rectangle {
             height: 22
             radius: 6
 
-            color: root.isSelected
-                ? Qt.rgba(0, 0, 0, 0.08)
-                : Qt.rgba(1, 1, 1, 0.05)
+            color: root.isSelected ? Qt.rgba(0, 0, 0, 0.08) : Qt.rgba(1, 1, 1, 0.05)
 
-            border.color: root.isSelected
-                ? Qt.rgba(0, 0, 0, 0.15)
-                : Theme.borderColor
+            border.color: root.isSelected ? Qt.rgba(0, 0, 0, 0.15) : Theme.borderColor
 
             border.width: 1
 
             Text {
                 anchors.centerIn: parent
-                
-                // Renderização de alta qualidade
+
                 renderType: Theme.textRenderType
                 renderTypeQuality: Theme.textRenderQuality
                 font.hintingPreference: Theme.fontHinting
 
                 font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSizeSmall // Era 11
+                font.pixelSize: Theme.fontSizeSmall
                 font.weight: Font.Bold
 
-                color: root.isSelected
-                    ? "#000000"
-                    : Theme.textMuted
+                color: root.isSelected ? "#000000" : Theme.textMuted
 
-                text: root.actionData
-                    ? root.actionData.key
-                    : ""
+                // Correção: esta era a linha 179 que causava o warning
+                text: (root.actionData && root.actionData.key) || ""
             }
         }
     }

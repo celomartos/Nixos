@@ -14,28 +14,26 @@ QtObject {
     readonly property color textDanger: "#f38ba8"
 
     // Tipografia — famílias
-    readonly property string fontFamily: "JetBrainsMono Nerd Font"
+    readonly property string fontFamily: "Inter Regular"
 
     // Tipografia — tamanhos (derivados da escala)
     readonly property int fontSizeSmall: Math.round(12 * scale)
-    readonly property int fontSize:      Math.round(16 * scale) // 15 costuma preencher melhor a barra de 32px que 16
+    readonly property int fontSize: Math.round(16 * scale) // 15 costuma preencher melhor a barra de 32px que 16
     readonly property int fontSizeLarge: Math.round(18 * scale)
 
     // Tipografia — pesos (use enums: mapeiam para os pesos reais da fonte)
-    // Se achar que ainda está fino, troque para Font.Bold
-    readonly property int fontWeight:      Font.DemiBold 
-    readonly property int fontWeightBold:  Font.Bold
+    readonly property int fontWeight: Font.Medium
+    readonly property int fontWeightBold: Font.DemiBold
 
     // Tipografia — ajustes finos
     readonly property real letterSpacing: 0
     readonly property real lineHeightMultiplier: 1.0
-    
+
     // Dica: Use este offset no Text dos ícones para centralizar com o texto
-    readonly property int iconVerticalOffset: -1   
+    readonly property int iconVerticalOffset: -1
 
     // Renderização
-    // NativeRendering pega o hinting do sistema (mais parecido com Waybar)
-    readonly property int textRenderType: Text.NativeRendering 
+    readonly property int textRenderType: Text.NativeRendering
     readonly property int textRenderQuality: Text.VeryHighRenderTypeQuality
     readonly property int fontHinting: Font.PreferFullHinting
 

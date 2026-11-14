@@ -190,6 +190,12 @@ hl.layer_rule({
 	animation = "popin 92%",
 })
 
+hl.layer_rule({
+	match = { namespace = "rofi" },
+	blur = true,
+	ignore_alpha = 0.5,
+})
+
 -- Hyprshot: desativa animação da camada de congelamento
 hl.layer_rule({
 	name = "hyprshot-no-animation",

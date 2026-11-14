@@ -64,7 +64,6 @@ hl.bind(mainMod .. " + N", hl.dsp.exec_cmd(navegador))
 hl.bind("CTRL + SHIFT + N", hl.dsp.exec_cmd(navegador_anonimo))
 hl.bind(mainMod .. " + D", hl.dsp.exec_cmd(discord))
 hl.bind(mainMod .. " + P", hl.dsp.exec_cmd("hyprpicker -a"))
-
 ------------------------
 ---- MOUSE ----
 ------------------------

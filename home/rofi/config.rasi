@@ -13,6 +13,7 @@ configuration {
     hover-select: true;
     ml-row-up: "";
     ml-row-down: "";
+    kb-mode-next: "";
 
     drun-exclude-categories: "Settings;System;AudioVideo;Audio;";
     drun-show-actions: false;

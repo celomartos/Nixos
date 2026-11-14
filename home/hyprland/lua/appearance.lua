@@ -6,8 +6,8 @@ hl.config({
 		border_size = 1,
 
 		col = {
-			active_border = "rgba(8a8a8aff)",
-			inactive_border = "rgba(11111111)",
+			active_border = "rgba(ffffffff)",
+			inactive_border = "rgba(00000000)",
 		},
 
 		resize_on_border = false,
@@ -32,7 +32,7 @@ hl.config({
 		blur = {
 			enabled = true,
 			size = 1,
-			passes = 2,
+			passes = 3,
 			ignore_opacity = false,
 			vibrancy = 0.15,
 		},

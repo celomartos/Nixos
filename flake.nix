@@ -24,10 +24,6 @@
   inputs = {
     # Package channels used by the system.
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
-    brave = {
-      url = "git+https://codeberg.org/buckley310/brave-browser-nix?ref=main";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-26.05";
 
     # Neovim configuration module.
@@ -66,7 +62,6 @@
       nix-flatpak,
       lanzaboote,
       chaotic,
-      brave,
       ...
     }:
     {
@@ -89,16 +84,6 @@
           nix-flatpak.nixosModules.nix-flatpak
           lanzaboote.nixosModules.lanzaboote
           chaotic.nixosModules.default
-          {
-            nixpkgs.overlays = [
-              (final: prev: {
-                inherit (brave.packages.${prev.stdenv.hostPlatform.system})
-                  brave
-                  brave-origin
-                  ;
-              })
-            ];
-          }
         ];
       };
     };

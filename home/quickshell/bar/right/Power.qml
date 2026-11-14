@@ -13,9 +13,14 @@ Item {
         id: powerItem
         anchors.centerIn: parent
         clickable: true
-        
-        // Usei o ícone Nerd Font (󰐥) e removi o espaço extra
-        text: "󰐥" 
+
+        text: "󰐥"
+
+        // --- AQUI ESTÁ O SEGREDO ---
+        // Aumenta o ícone de energia em 4 pixels em relação ao resto da barra
+        fontSize: Theme.fontSize + 2
+
+        // (Se quiser um tamanho fixo, use apenas: fontSize: 20)
 
         onClicked: {
             powerMenu.toggle();

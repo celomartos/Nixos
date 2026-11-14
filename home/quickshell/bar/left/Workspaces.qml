@@ -21,20 +21,33 @@ Item {
     }
 
     function normalizeAppId(value) {
-        return String(value || "")
-            .toLowerCase()
-            .replace(/\.desktop$/, "")
-            .replace(/[-_.\s]/g, "");
+        return String(value || "").toLowerCase().replace(/\.desktop$/, "").replace(/[-_.\s]/g, "");
     }
 
     function getAppIcon(win) {
         const ipc = win.lastIpcObject;
+
         const appClass = String(ipc?.class || ipc?.initialClass || "");
 
         if (!appClass)
             return "";
 
         try {
+            // Verifica class e initialClass para identificar o Thunar.
+            const appClasses = [ipc?.class, ipc?.initialClass].filter(value => value).map(value => String(value));
+
+            const isThunar = appClasses.some(value => {
+                const normalized = normalizeAppId(value);
+
+                return normalized === "thunar" || normalized === "orgxfcethunar";
+            });
+
+            // Identificação direta do ícone do Thunar.
+            if (isThunar) {
+                return Quickshell.iconPath("org.xfce.thunar", "system-file-manager");
+            }
+
+            // Busca padrão para os demais aplicativos.
             let entry = DesktopEntries.heuristicLookup(appClass);
 
             if (!entry?.icon) {
@@ -42,15 +55,9 @@ Item {
                 const applications = DesktopEntries.applications.values;
 
                 for (const app of applications) {
-                    const identifiers = [
-                        app.startupClass,
-                        app.id
-                    ];
+                    const identifiers = [app.startupClass, app.id];
 
-                    if (identifiers.some(
-                        value => value &&
-                            normalizeAppId(value) === target
-                    )) {
+                    if (identifiers.some(value => value && normalizeAppId(value) === target)) {
                         entry = app;
                         break;
                     }
@@ -62,6 +69,7 @@ Item {
             return Quickshell.iconPath(icon, true);
         } catch (error) {
             console.warn("Erro ao localizar ícone:", appClass, error);
+
             return "";
         }
     }
@@ -74,7 +82,6 @@ Item {
             case "openwindow":
                 Hyprland.refreshToplevels();
                 break;
-
             case "movewindow":
                 Hyprland.refreshToplevels();
                 Hyprland.refreshWorkspaces();
@@ -102,27 +109,20 @@ Item {
                 readonly property int wsId: index + 1
                 readonly property var ws: root.getWorkspace(wsId)
 
-                readonly property bool isFocused:
-                    Hyprland.focusedWorkspace?.id === wsId
+                readonly property bool isFocused: Hyprland.focusedWorkspace?.id === wsId
 
-                readonly property bool isUrgent:
-                    ws?.urgent ?? false
+                readonly property bool isUrgent: ws?.urgent ?? false
 
-                readonly property int windowCount:
-                    ws ? ws.toplevels.values.length : 0
+                readonly property int windowCount: ws ? ws.toplevels.values.length : 0
 
-                readonly property bool hovered:
-                    mouseArea.containsMouse
+                readonly property bool hovered: mouseArea.containsMouse
 
                 implicitHeight: Theme.barHeight - 6
-                // Reduzi de + 16 para + 12 para ficar mais compacto como o Waybar
-                implicitWidth: labelRow.implicitWidth + 12 
+                implicitWidth: labelRow.implicitWidth + 12
 
                 radius: 10
 
-                color: (isFocused || isUrgent || hovered)
-                    ? Theme.hoverBackground
-                    : "transparent"
+                color: (isFocused || isUrgent || hovered) ? Theme.hoverBackground : "transparent"
 
                 Behavior on color {
                     ColorAnimation {
@@ -134,27 +134,23 @@ Item {
                     id: labelRow
 
                     anchors.centerIn: parent
-                    spacing: 4 // Reduzido de 6 para 4 (mais colado no Waybar)
+                    spacing: 4
 
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
-                        // Ajustes de renderização para nitidez
+                        anchors.verticalCenterOffset: Theme.iconVerticalOffset
+
                         renderType: Theme.textRenderType
                         renderTypeQuality: Theme.textRenderQuality
                         font.hintingPreference: Theme.fontHinting
-                        
+
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSize
                         font.weight: Theme.fontWeight
 
-                        // Alinha o ícone do workspace com os ícones dos apps
-                        anchors.verticalCenterOffset: Theme.iconVerticalOffset
-
                         color: Theme.text
 
-                        text: (isFocused || isUrgent)
-                            ? ""
-                            : ""
+                        text: (isFocused || isUrgent) ? "" : ""
                     }
 
                     Repeater {
@@ -164,8 +160,7 @@ Item {
                             required property var modelData
 
                             anchors.verticalCenter: parent.verticalCenter
-                            // Um micro-ajuste para alinhar com a fonte
-                            anchors.verticalCenterOffset: -1 
+                            anchors.verticalCenterOffset: -1
 
                             width: 18
                             height: 18
@@ -190,9 +185,7 @@ Item {
                     cursorShape: Qt.PointingHandCursor
 
                     onClicked: {
-                        Hyprland.dispatch(
-                            "hl.dsp.focus({ workspace = " + wsId + " })"
-                        );
+                        Hyprland.dispatch("hl.dsp.focus({ workspace = " + wsId + " })");
                     }
                 }
             }

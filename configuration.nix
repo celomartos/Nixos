@@ -158,6 +158,8 @@
     xwayland.enable = true;
   };
 
+  security.polkit.enablePkexecWrapper = true;
+
   services.displayManager.regreet = {
     enable = true;
     theme = {
@@ -448,6 +450,8 @@
     noto-fonts
     texlivePackages.droid
     texlivePackages.roboto
+    nerd-fonts.monaspace
+    inter
   ];
 
   # ============================================================================

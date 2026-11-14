@@ -21,19 +21,22 @@ Item {
     }
 
     function getAudioIcon() {
-        if (root.muted) return "󰖁"; // Ícone de mudo
-        if (root.volumePercent <= 33) return "";
-        if (root.volumePercent <= 66) return "";
-        return "";
+        if (root.muted)
+            return '<font color="#f38ba8">muted</font>';
+        if (root.volumePercent <= 33)
+            return " ";
+        if (root.volumePercent <= 60)
+            return " ";
+        return " ";
     }
 
     BarItem {
         id: audioItem
         anchors.centerIn: parent
         clickable: true
-        
+
         // Removido o espaço duplo e adicionado o ícone de mudo
-        text: root.getAudioIcon() + "  " + root.volumePercent + "%"
+        text: root.getAudioIcon() + (root.muted ? "" : "  " + root.volumePercent + "%")
 
         onClicked: {
             if (root.sink && root.sink.ready && root.sink.audio) {
@@ -46,8 +49,10 @@ Item {
                 var currentVol = root.sink.audio.volume;
                 var delta = (wheel.angleDelta.y > 0) ? 0.05 : -0.05;
                 var nextVol = Math.round((currentVol + delta) * 20) / 20;
-                if (nextVol < 0.0) nextVol = 0.0;
-                if (nextVol > 1.0) nextVol = 1.0;
+                if (nextVol < 0.0)
+                    nextVol = 0.0;
+                if (nextVol > 1.0)
+                    nextVol = 1.0;
                 root.sink.audio.volume = nextVol;
                 if (root.sink.audio.muted && delta > 0) {
                     root.sink.audio.muted = false;

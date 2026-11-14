@@ -29,7 +29,7 @@ Item {
         var timePart = Qt.formatTime(date, "hh:mm");
 
         // Reduzido para um espaço entre a data e o ícone do relógio
-        return " " + datePart + " 󰥔 " + timePart;
+        return " : " + datePart + " 󰥔 : " + timePart;
     }
 
     BarItem {
@@ -39,7 +39,7 @@ Item {
         clickable: true
         text: root.formatClock(root.currentTime)
         // Opcional: Se quiser que o relógio fique branco puro e não cinza
-        // textColor: Theme.text 
+        // textColor: Theme.text
 
         onClicked: {
             if (!calendarPopup.visible) {

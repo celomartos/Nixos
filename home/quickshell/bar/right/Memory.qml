@@ -60,7 +60,7 @@ Item {
         id: barItem
         anchors.centerIn: parent
         clickable: false
-        text: " " + root.percent + "%"
+        text: "  " + root.percent + "%"
     }
 
     PopupWindow {
@@ -73,11 +73,7 @@ Item {
         anchor.adjustment: PopupAdjustment.SlideX
 
         anchor.onAnchoring: {
-            const pos = barItem.mapToItem(
-                barItem.QsWindow.window.contentItem,
-                0,
-                0
-            );
+            const pos = barItem.mapToItem(barItem.QsWindow.window.contentItem, 0, 0);
 
             anchor.rect.x = pos.x + (barItem.width - width) / 2;
             anchor.rect.y = pos.y + barItem.height;
@@ -88,8 +84,8 @@ Item {
         visible: barItem.hovered && root.tooltipInfo.length > 0
 
         color: "transparent"
-        width: tipBox.implicitWidth
-        height: tipBox.implicitHeight
+        implicitWidth: tipBox.implicitWidth
+        implicitHeight: tipBox.implicitHeight
 
         Rectangle {
             id: tipBox

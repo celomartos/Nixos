@@ -1,10 +1,7 @@
-/* MACOS LAUNCHPAD LIKE THEME FOR ROFI */
-/* Author: Newman Sanchez (https://github.com/newmanls) */
-
 * {
-    font: "JetBrainsMono Nerd Font 12";
+    font: "Inter Regular 12";
 
-    bg0:  #00000099;
+    bg0:  #111111B3;
     bg1:  #363636;
     bg2:  #f5f5f520;
     bg3:  #f5f5f540;
@@ -95,11 +92,4 @@ element-icon {
 element-text {
   horizontal-align: 0.5;
 
-  /* --- Sombra/contorno simulado (Sintaxe Rofi) --- */
-  background-color: #111111B3;
-  border:           2px;
-  border-color:     #111111B3;
-  border-radius:    6px;
-  padding:          1px 6px;
-  /* ----------------------------------------------- */
 }

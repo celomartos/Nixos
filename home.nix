@@ -99,9 +99,10 @@
     enable = true;
 
     settings = {
-      font_family = "JetBrainsMono Nerd Font";
+      font_family = "MonaspiceNe Nerd Font Mono";
       font_size = 14;
-      background_opacity = "0.85";
+      background = "#111111";
+      background_opacity = "0.7";
       background_blur = "0";
       remember_window_size = "no";
 
@@ -112,8 +113,8 @@
       tab_bar_min_tabs = 2;
 
       # Aba selecionada
-      active_tab_foreground = "#ffffff";
-      active_tab_background = "#7c3aed";
+      active_tab_foreground = "#000000";
+      active_tab_background = "#ffffff";
       active_tab_font_style = "bold";
 
       # Abas inativas
@@ -135,110 +136,115 @@
   # ============================================================================
 
   home.file.".config/fastfetch/config.jsonc".text = ''
+    {
+      "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/master/doc/json_schema.json",
+
+      "logo": {
+        "type": "kitty",
+        "height": 16,
+        "source": "/home/celin/.config/fastfetch/fastfetch.png",
+        "padding": {
+          "right": 4
+        }
+      },
+
+      "display": {
+        "color": {
+          "keys": "white",
+          "output": "white"
+        },
+        "key": {
+          "width": 13,
+          "type": "both"
+        },
+        "brightColor": false
+      },
+
+      "modules": [
+
         {
-          "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/master/doc/json_schema.json",
+          "type": "break"
+        },
 
-          "logo": {
-            "type": "kitty",
-            "height": 16,
-            "source": "/home/celin/.config/fastfetch/fastfetch.png",
-            "padding": {
-              "right": 4
-            }
-          },
+        {
+          "type": "title",
+          "format": "{user-name}@{host-name}"
+        },
 
-          "display": {
-            "color": {
-              "keys": "white",
-              "output": "white"
-            },
-            "key": {
-              "width": 13,
-              "type": "both"
-            },
-            "brightColor": false
-          },
+        {
+          "type": "os",
+          "key": "System  | ",
+          "keyIcon": "",
+          "format": "{name} {version}"
+        },
 
-        "modules": [
+        {
+          "type": "kernel",
+          "key": "Kernel  | ",
+          "keyIcon": ""
+        },
 
-      {
-        "type": "break"
-      },
+        {
+          "type": "shell",
+          "key": "Shell   | ",
+          "keyIcon": ""
+        },
 
-      {
-        "type": "title",
-        "format": "{user-name}@{host-name}"
-      },
+        {
+          "type": "packages",
+          "key": "Pkgs    | ",
+          "keyIcon": ""
+        },
 
-      {
-        "type": "os",
-        "key": "System  | ",
-        "keyIcon": "",
-        "format": "{name} {version}"
-      },
+        {
+          "type": "wm",
+          "key": "WM      | ",
+          "keyIcon": ""
+        },
 
-      {
-        "type": "kernel",
-        "key": "Kernel  | ",
-        "keyIcon": ""
-      },
+        {
+          "type": "uptime",
+          "key": "Uptime  | ",
+          "keyIcon": ""
+        },
 
-      {
-        "type": "shell",
-        "key": "Shell   | ",
-        "keyIcon": ""
-      },
+        {
+          "type": "custom",
+          "format": "────────────────────────────"
+        },
 
-      { "type": "packages",
-    	  "key": "Pkgs    | ",
-    	  "keyIcon": ""
-    	},
+        {
+          "type": "gpu",
+          "key": "GPU     | ",
+          "keyIcon": ""
+        },
 
-    	{ "type": "wm",
-    	  "key": "WM      | ",
-    	  "keyIcon": ""
-    	},
+        {
+          "type": "cpu",
+          "key": "CPU     | ",
+          "keyIcon": ""
+        },
 
-      {
-        "type": "uptime",
-        "key": "Uptime  | ",
-        "keyIcon": ""
-      },
+        {
+          "type": "memory",
+          "key": "Memory  | ",
+          "keyIcon": ""
+        },
 
-    	{ "type": "custom",
-    	  "format": "────────────────────────────"
-    	},
+        {
+          "type": "swap",
+          "key": "Swap    | ",
+          "keyIcon": ""
+        },
 
-    	{ "type": "gpu",
-    	  "key": "GPU     | ",
-    	  "keyIcon": ""
-            },
-
-    	{ "type": "cpu",
-    	  "key": "CPU     | ",
-    	  "keyIcon": ""
-    	},
-
-      {
-        "type": "memory",
-        "key": "Memory  | ",
-        "keyIcon": ""
-      },
-
-      {
-        "type": "swap",
-        "key": "Swap    | ",
-        "keyIcon": ""
-      },
-
-      {
-        "type": "disk",
-        "key": "Storage | ",
-        "keyIcon": "",
-        "folders": "/"
-         },
-        ]
-      }
+        {
+          "type": "disk",
+          "key": "Storage | ",
+          "keyIcon": "",
+          "folders": "/"
+        }
+      ]
+    }
   '';
 
   # ============================================================================
@@ -253,50 +259,69 @@
       exec = "thunar %U";
       noDisplay = true;
     };
+
     "thunar-bulk-rename" = {
       name = "Thunar Bulk Rename";
       exec = "thunar --bulk-rename %F";
       noDisplay = true;
     };
+
     "thunar-settings" = {
       name = "Thunar Settings";
       exec = "thunar-settings";
       noDisplay = true;
     };
+
     "thunar-volman-settings" = {
       name = "Thunar Volume Manager";
       exec = "thunar-volman-settings";
       noDisplay = true;
     };
+
     "org.gnome.FileRoller" = {
       name = "File Roller";
       exec = "file-roller %U";
       noDisplay = true;
     };
-    "nvim" = {
-      name = "Neovim";
-      exec = "nvim"; # Valor simbólico; a entrada não será executada.
-      noDisplay = true;
-    };
+
     "org.gtk.PrintEditor4" = {
       name = "GTK4 Print Editor";
       exec = "gtk4-print-editor";
       noDisplay = true;
     };
+
     "org.gtk.Demo4" = {
       name = "GTK4 Demo";
       exec = "gtk4-demo";
       noDisplay = true;
     };
+
     "org.gtk.WidgetFactory4" = {
       name = "GTK4 Widget Factory";
       exec = "gtk4-widget-factory";
       noDisplay = true;
     };
+
     "org.gtk.gtk4.NodeEditor" = {
       name = "GTK4 Node Editor";
       exec = "gtk4-node-editor";
       noDisplay = true;
+    };
+  };
+
+  # ============================================================================
+  # GTK / ICON THEME
+  # ============================================================================
+
+  gtk = {
+    enable = true;
+
+    iconTheme = {
+      name = "Papirus-Dark";
+
+      package = pkgs.papirus-icon-theme.override {
+        color = "black";
+      };
     };
   };
 
@@ -305,6 +330,7 @@
     genericName = "Text Editor";
     exec = "kitty nvim %F";
     terminal = false;
+    noDisplay = true;
     type = "Application";
     categories = [
       "Utility"
@@ -323,6 +349,104 @@
       "application/json"
       "application/xml"
     ];
+  };
+
+  xdg.desktopEntries.qview = {
+    name = "qView";
+    genericName = "Image Viewer";
+    exec = "qview %F";
+    terminal = false;
+    noDisplay = true;
+    type = "Application";
+    categories = [
+      "Graphics"
+      "Viewer"
+    ];
+
+    mimeType = [
+      # Formatos comuns
+      "image/jpeg"
+      "image/jpg"
+      "image/png"
+      "image/gif"
+      "image/webp"
+      "image/bmp"
+      "image/tiff"
+      "image/svg+xml"
+
+      # Formatos modernos
+      "image/avif"
+      "image/avif-sequence"
+      "image/heic"
+      "image/heif"
+      "image/apng"
+      "image/jxl"
+
+      # Formatos de edição
+      "image/vnd.adobe.photoshop"
+      "image/x-xcf"
+      "image/openraster"
+      "application/psd"
+      "application/photoshop"
+      "application/x-krita"
+
+      # Formatos adicionais
+      "image/icns"
+      "image/x-icon"
+      "image/x-tga"
+      "image/x-pcx"
+      "image/x-portable-bitmap"
+      "image/x-portable-graymap"
+      "image/x-portable-pixmap"
+      "image/x-portable-anymap"
+      "image/x-exr"
+      "image/x-rgb"
+      "image/x-sgi"
+      "image/x-sgi-bw"
+      "image/x-sgi-rgba"
+      "image/x-sun-raster"
+      "image/vnd.radiance"
+      "image/vnd.wap.wbmp"
+    ];
+  };
+
+  xdg.mimeApps.defaultApplications = {
+    "image/jpeg" = "qview.desktop";
+    "image/jpg" = "qview.desktop";
+    "image/png" = "qview.desktop";
+    "image/gif" = "qview.desktop";
+    "image/webp" = "qview.desktop";
+    "image/bmp" = "qview.desktop";
+    "image/tiff" = "qview.desktop";
+    "image/svg+xml" = "qview.desktop";
+    "image/avif" = "qview.desktop";
+    "image/avif-sequence" = "qview.desktop";
+    "image/heic" = "qview.desktop";
+    "image/heif" = "qview.desktop";
+    "image/apng" = "qview.desktop";
+    "image/jxl" = "qview.desktop";
+    "image/vnd.adobe.photoshop" = "qview.desktop";
+    "image/x-xcf" = "qview.desktop";
+    "image/openraster" = "qview.desktop";
+    "application/psd" = "qview.desktop";
+    "application/photoshop" = "qview.desktop";
+    "application/x-krita" = "qview.desktop";
+    "image/icns" = "qview.desktop";
+    "image/x-icon" = "qview.desktop";
+    "image/x-tga" = "qview.desktop";
+    "image/x-pcx" = "qview.desktop";
+    "image/x-portable-bitmap" = "qview.desktop";
+    "image/x-portable-graymap" = "qview.desktop";
+    "image/x-portable-pixmap" = "qview.desktop";
+    "image/x-portable-anymap" = "qview.desktop";
+    "image/x-exr" = "qview.desktop";
+    "image/x-rgb" = "qview.desktop";
+    "image/x-sgi" = "qview.desktop";
+    "image/x-sgi-bw" = "qview.desktop";
+    "image/x-sgi-rgba" = "qview.desktop";
+    "image/x-sun-raster" = "qview.desktop";
+    "image/vnd.radiance" = "qview.desktop";
+    "image/vnd.wap.wbmp" = "qview.desktop";
   };
 
   xdg.mimeApps = {
@@ -357,6 +481,7 @@
     name = "Kitty";
     genericName = "Terminal Emulator";
     exec = "kitty";
+    noDisplay = true;
     terminal = false;
     categories = [
       "System"
@@ -409,10 +534,10 @@
   };
 
   systemd.user.timers.cliphist-clear = {
-    Unit.Description = "Clear cliphist every 30 minutes";
+    Unit.Description = "Clear cliphist every 1 hour";
     Timer = {
-      OnBootSec = "30m";
-      OnUnitActiveSec = "30m";
+      OnBootSec = "60m";
+      OnUnitActiveSec = "60m";
       Unit = "cliphist-clear.service";
     };
     Install.WantedBy = [ "timers.target" ];

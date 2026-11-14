@@ -9,9 +9,10 @@ Rectangle {
     property bool clickable: false
     property alias hovered: mouseArea.containsMouse
     default property alias content: innerRow.data
+    property int fontSize: Theme.fontSize
 
-    signal clicked()
-    signal rightClicked()
+    signal clicked
+    signal rightClicked
     signal wheel(var event)
 
     implicitHeight: Theme.barHeight
@@ -20,7 +21,9 @@ Rectangle {
     radius: Theme.itemRadius
 
     Behavior on color {
-        ColorAnimation { duration: Theme.animDuration }
+        ColorAnimation {
+            duration: Theme.animDuration
+        }
     }
 
     MouseArea {
@@ -31,7 +34,8 @@ Rectangle {
         cursorShape: root.clickable ? Qt.PointingHandCursor : Qt.ArrowCursor
 
         onClicked: mouse => {
-            if (!root.clickable) return;
+            if (!root.clickable)
+                return;
             if (mouse.button === Qt.RightButton) {
                 root.rightClicked();
             } else if (mouse.button === Qt.LeftButton) {
@@ -53,18 +57,22 @@ Rectangle {
             id: label
             visible: text.length > 0
             color: root.textColor
-            Behavior on color { ColorAnimation { duration: 300 } }
-            
+            Behavior on color {
+                ColorAnimation {
+                    duration: 300
+                }
+            }
+
             // Configurações de fonte puxadas do Theme
             font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSize
+            font.pixelSize: root.fontSize
             font.weight: Theme.fontWeight
-            
+
             // Renderização de alta qualidade (Waybar-like)
             font.hintingPreference: Theme.fontHinting
             renderType: Theme.textRenderType
             renderTypeQuality: Theme.textRenderQuality
-            
+
             anchors.verticalCenter: parent.verticalCenter
             anchors.verticalCenterOffset: Theme.iconVerticalOffset // Alinha com os ícones
         }
