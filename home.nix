@@ -100,7 +100,7 @@
 
     settings = {
       font_family = "MonaspiceNe Nerd Font Mono";
-      font_size = 14;
+      font_size = 12;
       background = "#111111";
       background_opacity = "0.7";
       background_blur = "0";
@@ -516,9 +516,9 @@
     gtk.enable = true;
     x11.enable = true;
 
-    package = pkgs.bibata-cursors;
-    name = "Bibata-Modern-Classic";
-    size = 23;
+    package = pkgs.graphite-cursors;
+    name = "graphite-dark";
+    size = 24;
   };
 
   # ============================================================================
@@ -561,6 +561,9 @@
     pciutils
     psmisc
     jq
+    codex
+    woeusb
+    ntfs3g
 
     # --------------------------------------------------------------------------
     # Development

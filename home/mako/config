@@ -3,7 +3,8 @@
 # ===============================
 
 # Posição na tela
-anchor=top-right
+anchor=bottom-right
+layer=overlay
 
 # Margens
 margin=10
@@ -12,14 +13,14 @@ padding=12
 # Tamanho
 width=340
 height=110
-max-visible=5
+max-visible=3
 
 # Fonte
-font=JetBrainsMono Nerd Font 12
+font=Inter 12
 
 # Cores (formato ARGB)
-background-color=#000000ff
-text-color=#f4cdd9
+background-color=#000000CC
+text-color=#ffffff
 border-color=#ffffffff
 
 # Borda
@@ -27,7 +28,7 @@ border-size=2
 border-radius=16
 
 # Tempo na tela (ms)
-default-timeout=5000
+default-timeout=3500
 ignore-timeout=false
 
 # Ícones

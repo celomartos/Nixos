@@ -12,6 +12,6 @@ hl.on("hyprland.start", function()
 	hl.exec_cmd("easyeffects --gapplication-service")
 	--hl.exec_cmd("waypaper --restore")
 	hl.exec_cmd(
-		"linux-wallpaperengine --screen-root HDMI-A-1 --bg 3311239120 --scaling fill --layer background --no-audio-processing --fullscreen-pause-only-active --silent  --fps 60"
+		"linux-wallpaperengine --screen-root HDMI-A-1 --bg 3207947548 --scaling fill --layer background --fullscreen-pause-only-active --silent  --fps 30"
 	)
 end)

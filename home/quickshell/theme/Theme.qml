@@ -11,7 +11,7 @@ QtObject {
     readonly property color hoverBackground: "#3c3c3c"
     readonly property color text: "#ffffff"
     readonly property color textMuted: "#a6adc8"
-    readonly property color textDanger: "#f38ba8"
+    readonly property color textDanger: "#FF828C"
 
     // Tipografia — famílias
     readonly property string fontFamily: "Inter Regular"

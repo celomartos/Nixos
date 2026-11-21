@@ -161,7 +161,7 @@ stage {
 .login-dialog .login-dialog-session-list-button:insensitive, .login-dialog .modal-dialog-button:insensitive, .hotplug-notification-item:insensitive, .icon-button:insensitive, .message .message-header .message-expand-button:insensitive,
 .message .message-header .message-close-button:insensitive, .message-notification-group .message-collapse-button:insensitive, .button:insensitive {
   color: rgba(255, 255, 255, 0.35);
-  background-color: #2C2C2C;
+  background-color: #2B2B2B;
   box-shadow: none !important;
 }
 
@@ -411,7 +411,7 @@ StEntry StLabel.hint-text, .search-entry StLabel.hint-text {
 }
 
 .candidate-popup-content {
-  background-color: #2C2C2C;
+  background-color: #2B2B2B;
   color: rgba(255, 255, 255, 0.7);
   box-shadow: 0 3px 5px 0 rgba(0, 0, 0, 0.15) !important;
   margin: 3px 5px 8px !important;
@@ -526,7 +526,7 @@ StEntry StLabel.hint-text, .search-entry StLabel.hint-text {
 }
 
 .keyboard-key:grayed {
-  background-color: #2C2C2C;
+  background-color: #2B2B2B;
   color: rgba(255, 255, 255, 0.7);
 }
 
@@ -600,7 +600,7 @@ StEntry StLabel.hint-text, .search-entry StLabel.hint-text {
 
 /* Login Dialog */
 #lockDialogGroup {
-  background-color: #2C2C2C;
+  background-color: #2B2B2B;
   background-image: url("background.png");
   background-size: cover;
 }
@@ -676,7 +676,7 @@ StEntry StLabel.hint-text, .search-entry StLabel.hint-text {
 }
 
 .login-dialog .user-icon StIcon {
-  background-color: #2C2C2C;
+  background-color: #2B2B2B;
   color: white;
 }
 
@@ -860,7 +860,7 @@ StEntry StLabel.hint-text, .search-entry StLabel.hint-text {
 
 /* Looking Glass */
 #LookingGlassDialog {
-  background-color: #2C2C2C !important;
+  background-color: #2B2B2B !important;
   spacing: 6px;
   padding: 0;
   margin: 6px;
@@ -1005,7 +1005,7 @@ StEntry StLabel.hint-text, .search-entry StLabel.hint-text {
 
 #LookingGlassPropertyInspector {
   color: rgba(255, 255, 255, 0.7) !important;
-  background: #2C2C2C !important;
+  background: #2B2B2B !important;
   border: none;
   border-radius: 6px;
   padding: 6px;
@@ -1059,7 +1059,7 @@ StEntry StLabel.hint-text, .search-entry StLabel.hint-text {
 }
 
 .user-icon StIcon {
-  background-color: #2C2C2C;
+  background-color: #2B2B2B;
   color: white;
   border-radius: 9999px;
   padding: 12px;
@@ -1498,7 +1498,7 @@ StEntry StLabel.hint-text, .search-entry StLabel.hint-text {
 
 .popup-menu .popup-menu-content {
   padding: 6px;
-  background-color: #2C2C2C;
+  background-color: #2B2B2B;
   box-shadow: 0 3px 8px 0 rgba(0, 0, 0, 0.15);
   margin: 4px 10px 12px;
   font-weight: normal;
@@ -2589,7 +2589,7 @@ StWidget.focused .app-grid-running-dot {
 
 /* Modal Dialogs */
 .modal-dialog {
-  background-color: #2C2C2C;
+  background-color: #2B2B2B;
   box-shadow: 3px 3px 8px -5px rgba(0, 0, 0, 0.35);
   margin: 15px;
   border: 2px solid #E0E0E0;
@@ -3240,7 +3240,7 @@ StWidget.focused .app-grid-running-dot {
   width: 34em;
   margin: 12px 8px 8px;
   color: rgba(255, 255, 255, 0.7);
-  background-color: #2C2C2C;
+  background-color: #2B2B2B;
   border: none;
   text-shadow: none;
   box-shadow: 0 3px 5px rgba(0, 0, 0, 0.25);
@@ -3250,14 +3250,14 @@ StWidget.focused .app-grid-running-dot {
 
 .notification-banner:hover {
   color: white;
-  background-color: #2C2C2C;
+  background-color: #2B2B2B;
   box-shadow: 0 5px 8px rgba(0, 0, 0, 0.25);
   margin: 12px 8px 13px;
 }
 
 .notification-banner:focus {
   color: white;
-  background-color: #2C2C2C;
+  background-color: #2B2B2B;
 }
 
 .notification-buttons-bin {
@@ -3622,7 +3622,7 @@ StWidget.focused .app-grid-running-dot {
 
 .quick-toggle-menu:insensitive {
   color: white;
-  background-color: #2C2C2C;
+  background-color: #2B2B2B;
   box-shadow: none !important;
 }
 
@@ -3698,7 +3698,7 @@ StWidget.focused .app-grid-running-dot {
 
 .quick-settings-system-item .power-item:insensitive {
   color: white;
-  background-color: #2C2C2C;
+  background-color: #2B2B2B;
   box-shadow: none !important;
   background-color: transparent;
 }
@@ -4135,7 +4135,7 @@ StWidget.focused .app-grid-running-dot {
 
 .window-caption {
   color: white;
-  background-color: #2C2C2C;
+  background-color: #2B2B2B;
   border-radius: 9999px;
   padding: 6px 12px;
   border: none;

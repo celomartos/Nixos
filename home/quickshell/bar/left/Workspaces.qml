@@ -24,51 +24,149 @@ Item {
         return String(value || "").toLowerCase().replace(/\.desktop$/, "").replace(/[-_.\s]/g, "");
     }
 
+    // Retorna as classes da janela, priorizando initialClass.
+    function getWindowClasses(win) {
+        const ipc = win?.lastIpcObject;
+
+        const initialClass = String(ipc?.initialClass || "");
+        const appClass = String(ipc?.class || "");
+
+        const classes = [];
+
+        if (initialClass)
+            classes.push(initialClass);
+
+        if (appClass && appClass !== initialClass)
+            classes.push(appClass);
+
+        return classes;
+    }
+
+    // Identifica o aplicativo para evitar ícones duplicados.
+    function getAppKey(win) {
+        const appClasses = getWindowClasses(win);
+
+        if (appClasses.length === 0)
+            return "";
+
+        const normalizedClasses = appClasses.map(value => normalizeAppId(value)).filter(value => value);
+
+        // Unifica as possíveis identificações do Thunar.
+        if (normalizedClasses.some(value => value === "thunar" || value === "orgxfcethunar")) {
+            return "thunar";
+        }
+
+        // Procura correspondências exatas nos desktop entries.
+        const applications = DesktopEntries.applications.values;
+
+        for (const appClass of appClasses) {
+            const target = normalizeAppId(appClass);
+
+            if (!target)
+                continue;
+
+            for (const app of applications) {
+                const startupClass = normalizeAppId(app.startupClass);
+                const appId = normalizeAppId(app.id);
+
+                if (target === startupClass || target === appId) {
+                    return startupClass || appId || target;
+                }
+            }
+        }
+
+        // Utiliza a classe original caso não encontre correspondência.
+        return normalizedClasses[0] || "";
+    }
+
+    // Retorna somente uma janela por aplicativo.
+    function getUniqueToplevels(workspace) {
+        if (!workspace)
+            return [];
+
+        const windows = workspace.toplevels.values;
+
+        const result = [];
+        const seen = [];
+
+        for (const win of windows) {
+            const key = getAppKey(win);
+
+            // Não agrupa janelas sem identificação.
+            if (!key) {
+                result.push(win);
+                continue;
+            }
+
+            // Ignora aplicativos que já possuem um ícone.
+            if (seen.indexOf(key) !== -1)
+                continue;
+
+            seen.push(key);
+            result.push(win);
+        }
+
+        return result;
+    }
+
     function getAppIcon(win) {
-        const ipc = win.lastIpcObject;
+        const appClasses = getWindowClasses(win);
 
-        const appClass = String(ipc?.class || ipc?.initialClass || "");
-
-        if (!appClass)
+        if (appClasses.length === 0)
             return "";
 
         try {
-            // Verifica class e initialClass para identificar o Thunar.
-            const appClasses = [ipc?.class, ipc?.initialClass].filter(value => value).map(value => String(value));
-
-            const isThunar = appClasses.some(value => {
-                const normalized = normalizeAppId(value);
-
-                return normalized === "thunar" || normalized === "orgxfcethunar";
-            });
+            const normalizedClasses = appClasses.map(value => normalizeAppId(value));
 
             // Identificação direta do ícone do Thunar.
+            const isThunar = normalizedClasses.some(value => value === "thunar" || value === "orgxfcethunar");
+
             if (isThunar) {
                 return Quickshell.iconPath("org.xfce.thunar", "system-file-manager");
             }
 
-            // Busca padrão para os demais aplicativos.
-            let entry = DesktopEntries.heuristicLookup(appClass);
+            const applications = DesktopEntries.applications.values;
 
-            if (!entry?.icon) {
+            let entry = null;
+
+            // Primeiro tenta encontrar correspondências exatas.
+            for (const appClass of appClasses) {
                 const target = normalizeAppId(appClass);
-                const applications = DesktopEntries.applications.values;
 
                 for (const app of applications) {
                     const identifiers = [app.startupClass, app.id];
 
-                    if (identifiers.some(value => value && normalizeAppId(value) === target)) {
+                    const matches = identifiers.some(value => value && normalizeAppId(value) === target);
+
+                    if (matches) {
                         entry = app;
+                        break;
+                    }
+                }
+
+                if (entry?.icon)
+                    break;
+            }
+
+            // Utiliza a busca heurística como alternativa.
+            if (!entry?.icon) {
+                entry = null;
+
+                for (const appClass of appClasses) {
+                    const candidate = DesktopEntries.heuristicLookup(appClass);
+
+                    if (candidate?.icon) {
+                        entry = candidate;
                         break;
                     }
                 }
             }
 
-            const icon = entry?.icon || appClass.toLowerCase();
+            const icon = entry?.icon || appClasses[0].toLowerCase();
 
             return Quickshell.iconPath(icon, true);
         } catch (error) {
-            console.warn("Erro ao localizar ícone:", appClass, error);
+            console.warn("Erro ao localizar ícone:", appClasses[0], error);
 
             return "";
         }
@@ -80,11 +178,11 @@ Item {
         function onRawEvent(event) {
             switch (event.name) {
             case "openwindow":
-                Hyprland.refreshToplevels();
-                break;
+            case "closewindow":
             case "movewindow":
-                Hyprland.refreshToplevels();
+            case "movewindowv2":
                 Hyprland.refreshWorkspaces();
+                Hyprland.refreshToplevels();
                 break;
             }
         }
@@ -154,7 +252,7 @@ Item {
                     }
 
                     Repeater {
-                        model: ws ? ws.toplevels.values : []
+                        model: root.getUniqueToplevels(ws)
 
                         delegate: Image {
                             required property var modelData

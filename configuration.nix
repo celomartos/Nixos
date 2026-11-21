@@ -32,7 +32,7 @@
     # Lanzaboote replaces the systemd-boot module to sign boot artifacts.
     loader.systemd-boot.enable = lib.mkForce false;
     loader.efi.canTouchEfiVariables = true;
-    loader.timeout = 2;
+    loader.timeout = 3;
 
     lanzaboote = {
       enable = true;
@@ -170,20 +170,12 @@
       '';
     };
     iconTheme = {
-      name = "Tela-circle-dark";
-      package = pkgs.tela-icon-theme;
+      name = "Papirus-Dark";
+      package = pkgs.papirus-icon-theme;
     };
     cursorTheme = {
-      name = "Bibata-Modern-Classic";
-      package = pkgs.bibata-cursors;
-    };
-  };
-
-  services.greetd = {
-    enable = true;
-    settings.default_session = {
-      command = "${pkgs.cage}/bin/cage -s -- ${pkgs.regreet}/bin/regreet";
-      user = "greeter";
+      name = "graphite-dark";
+      package = pkgs.graphite-cursors;
     };
   };
 
@@ -306,6 +298,7 @@
 
     remotePlay.openFirewall = true;
     dedicatedServer.openFirewall = true;
+    protontricks.enable = true;
   };
 
   programs.gamescope = {
@@ -474,6 +467,7 @@
     unrar
     file-roller
     gdk-pixbuf
+    kdePackages.ark
 
     # Screenshot tools.
     grim
@@ -576,10 +570,7 @@
   services.ananicy = {
     enable = true;
 
-    # Substitui o Ananicy tradicional pelo C++
     package = pkgs.ananicy-cpp;
-
-    # Regras oficiais do CachyOS
     rulesProvider = pkgs.ananicy-rules-cachyos;
   };
 

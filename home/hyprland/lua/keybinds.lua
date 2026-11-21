@@ -10,6 +10,8 @@ local navegador = "brave-origin"
 local navegador_anonimo = "brave-origin --incognito"
 local discord = "flatpak run com.discordapp.Discord"
 local screenshot_menu = os.getenv("HOME") .. "/.config/rofi/scripts/screenshotmenu.sh"
+local wallpaper_engine =
+	"pkill -x linux-wallpaper || linux-wallpaperengine --screen-root HDMI-A-1 --bg 3207947548 --scaling fill --layer background --fullscreen-pause-only-active --silent --fps 30"
 
 local mainMod = "SUPER"
 local configHome = os.getenv("XDG_CONFIG_HOME") or (os.getenv("HOME") .. "/.config")
@@ -64,6 +66,7 @@ hl.bind(mainMod .. " + N", hl.dsp.exec_cmd(navegador))
 hl.bind("CTRL + SHIFT + N", hl.dsp.exec_cmd(navegador_anonimo))
 hl.bind(mainMod .. " + D", hl.dsp.exec_cmd(discord))
 hl.bind(mainMod .. " + P", hl.dsp.exec_cmd("hyprpicker -a"))
+hl.bind(mainMod .. " + SHIFT + W", hl.dsp.exec_cmd(wallpaper_engine))
 ------------------------
 ---- MOUSE ----
 ------------------------
