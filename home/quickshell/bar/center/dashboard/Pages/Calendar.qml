@@ -1,7 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Hyprland
-import "../../theme"
+import "../../../../theme"
 
 PopupWindow {
     id: root
@@ -21,18 +21,12 @@ PopupWindow {
     anchor.adjustment: PopupAdjustment.SlideX
 
     anchor.onAnchoring: {
-        if (!root.anchorItem ||
-            !root.anchorItem.QsWindow ||
-            !root.anchorItem.QsWindow.window) {
+        if (!root.anchorItem || !root.anchorItem.QsWindow || !root.anchorItem.QsWindow.window) {
             return;
         }
 
         const window = root.anchorItem.QsWindow.window;
-        const pos = root.anchorItem.mapToItem(
-            window.contentItem,
-            0,
-            0
-        );
+        const pos = root.anchorItem.mapToItem(window.contentItem, 0, 0);
 
         anchor.rect.x = pos.x + (root.anchorItem.width - root.width) / 2;
         anchor.rect.y = pos.y + root.anchorItem.height;
@@ -46,11 +40,7 @@ PopupWindow {
 
     readonly property var today: currentDate
 
-    readonly property var displayedDate: new Date(
-        currentDate.getFullYear(),
-        currentDate.getMonth() + monthOffset,
-        1
-    )
+    readonly property var displayedDate: new Date(currentDate.getFullYear(), currentDate.getMonth() + monthOffset, 1)
 
     readonly property alias hovered: popupMouseArea.containsMouse
 
@@ -116,7 +106,7 @@ PopupWindow {
         repeat: false
 
         onTriggered: {
-          if (root.visible && !closeAnim.running) {
+            if (root.visible && !closeAnim.running) {
                 bg.forceActiveFocus();
                 outsideGrab.active = true;
             }
@@ -262,20 +252,17 @@ PopupWindow {
             // Month and year
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
-                
+
                 renderType: Theme.textRenderType
                 renderTypeQuality: Theme.textRenderQuality
                 font.hintingPreference: Theme.fontHinting
-                
+
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeLarge
                 font.weight: Font.Bold
                 color: Theme.text
 
-                text: root.displayedDate.toLocaleDateString(
-                    Qt.locale("en_US"),
-                    "MMMM yyyy"
-                )
+                text: root.displayedDate.toLocaleDateString(Qt.locale("en_US"), "MMMM yyyy")
             }
 
             // Weekdays
@@ -291,11 +278,11 @@ PopupWindow {
 
                         width: 32
                         horizontalAlignment: Text.AlignHCenter
-                        
+
                         renderType: Theme.textRenderType
                         renderTypeQuality: Theme.textRenderQuality
                         font.hintingPreference: Theme.fontHinting
-                        
+
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSize
                         font.weight: Font.Bold
@@ -314,18 +301,11 @@ PopupWindow {
                 columns: 7
                 spacing: 8
 
-                readonly property int firstDayOfWeek:
-                    root.displayedDate.getDay()
+                readonly property int firstDayOfWeek: root.displayedDate.getDay()
 
-                readonly property int daysInMonth:
-                    new Date(
-                        root.displayedDate.getFullYear(),
-                        root.displayedDate.getMonth() + 1,
-                        0
-                    ).getDate()
+                readonly property int daysInMonth: new Date(root.displayedDate.getFullYear(), root.displayedDate.getMonth() + 1, 0).getDate()
 
-                readonly property int totalCells:
-                    Math.ceil((firstDayOfWeek + daysInMonth) / 7) * 7
+                readonly property int totalCells: Math.ceil((firstDayOfWeek + daysInMonth) / 7) * 7
 
                 Repeater {
                     model: grid.totalCells
@@ -333,18 +313,11 @@ PopupWindow {
                     delegate: Item {
                         required property int index
 
-                        readonly property int dayNumber:
-                            index - grid.firstDayOfWeek + 1
+                        readonly property int dayNumber: index - grid.firstDayOfWeek + 1
 
-                        readonly property bool isValidDay:
-                            dayNumber >= 1 &&
-                            dayNumber <= grid.daysInMonth
+                        readonly property bool isValidDay: dayNumber >= 1 && dayNumber <= grid.daysInMonth
 
-                        readonly property bool isToday:
-                            isValidDay &&
-                            dayNumber === root.today.getDate() &&
-                            root.displayedDate.getMonth() === root.today.getMonth() &&
-                            root.displayedDate.getFullYear() === root.today.getFullYear()
+                        readonly property bool isToday: isValidDay && dayNumber === root.today.getDate() && root.displayedDate.getMonth() === root.today.getMonth() && root.displayedDate.getFullYear() === root.today.getFullYear()
 
                         width: 32
                         height: 28
@@ -359,11 +332,11 @@ PopupWindow {
                         Text {
                             anchors.centerIn: parent
                             visible: parent.isValidDay
-                            
+
                             renderType: Theme.textRenderType
                             renderTypeQuality: Theme.textRenderQuality
                             font.hintingPreference: Theme.fontHinting
-                            
+
                             font.family: Theme.fontFamily
                             font.pixelSize: Theme.fontSize
                             font.weight: parent.isToday ? Font.Bold : Font.Normal

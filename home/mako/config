@@ -3,7 +3,7 @@
 # ===============================
 
 # Posição na tela
-anchor=bottom-right
+anchor=top-right
 layer=overlay
 
 # Margens
