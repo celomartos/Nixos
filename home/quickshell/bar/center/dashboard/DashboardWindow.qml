@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Hyprland
 import "../../../theme"
+import "./modules"
 
 PopupWindow {
     id: root
@@ -548,9 +549,15 @@ PopupWindow {
                                 }
                             }
 
-                            // MEDIA AND SYSTEM PLACEHOLDERS
+                            // MEDIA PAGE
+                            Media {
+                                anchors.fill: parent
+                                visible: index === 1
+                            }
+
+                            // SYSTEM PLACEHOLDER
                             Column {
-                                visible: index !== 0
+                                visible: index === 2
 
                                 anchors.centerIn: parent
                                 spacing: 10

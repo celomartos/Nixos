@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import "../../theme"
 import "../../components"
+import "./dashboard"
 
 Item {
     id: root

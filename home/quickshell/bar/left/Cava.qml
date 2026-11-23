@@ -1,48 +1,50 @@
 import QtQuick
 import Quickshell
-import Quickshell.Io
 import "../../theme"
 import "../../components"
+import "../../services"
 
 Item {
     id: root
 
     implicitHeight: Theme.barHeight
-    // 16 caracteres em JetBrainsMono 16px ocupam ~154px; fixamos largura para zero relayout
+
     readonly property int fixedCavaWidth: 160
+
     implicitWidth: fixedCavaWidth + (Theme.itemPaddingHorizontal * 2)
 
-    Process {
-        id: proc
-        command: ["bash", (Quickshell.env("XDG_CONFIG_HOME") || (Quickshell.env("HOME") + "/.config")) + "/quickshell/scripts/cava.sh"]
-        running: true
-        stdout: SplitParser {
-            splitMarker: "\n"
-            onRead: data => {
-                if (data.length > 0) {
-                    cavaLabel.text = data;
-                }
-            }
-        }
-    }
+    readonly property var glyphs: ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"]
 
-    Component.onDestruction: {
-        proc.running = false;
+    function getVisualizerText() {
+        const values = CavaService.levels;
+        const displayCount = 16;
+
+        let output = "";
+
+        for (let i = 0; i < displayCount; i++) {
+            const sourceIndex = Math.floor(i * values.length / displayCount);
+
+            const level = Math.max(0, Math.min(7, Math.round(values[sourceIndex] || 0)));
+
+            output += glyphs[level];
+        }
+
+        return output;
     }
 
     BarItem {
         id: barItem
+
         anchors.fill: parent
         clickable: false
 
         Text {
-            id: cavaLabel
             width: root.fixedCavaWidth
             height: Theme.barHeight
+
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
 
-            // Ajustes de renderização para manter os blocos nítidos
             renderType: Theme.textRenderType
             renderTypeQuality: Theme.textRenderQuality
             font.hintingPreference: Theme.fontHinting
@@ -50,9 +52,11 @@ Item {
             font.family: "JetBrainsMono Nerd Font"
             font.pixelSize: Theme.fontSize
             font.weight: Theme.fontWeight
+
             color: Theme.text
 
-            text: "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁"
+            text: root.getVisualizerText()
+
             clip: true
         }
     }
