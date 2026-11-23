@@ -555,43 +555,10 @@ PopupWindow {
                                 visible: index === 1
                             }
 
-                            // SYSTEM PLACEHOLDER
-                            Column {
+                            // SYSTEM PAGE
+                            System {
+                                anchors.fill: parent
                                 visible: index === 2
-
-                                anchors.centerIn: parent
-                                spacing: 10
-
-                                Text {
-                                    anchors.horizontalCenter: parent.horizontalCenter
-
-                                    text: root.tabIcons[index]
-
-                                    color: Theme.textMuted
-                                    font.family: Theme.fontFamily
-                                    font.pixelSize: 34
-                                }
-
-                                Text {
-                                    anchors.horizontalCenter: parent.horizontalCenter
-
-                                    text: root.tabTitles[index]
-
-                                    color: Theme.text
-                                    font.family: Theme.fontFamily
-                                    font.pixelSize: Theme.fontSizeLarge
-                                    font.weight: Font.DemiBold
-                                }
-
-                                Text {
-                                    anchors.horizontalCenter: parent.horizontalCenter
-
-                                    text: "Content will be implemented in this section."
-
-                                    color: Theme.textMuted
-                                    font.family: Theme.fontFamily
-                                    font.pixelSize: Theme.fontSize
-                                }
                             }
                         }
                     }
