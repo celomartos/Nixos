@@ -57,7 +57,6 @@ PopupWindow {
     // Opening animation
     ParallelAnimation {
         id: openAnim
-
         NumberAnimation {
             target: root
             property: "popupYOffset"
@@ -66,7 +65,6 @@ PopupWindow {
             duration: 190
             easing.type: Easing.OutCubic
         }
-
         NumberAnimation {
             target: root
             property: "popupOpacity"
@@ -80,7 +78,6 @@ PopupWindow {
     // Closing animation
     ParallelAnimation {
         id: closeAnim
-
         NumberAnimation {
             target: root
             property: "popupYOffset"
@@ -89,7 +86,6 @@ PopupWindow {
             duration: 130
             easing.type: Easing.InCubic
         }
-
         NumberAnimation {
             target: root
             property: "popupOpacity"
@@ -98,31 +94,63 @@ PopupWindow {
             duration: 130
             easing.type: Easing.InQuad
         }
-
         onFinished: root.visible = false
     }
 
     Timer {
         id: grabDelay
-
         interval: 60
         repeat: false
 
         onTriggered: {
-            if (root.visible && !closeAnim.running) {
+            if (!root.visible || closeAnim.running)
+                return;
+
+            outsideGrab.active = true;
+            bg.forceActiveFocus();
+            focusRetry.running = true;
+        }
+    }
+
+    Timer {
+        id: focusRetry
+        interval: 40
+        repeat: true
+        running: false
+
+        property int attempts: 0
+
+        onRunningChanged: if (running)
+            attempts = 0
+
+        onTriggered: {
+            if (!root.visible || closeAnim.running) {
+                stop();
+            } else if (bg.activeFocus) {
+                stop();
+            } else if (attempts++ > 15) {
+                stop();
+            } else {
                 bg.forceActiveFocus();
-                outsideGrab.active = true;
             }
         }
     }
 
     HyprlandFocusGrab {
         id: outsideGrab
-
         active: false
         windows: [root]
 
-        onCleared: root.closePopup()
+        onCleared: {
+            if (root.visible && !closeAnim.running)
+                root.closePopup();
+        }
+    }
+
+    Shortcut {
+        sequence: StandardKey.Cancel
+        enabled: root.visible && !closeAnim.running
+        onActivated: root.closePopup()
     }
 
     // Calendar refresh
@@ -130,33 +158,28 @@ PopupWindow {
         interval: 60000
         repeat: true
         running: root.visible
-
         onTriggered: root.currentDate = new Date()
     }
 
-    // Dashboard navigation
     function changeTab(direction) {
         currentTab = Math.max(0, Math.min(2, currentTab + direction));
     }
 
-    // Calendar navigation
     function shiftMonth(amount) {
         monthOffset += amount;
     }
-
     function resetToCurrentMonth() {
         monthOffset = 0;
         currentDate = new Date();
     }
 
-    // Open dashboard
     function openPopup() {
         grabDelay.stop();
+        focusRetry.stop();
 
         openAnim.stop();
         closeAnim.stop();
 
-        // Always start on Calendar without page transition.
         animatePageTransition = false;
         currentTab = 0;
 
@@ -175,12 +198,12 @@ PopupWindow {
         grabDelay.restart();
     }
 
-    // Close dashboard
     function closePopup() {
         if (!root.visible || closeAnim.running)
             return;
 
         grabDelay.stop();
+        focusRetry.stop();
         openAnim.stop();
 
         closeAnim.restart();
@@ -197,6 +220,7 @@ PopupWindow {
     onVisibleChanged: {
         if (!visible) {
             grabDelay.stop();
+            focusRetry.stop();
             outsideGrab.active = false;
 
             openAnim.stop();
@@ -225,10 +249,7 @@ PopupWindow {
         }
 
         Keys.onPressed: event => {
-            if (event.key === Qt.Key_Escape) {
-                root.closePopup();
-                event.accepted = true;
-            } else if (event.key === Qt.Key_Left) {
+            if (event.key === Qt.Key_Left) {
                 root.changeTab(-1);
                 event.accepted = true;
             } else if (event.key === Qt.Key_Right) {
@@ -245,26 +266,21 @@ PopupWindow {
             // Tab bar
             Row {
                 id: tabBar
-
                 width: parent.width
                 height: 42
                 spacing: 8
 
                 Repeater {
                     model: 3
-
                     delegate: Item {
                         required property int index
-
                         width: (tabBar.width - 16) / 3
                         height: tabBar.height
 
                         Rectangle {
                             anchors.fill: parent
                             radius: 10
-
                             color: root.currentTab === index ? Theme.hoverBackground : "transparent"
-
                             Behavior on color {
                                 ColorAnimation {
                                     duration: 140
@@ -276,27 +292,19 @@ PopupWindow {
                         Row {
                             anchors.centerIn: parent
                             spacing: 8
-
                             Text {
                                 text: root.tabIcons[index]
-
                                 color: root.currentTab === index ? Theme.text : Theme.textMuted
-
                                 font.family: Theme.fontFamily
                                 font.pixelSize: Theme.fontSize
-
                                 anchors.verticalCenter: parent.verticalCenter
                             }
-
                             Text {
                                 text: root.tabTitles[index]
-
                                 color: root.currentTab === index ? Theme.text : Theme.textMuted
-
                                 font.family: Theme.fontFamily
                                 font.pixelSize: Theme.fontSize
                                 font.weight: root.currentTab === index ? Font.DemiBold : Font.Normal
-
                                 anchors.verticalCenter: parent.verticalCenter
                             }
                         }
@@ -304,15 +312,14 @@ PopupWindow {
                         MouseArea {
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
-
                             onClicked: root.currentTab = index
                         }
                     }
                 }
             }
 
-            // Tab indicator
             Rectangle {
+                id: indicator
                 width: parent.width
                 height: 2
                 color: Theme.borderColor
@@ -321,13 +328,10 @@ PopupWindow {
                     width: parent.width / 3
                     height: parent.height
                     radius: 2
-
                     color: Theme.text
                     x: root.currentTab * width
-
                     Behavior on x {
                         enabled: root.animatePageTransition
-
                         NumberAnimation {
                             duration: 220
                             easing.type: Easing.OutCubic
@@ -336,26 +340,20 @@ PopupWindow {
                 }
             }
 
-            // Page container
             Item {
                 id: pageViewport
-
                 width: parent.width
-                height: parent.height - tabBar.height - 20 - 2
-
+                height: parent.height - tabBar.height - indicator.height - 2 * parent.spacing
                 clip: true
 
                 Row {
                     id: pageTrack
-
                     height: parent.height
                     width: parent.width * 3
-
                     x: -root.currentTab * pageViewport.width
 
                     Behavior on x {
                         enabled: root.animatePageTransition
-
                         NumberAnimation {
                             duration: 280
                             easing.type: Easing.OutCubic
@@ -364,10 +362,8 @@ PopupWindow {
 
                     Repeater {
                         model: 3
-
                         delegate: Item {
                             required property int index
-
                             width: pageViewport.width
                             height: pageViewport.height
 
@@ -381,7 +377,6 @@ PopupWindow {
                                     anchors.margins: 6
                                     spacing: 12
 
-                                    // Month header and navigation
                                     Row {
                                         width: parent.width
                                         height: 36
@@ -452,7 +447,6 @@ PopupWindow {
                                         }
                                     }
 
-                                    // Weekdays
                                     Row {
                                         id: weekdaysRow
 
@@ -486,7 +480,6 @@ PopupWindow {
                                         }
                                     }
 
-                                    // Calendar grid
                                     Grid {
                                         id: calendarGrid
 
@@ -523,7 +516,7 @@ PopupWindow {
                                                     anchors.centerIn: parent
 
                                                     visible: parent.isToday
-                                                    color: "#ffffff"
+                                                    color: Theme.todayBackground
                                                 }
 
                                                 Text {
@@ -539,7 +532,7 @@ PopupWindow {
                                                     font.pixelSize: Theme.fontSize
                                                     font.weight: parent.isToday ? Font.Bold : Font.Normal
 
-                                                    color: parent.isToday ? "#000000" : Theme.text
+                                                    color: parent.isToday ? Theme.todayText : Theme.text
 
                                                     text: parent.isValidDay ? parent.dayNumber : ""
                                                 }
@@ -559,7 +552,7 @@ PopupWindow {
                             System {
                                 anchors.fill: parent
                                 visible: index === 2
-                                pageActive: root.visible && root.currentTab === 2
+                                pageActive: root.visible && root.currentTab === 2 && index === 2
                             }
                         }
                     }
@@ -567,7 +560,6 @@ PopupWindow {
             }
         }
 
-        // Mouse wheel tab navigation
         MouseArea {
             anchors.fill: parent
             z: 10

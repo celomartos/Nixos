@@ -11,7 +11,13 @@ Item {
     // ------------------------------------------------------------
 
     property bool pageActive: false
+
+    // monitorWanted: usuário quer o monitor rodando (com debounce na saída
+    // para evitar flash ao alternar abas).
+    // monitorEnabled: backoff — desligado enquanto o script falha em loop.
+    property bool monitorWanted: false
     property bool monitorEnabled: true
+    property int consecutiveFailures: 0
 
     property var stats: ({
             cpu_usage: null,
@@ -38,10 +44,25 @@ Item {
     // ------------------------------------------------------------
 
     onPageActiveChanged: {
-        restartTimer.stop();
-
-        if (pageActive)
+        if (pageActive) {
+            killTimer.stop();
+            monitorWanted = true;
+            consecutiveFailures = 0;
             monitorEnabled = true;
+        } else {
+            // Espera um pouco antes de matar: se o usuário voltar
+            // rápido (navegação com setas), o script continua vivo
+            // e o card não pisca.
+            killTimer.restart();
+        }
+    }
+
+    Timer {
+        id: killTimer
+        interval: 800
+        repeat: false
+        onTriggered: if (!root.pageActive)
+            root.monitorWanted = false
     }
 
     // ------------------------------------------------------------
@@ -52,33 +73,47 @@ Item {
         if (value === null || value === undefined)
             return "--";
 
-        return Math.round(value) + "%";
+        const n = Number(value);
+        if (!Number.isFinite(n))
+            return "--";
+
+        return Math.round(n) + "%";
     }
 
     function formatTemperature(value) {
         if (value === null || value === undefined)
             return "--";
 
-        return Math.round(value) + "°C";
+        const n = Number(value);
+        if (!Number.isFinite(n))
+            return "--";
+
+        return Math.round(n) + "°C";
     }
 
     function formatBytes(value) {
         if (value === null || value === undefined)
             return "--";
 
-        return (Number(value) / 1073741824).toFixed(1) + " GB";
+        const n = Number(value);
+        if (!Number.isFinite(n))
+            return "--";
+
+        return (n / 1073741824).toFixed(1) + " GB";
     }
 
     function formatRate(value) {
-        const bytes = Number(value) || 0;
+        const n = Number(value);
+        if (!Number.isFinite(n) || n < 0)
+            return "0 B/s";
 
-        if (bytes >= 1048576)
-            return (bytes / 1048576).toFixed(1) + " MB/s";
+        if (n >= 1048576)
+            return (n / 1048576).toFixed(1) + " MB/s";
 
-        if (bytes >= 1024)
-            return (bytes / 1024).toFixed(0) + " KB/s";
+        if (n >= 1024)
+            return (n / 1024).toFixed(0) + " KB/s";
 
-        return Math.round(bytes) + " B/s";
+        return Math.round(n) + " B/s";
     }
 
     // ------------------------------------------------------------
@@ -89,19 +124,19 @@ Item {
         id: monitor
 
         command: ["bash", root.scriptsDirectory + "/system-monitor.sh"]
-
-        running: root.pageActive && root.monitorEnabled
+        running: root.monitorWanted && root.monitorEnabled
 
         stdout: SplitParser {
             splitMarker: "\n"
 
             onRead: data => {
                 const line = data.trim();
-
                 if (!line.length)
                     return;
+
                 try {
                     root.stats = JSON.parse(line);
+                    root.consecutiveFailures = 0;
                 } catch (error) {
                     console.warn("[System] Invalid monitor data:", error);
                 }
@@ -109,25 +144,25 @@ Item {
         }
 
         onExited: {
-            if (root.pageActive) {
-                root.monitorEnabled = false;
-                restartTimer.start();
-            }
+            if (!root.monitorWanted)
+                return;
+
+            // Saída inesperada: backoff exponencial até 30s.
+            root.consecutiveFailures++;
+            root.monitorEnabled = false;
+
+            const delay = Math.min(30000, 1500 * Math.pow(2, root.consecutiveFailures - 1));
+            restartTimer.interval = delay;
+            restartTimer.start();
         }
     }
 
-    // ------------------------------------------------------------
-    // Process recovery
-    // ------------------------------------------------------------
-
     Timer {
         id: restartTimer
-
-        interval: 1500
         repeat: false
 
         onTriggered: {
-            if (root.pageActive)
+            if (root.monitorWanted)
                 root.monitorEnabled = true;
         }
     }
@@ -139,42 +174,32 @@ Item {
     Column {
         anchors.fill: parent
         anchors.margins: 6
-
         spacing: 10
 
         // CPU and RAM
         Row {
             id: topRow
-
             width: parent.width
             height: 84
-
             spacing: 10
 
             SystemMetric {
                 width: (topRow.width - topRow.spacing) / 2
                 height: topRow.height
-
                 icon: ""
                 title: "CPU"
-
                 value: root.formatPercent(root.stats.cpu_usage)
                 detail: "Temperature · " + root.formatTemperature(root.stats.cpu_temp)
-
                 progress: Number(root.stats.cpu_usage) || 0
             }
 
             SystemMetric {
                 width: (topRow.width - topRow.spacing) / 2
                 height: topRow.height
-
-                icon: ""
+                icon: ""
                 title: "Memory"
-
                 value: root.formatBytes(root.stats.memory_used) + " / " + root.formatBytes(root.stats.memory_total)
-
                 detail: root.formatPercent(root.stats.memory_percent) + " used"
-
                 progress: Number(root.stats.memory_percent) || 0
             }
         }
@@ -182,39 +207,29 @@ Item {
         // GPU and storage
         Row {
             id: middleRow
-
             width: parent.width
             height: 84
-
             spacing: 10
 
             SystemMetric {
                 width: (middleRow.width - middleRow.spacing) / 2
                 height: middleRow.height
-
                 icon: "󰢮"
                 title: "GPU"
-
                 value: root.formatPercent(root.stats.gpu_usage)
                 detail: "Temperature · " + root.formatTemperature(root.stats.gpu_temp)
-
                 progress: Number(root.stats.gpu_usage) || 0
             }
 
             SystemMetric {
                 width: (middleRow.width - middleRow.spacing) / 2
                 height: middleRow.height
-
                 icon: "󰋊"
                 title: "Storage"
-
                 value: root.formatBytes(root.stats.storage_used) + " / " + root.formatBytes(root.stats.storage_total)
-
                 detail: root.formatPercent(root.stats.storage_percent) + " used"
-
                 readRate: root.formatRate(root.stats.disk_read)
                 writeRate: root.formatRate(root.stats.disk_write)
-
                 progress: Number(root.stats.storage_percent) || 0
             }
         }
@@ -224,14 +239,16 @@ Item {
             id: networkCard
 
             width: parent.width
-            height: 82
+            implicitHeight: networkContent.implicitHeight + 24
 
             radius: 12
-            color: Qt.rgba(1, 1, 1, 0.035)
+            color: Theme.cardBackground
             border.color: Theme.borderColor
             border.width: 1
 
             Column {
+                id: networkContent
+
                 anchors.fill: parent
                 anchors.margins: 12
 
@@ -240,26 +257,21 @@ Item {
                 // Header
                 Row {
                     id: networkHeader
-
                     width: parent.width
                     spacing: 7
 
                     Text {
                         id: networkIcon
-
                         text: "󰖩"
                         color: Theme.textMuted
-
                         font.family: Theme.fontFamily
                         font.pixelSize: 16
                     }
 
                     Text {
                         id: networkTitle
-
                         text: "Network"
                         color: Theme.textMuted
-
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSizeSmall
                         font.weight: Font.DemiBold
@@ -267,23 +279,18 @@ Item {
 
                     Item {
                         width: Math.max(0, networkHeader.width - networkIcon.implicitWidth - networkTitle.implicitWidth - networkStatus.implicitWidth - networkHeader.spacing * 3)
-
                         height: 1
                     }
 
                     Text {
                         id: networkStatus
-
                         text: root.stats.network_connected ? "Connected" : "Offline"
                         color: Theme.textMuted
-
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSizeSmall
-
                         renderType: Theme.textRenderType
                         renderTypeQuality: Theme.textRenderQuality
                         font.hintingPreference: Theme.fontHinting
-
                         anchors.verticalCenter: parent.verticalCenter
                     }
                 }
@@ -310,7 +317,6 @@ Item {
                             Text {
                                 text: "Download"
                                 color: Theme.textMuted
-
                                 font.family: Theme.fontFamily
                                 font.pixelSize: Theme.fontSizeSmall
                             }
@@ -318,13 +324,10 @@ Item {
 
                         Text {
                             text: root.stats.network_connected ? root.formatRate(root.stats.network_down) : "--"
-
                             color: Theme.text
-
                             font.family: Theme.fontFamily
                             font.pixelSize: Theme.fontSize
                             font.weight: Font.DemiBold
-
                             renderType: Theme.textRenderType
                             renderTypeQuality: Theme.textRenderQuality
                             font.hintingPreference: Theme.fontHinting
@@ -348,7 +351,6 @@ Item {
                             Text {
                                 text: "Upload"
                                 color: Theme.textMuted
-
                                 font.family: Theme.fontFamily
                                 font.pixelSize: Theme.fontSizeSmall
                             }
@@ -356,13 +358,10 @@ Item {
 
                         Text {
                             text: root.stats.network_connected ? root.formatRate(root.stats.network_up) : "--"
-
                             color: Theme.text
-
                             font.family: Theme.fontFamily
                             font.pixelSize: Theme.fontSize
                             font.weight: Font.DemiBold
-
                             renderType: Theme.textRenderType
                             renderTypeQuality: Theme.textRenderQuality
                             font.hintingPreference: Theme.fontHinting

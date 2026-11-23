@@ -48,7 +48,7 @@ PanelWindow {
                 id: leftSection
                 anchors.left: parent.left
                 // Margem externa para não colar na borda da tela
-                anchors.leftMargin: Theme.itemPaddingHorizontal 
+                anchors.leftMargin: Theme.itemPaddingHorizontal
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: Theme.itemSpacing // Espaçamento entre os módulos (6)
 

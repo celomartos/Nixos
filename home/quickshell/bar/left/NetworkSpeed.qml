@@ -10,45 +10,48 @@ Item {
     implicitHeight: Theme.barHeight
     implicitWidth: barItem.implicitWidth
 
-    property string speedText: "↓ 0 B/s  ↑ 0 B/s"
-    property string statusClass: "online"
-    property string tooltipText: ""
+    property bool online: false
+
+    // ------------------------------------------------------------
+    // Network status process
+    // ------------------------------------------------------------
 
     Process {
         id: proc
+
         command: ["bash", (Quickshell.env("XDG_CONFIG_HOME") || (Quickshell.env("HOME") + "/.config")) + "/quickshell/scripts/network-speed.sh"]
+
+        running: false
+
         stdout: StdioCollector {
             onTextChanged: {
-                if (text && text.trim().length > 0) {
-                    try {
-                        var data = JSON.parse(text.trim());
-                        if (data.text)
-                            root.speedText = data.text;
-                        if (data.class)
-                            root.statusClass = data.class;
-                        if (data.tooltip)
-                            root.tooltipText = data.tooltip;
-                    } catch (e) {
-                        // Resposta não JSON (fallback texto)
-                        root.speedText = text.trim();
-                    }
-                }
+                const result = text.trim();
+
+                if (result === "Online")
+                    root.online = true;
+                else if (result === "Offline")
+                    root.online = false;
             }
         }
+
         onExited: {
             pollTimer.start();
         }
     }
 
+    // ------------------------------------------------------------
+    // Status refresh
+    // ------------------------------------------------------------
+
     Timer {
         id: pollTimer
-        interval: 2000
+
+        interval: 15000
         repeat: false
-        running: false
+
         onTriggered: {
-            if (!proc.running) {
+            if (!proc.running)
                 proc.running = true;
-            }
         }
     }
 
@@ -57,65 +60,23 @@ Item {
     }
 
     Component.onDestruction: {
+        pollTimer.stop();
         proc.running = false;
     }
 
+    // ------------------------------------------------------------
+    // Display
+    // ------------------------------------------------------------
+
     BarItem {
         id: barItem
+
         anchors.centerIn: parent
+
         clickable: false
-        text: root.speedText
-        textColor: (root.statusClass === "offline") ? Theme.textDanger : Theme.textMuted
-    }
 
-    PopupWindow {
-        id: tooltipPopup
+        text: root.online ? "󰖩" : "󰖪"
 
-        anchor.window: barItem.QsWindow.window
-        anchor.edges: Edges.Top | Edges.Left
-        anchor.gravity: Edges.Bottom | Edges.Right
-        anchor.adjustment: PopupAdjustment.SlideX
-
-        anchor.onAnchoring: {
-            const pos = barItem.mapToItem(barItem.QsWindow.window.contentItem, 0, 0);
-
-            anchor.rect.x = pos.x + (barItem.width - width) / 2;
-            anchor.rect.y = pos.y + barItem.height;
-            anchor.rect.width = 1;
-            anchor.rect.height = 1;
-        }
-
-        visible: barItem.hovered && root.tooltipText.length > 0
-        color: "transparent"
-        implicitWidth: tipBox.implicitWidth
-        implicitHeight: tipBox.implicitHeight
-
-        Rectangle {
-            id: tipBox
-            anchors.fill: parent
-            color: Theme.background
-            border.color: Theme.borderColor
-            border.width: 1
-            radius: 8
-
-            // Padding mais compacto (estilo Waybar)
-            implicitWidth: tipText.implicitWidth + 16
-            implicitHeight: tipText.implicitHeight + 12
-
-            Text {
-                id: tipText
-                anchors.centerIn: parent
-
-                // Correções de renderização aplicadas ao Tooltip
-                renderType: Theme.textRenderType
-                renderTypeQuality: Theme.textRenderQuality
-                font.hintingPreference: Theme.fontHinting
-
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSizeSmall // Tamanho padronizado
-                color: Theme.text
-                text: root.tooltipText
-            }
-        }
+        textColor: root.online ? Theme.textMuted : Theme.textDanger
     }
 }

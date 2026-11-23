@@ -12,11 +12,15 @@ Rectangle {
     property string detail: ""
     property real progress: 0
 
-    // Disk I/O (optional)
     property string readRate: ""
     property string writeRate: ""
 
     readonly property bool hasIo: readRate.length > 0 || writeRate.length > 0
+
+    readonly property real clampedProgress: {
+        const n = Number(root.progress);
+        return Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : 0;
+    }
 
     radius: 12
     color: Qt.rgba(1, 1, 1, 0.035)
@@ -46,6 +50,8 @@ Rectangle {
                 renderType: Theme.textRenderType
                 renderTypeQuality: Theme.textRenderQuality
                 font.hintingPreference: Theme.fontHinting
+
+                anchors.verticalCenter: parent.verticalCenter
             }
 
             Text {
@@ -66,8 +72,7 @@ Rectangle {
             }
 
             Item {
-                width: Math.max(0, heading.width - iconLabel.width - titleLabel.implicitWidth - valueLabel.implicitWidth - heading.spacing * 3)
-
+                width: Math.max(0, heading.width - iconLabel.implicitWidth - titleLabel.implicitWidth - valueLabel.implicitWidth - heading.spacing * 3)
                 height: 1
             }
 
@@ -84,10 +89,11 @@ Rectangle {
                 renderType: Theme.textRenderType
                 renderTypeQuality: Theme.textRenderQuality
                 font.hintingPreference: Theme.fontHinting
+
+                anchors.verticalCenter: parent.verticalCenter
             }
         }
 
-        // Detail and optional disk I/O
         Row {
             id: detailsRow
 
@@ -140,13 +146,11 @@ Rectangle {
             height: 4
 
             radius: 2
-            color: Qt.rgba(1, 1, 1, 0.12)
+            color: Theme.progressTrack
 
             Rectangle {
-                width: progressTrack.width * Math.max(0, Math.min(100, root.progress)) / 100
-
+                width: progressTrack.width * root.clampedProgress / 100
                 height: parent.height
-
                 radius: 2
                 color: Theme.text
 
