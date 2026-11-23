@@ -11,24 +11,17 @@ Item {
 
     property var currentTime: new Date()
 
-    readonly property alias calendarPopup: calendarPopup
-
     Timer {
         interval: 1000
         running: true
         repeat: true
-
-        onTriggered: {
-            root.currentTime = new Date();
-        }
+        onTriggered: root.currentTime = new Date()
     }
 
     function formatClock(date) {
         var enLocale = Qt.locale("en_US");
         var datePart = date.toLocaleDateString(enLocale, "ddd dd MMM");
         var timePart = Qt.formatTime(date, "hh:mm");
-
-        // Reduzido para um espaço entre a data e o ícone do relógio
         return " : " + datePart + " 󰥔 : " + timePart;
     }
 
@@ -38,29 +31,19 @@ Item {
         anchors.centerIn: parent
         clickable: true
         text: root.formatClock(root.currentTime)
-        // Opcional: Se quiser que o relógio fique branco puro e não cinza
-        // textColor: Theme.text
 
-        onClicked: {
-            if (!calendarPopup.visible) {
-                calendarPopup.resetToCurrentMonth();
-            }
-
-            calendarPopup.toggle();
-        }
+        onClicked: dashboard.toggle()
 
         onWheel: wheel => {
-            if (wheel.angleDelta.y > 0) {
-                calendarPopup.shiftUp();
-            } else {
-                calendarPopup.shiftDown();
-            }
+            if (wheel.angleDelta.y > 0)
+                dashboard.currentTab = Math.max(0, dashboard.currentTab - 1);
+            else
+                dashboard.currentTab = Math.min(2, dashboard.currentTab + 1);
         }
     }
 
-    CalendarPopup {
-        id: calendarPopup
-
+    DashboardWindow {
+        id: dashboard
         anchorItem: clockItem
     }
 }
