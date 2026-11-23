@@ -559,6 +559,7 @@ PopupWindow {
                             System {
                                 anchors.fill: parent
                                 visible: index === 2
+                                pageActive: root.visible && root.currentTab === 2
                             }
                         }
                     }

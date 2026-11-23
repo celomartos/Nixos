@@ -6,6 +6,13 @@ import "../../../../theme"
 Item {
     id: root
 
+    // ------------------------------------------------------------
+    // State
+    // ------------------------------------------------------------
+
+    property bool pageActive: false
+    property bool monitorEnabled: true
+
     property var stats: ({
             cpu_usage: null,
             cpu_temp: null,
@@ -17,14 +24,25 @@ Item {
             storage_used: null,
             storage_total: null,
             storage_percent: null,
+            disk_read: 0,
+            disk_write: 0,
             network_down: 0,
             network_up: 0,
             network_connected: false
         })
 
-    property bool monitorEnabled: true
-
     readonly property string scriptsDirectory: (Quickshell.env("XDG_CONFIG_HOME") || (Quickshell.env("HOME") + "/.config")) + "/quickshell/scripts"
+
+    // ------------------------------------------------------------
+    // Page lifecycle
+    // ------------------------------------------------------------
+
+    onPageActiveChanged: {
+        restartTimer.stop();
+
+        if (pageActive)
+            monitorEnabled = true;
+    }
 
     // ------------------------------------------------------------
     // Formatting
@@ -72,7 +90,7 @@ Item {
 
         command: ["bash", root.scriptsDirectory + "/system-monitor.sh"]
 
-        running: root.visible && root.monitorEnabled
+        running: root.pageActive && root.monitorEnabled
 
         stdout: SplitParser {
             splitMarker: "\n"
@@ -82,7 +100,6 @@ Item {
 
                 if (!line.length)
                     return;
-
                 try {
                     root.stats = JSON.parse(line);
                 } catch (error) {
@@ -92,12 +109,16 @@ Item {
         }
 
         onExited: {
-            if (root.visible) {
+            if (root.pageActive) {
                 root.monitorEnabled = false;
                 restartTimer.start();
             }
         }
     }
+
+    // ------------------------------------------------------------
+    // Process recovery
+    // ------------------------------------------------------------
 
     Timer {
         id: restartTimer
@@ -106,7 +127,7 @@ Item {
         repeat: false
 
         onTriggered: {
-            if (root.visible)
+            if (root.pageActive)
                 root.monitorEnabled = true;
         }
     }
@@ -138,7 +159,6 @@ Item {
                 title: "CPU"
 
                 value: root.formatPercent(root.stats.cpu_usage)
-
                 detail: "Temperature · " + root.formatTemperature(root.stats.cpu_temp)
 
                 progress: Number(root.stats.cpu_usage) || 0
@@ -176,7 +196,6 @@ Item {
                 title: "GPU"
 
                 value: root.formatPercent(root.stats.gpu_usage)
-
                 detail: "Temperature · " + root.formatTemperature(root.stats.gpu_temp)
 
                 progress: Number(root.stats.gpu_usage) || 0
@@ -191,7 +210,10 @@ Item {
 
                 value: root.formatBytes(root.stats.storage_used) + " / " + root.formatBytes(root.stats.storage_total)
 
-                detail: "Root filesystem · " + root.formatPercent(root.stats.storage_percent) + " used"
+                detail: root.formatPercent(root.stats.storage_percent) + " used"
+
+                readRate: root.formatRate(root.stats.disk_read)
+                writeRate: root.formatRate(root.stats.disk_write)
 
                 progress: Number(root.stats.storage_percent) || 0
             }
@@ -287,7 +309,6 @@ Item {
 
                             Text {
                                 text: "Download"
-
                                 color: Theme.textMuted
 
                                 font.family: Theme.fontFamily
@@ -326,7 +347,6 @@ Item {
 
                             Text {
                                 text: "Upload"
-
                                 color: Theme.textMuted
 
                                 font.family: Theme.fontFamily
