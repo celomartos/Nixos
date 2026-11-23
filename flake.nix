@@ -78,9 +78,15 @@
         modules = [
           ./configuration.nix
 
+          # Home Manager
           home-manager.nixosModules.home-manager
-          { home-manager.sharedModules = [ nixvim.homeModules.nixvim ]; }
+          {
+            home-manager.sharedModules = [
+              nixvim.homeModules.nixvim
+            ];
+          }
 
+          # External modules
           nix-flatpak.nixosModules.nix-flatpak
           lanzaboote.nixosModules.lanzaboote
           chaotic.nixosModules.default

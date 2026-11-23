@@ -602,7 +602,6 @@
     wev
     hyprshot
     slurp
-    xfce4-settings
     waybar
     quickshell
     linux-wallpaperengine
@@ -636,6 +635,7 @@
     webp-pixbuf-loader
     tree
     file
+    gearlever
 
     # --------------------------------------------------------------------------
     # Audio / Media
@@ -669,6 +669,7 @@
     wine
     appimage-run
     hydralauncher
+    protonup-qt
 
     # --------------------------------------------------------------------------
     # Graphics / Vulkan

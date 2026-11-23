@@ -11,9 +11,57 @@ hl.layer_rule({
 })
 
 hl.layer_rule({
+	match = {
+		namespace = "quickshell-app-launcher",
+	},
+	animation = "popin 92%",
+})
+
+hl.layer_rule({
 	match = { namespace = "rofi" },
 	blur = true,
 	ignore_alpha = 0.5,
+})
+
+-- 1. Regra da camada: aplica o zoom (popin) e o esmaecimento (fade) ao seu launcher
+hl.layer_rule({
+	match = {
+		namespace = "quickshell-app-launcher",
+	},
+	-- Um popin com uma porcentagem menor (ex: 80%) cria um efeito de zoom mais perceptível
+	animation = "popin 80%",
+})
+
+hl.layer_rule({
+	match = {
+		namespace = "quickshell-app-launcher",
+	},
+	blur = true,
+	ignore_alpha = 0.5,
+})
+
+-- 2. (Opcional, mas recomendado) Regra separada para garantir o fade
+hl.layer_rule({
+	match = {
+		namespace = "quickshell-app-launcher",
+	},
+	animation = "fade",
+})
+
+-- 3. Animação global para camadas, definindo uma curva de aceleração suave
+-- A curva "easeOutQuint" é uma ótima opção para simular a desaceleração do macOS
+hl.animation({
+	leaf = "layersIn", -- Animação de abertura da camada
+	enabled = true,
+	speed = 3, -- Velocidade em decissegundos (3 = 300ms)
+	bezier = "easeOutQuint", -- Curva de desaceleração suave
+})
+
+hl.animation({
+	leaf = "layersOut", -- Animação de fechamento da camada
+	enabled = true,
+	speed = 3,
+	bezier = "easeOutQuint", -- Ou uma curva de aceleração para o fechamento
 })
 
 -- Hyprshot: desativa animação da camada de congelamento
@@ -35,7 +83,15 @@ hl.layer_rule({
 	match = {
 		namespace = "^linux-wallpaperengine$",
 	},
-	animation = "popin 92%",
+	animation = "popin 80%",
+})
+
+hl.layer_rule({
+	name = "linux-wallpaperengine-fade",
+	match = {
+		namespace = "^linux-wallpaperengine$",
+	},
+	animation = "fade",
 })
 
 --------------------
@@ -124,4 +180,10 @@ hl.window_rule({
 	float = true,
 	size = { 550, 550 },
 	center = true,
+})
+
+--Allow Tearing in games
+hl.window_rule({
+	match = { class = "^steam_app_.*" },
+	immediate = true,
 })

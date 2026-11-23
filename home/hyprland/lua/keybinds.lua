@@ -1,5 +1,6 @@
 local terminal = "kitty"
 local menu = "rofi -show drun"
+local menu2 = "qs ipc call app-launcher toggle"
 local screenshot = "hyprshot --freeze -m region -o ~/Pictures/Screenshots"
 local quickshell =
 	"(pkill -x .quickshell-wra || pkill -x quickshell) && (pkill -f 'cava.*cava.conf' 2>/dev/null || true) || quickshell"
@@ -54,7 +55,7 @@ hl.bind(mainMod .. " + 5", hl.dsp.window.move({ workspace = 5 }))
 ---- EXECUTABLES ----
 ------------------------
 
-hl.bind("ALT + ESCAPE", hl.dsp.exec_cmd(menu))
+hl.bind("ALT + ESCAPE", hl.dsp.exec_cmd(menu2))
 hl.bind(mainMod .. " + F", hl.dsp.exec_cmd(screenshot))
 hl.bind(mainMod .. " + SHIFT + F", hl.dsp.exec_cmd("bash " .. screenshot_menu))
 hl.bind(mainMod .. " + W", hl.dsp.exec_cmd(quickshell))
@@ -67,6 +68,7 @@ hl.bind("CTRL + SHIFT + N", hl.dsp.exec_cmd(navegador_anonimo))
 hl.bind(mainMod .. " + D", hl.dsp.exec_cmd(discord))
 hl.bind(mainMod .. " + P", hl.dsp.exec_cmd("hyprpicker -a"))
 hl.bind(mainMod .. " + SHIFT + W", hl.dsp.exec_cmd(wallpaper_engine))
+
 ------------------------
 ---- MOUSE ----
 ------------------------

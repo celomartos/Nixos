@@ -37,6 +37,14 @@ hl.curve("macSpring", {
 	damping = 35,
 })
 
+hl.curve("easeOutQuint", {
+	type = "bezier",
+	points = {
+		{ 0.23, 1 }, -- Ponto de controle 1 (X1, Y1)
+		{ 0.32, 1 }, -- Ponto de controle 2 (X2, Y2)
+	},
+})
+
 --------------------
 ---- WINDOWS ----
 --------------------
