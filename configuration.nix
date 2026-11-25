@@ -18,10 +18,17 @@
 {
   config,
   pkgs,
-  pkgs-stable,
+  nixpkgs-stable,
   lib,
   ...
 }:
+
+let
+  pkgs-stable = import nixpkgs-stable {
+    inherit (pkgs) system;
+    config.allowUnfree = true;
+  };
+in
 
 {
   imports = [
@@ -74,6 +81,10 @@
   home-manager.useUserPackages = true;
 
   home-manager.backupFileExtension = "backup";
+
+  home-manager.extraSpecialArgs = {
+    inherit pkgs-stable;
+  };
 
   home-manager.users.celin = import ./home.nix;
 
@@ -456,43 +467,16 @@
     nextdns
     sbctl
 
-    # System diagnostics.
-    geekbench
-    stress-ng
-
     # Archive tools and file manager.
-    p7zip
-    unzip
-    zip
-    unrar
-    file-roller
     gdk-pixbuf
-    kdePackages.ark
 
     # Screenshot tools.
     grim
     slurp
 
     # Windows and AppImage compatibility.
-    wineWow64Packages.stable
-    winetricks
     fuse3
     glib
-
-    # Desktop application.
-    antigravity-cli
-
-    # Python environment for computer vision and utilities.
-    (python3.withPackages (
-      ps: with ps; [
-        opencv4
-        numpy
-        pillow
-        evdev
-        pyinstaller
-        pyqt5
-      ]
-    ))
   ];
 
   # Libraries for running dynamically linked programs outside Nix.
