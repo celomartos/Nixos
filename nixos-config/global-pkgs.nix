@@ -30,7 +30,6 @@
 
   environment.systemPackages = with pkgs; [
     # Network and security
-    nextdns
     sbctl
 
     # Archive and file manager

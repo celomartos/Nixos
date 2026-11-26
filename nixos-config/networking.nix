@@ -7,24 +7,41 @@
 
   networking.firewall.enable = true;
 
-  services.nextdns = {
+  # ============================================================================
+  # RETHINKDNS
+  # ============================================================================
+
+  services.dnsproxy = {
     enable = true;
 
-    arguments = [
-      "-config"
-      "557a3a"
-    ];
+    settings = {
+      # RethinkDNS personalizado com suas blocklists.
+      upstream = [
+        "https://sky.rethinkdns.com/1:IBqAAAAIEAAAgA=="
+      ];
+
+      # Bootstrap DNS para resolver o endereço do RethinkDNS.
+      bootstrap = [
+        "9.9.9.9:53"
+        "149.112.112.112:53"
+      ];
+
+      # Escuta somente conexões locais.
+      listen-addrs = [
+        "127.0.0.1"
+        "::1"
+      ];
+
+      listen-ports = [ 53 ];
+    };
   };
 
-  systemd.services.nextdns-activate = {
-    after = [ "nextdns.service" ];
-    wantedBy = [ "multi-user.target" ];
+  # Utiliza o dnsproxy como resolvedor do sistema.
+  networking.nameservers = [
+    "127.0.0.1"
+    "::1"
+  ];
 
-    serviceConfig.Type = "oneshot";
-    serviceConfig.RemainAfterExit = true;
+  services.resolved.enable = false;
 
-    script = ''
-      ${pkgs.nextdns}/bin/nextdns activate
-    '';
-  };
 }

@@ -30,6 +30,7 @@
       gawk
       tree
       file
+      dig
 
       # System information and diagnostics.
       lm_sensors
