@@ -130,6 +130,20 @@ hl.window_rule({
 })
 
 hl.window_rule({
+	name = "thunar-attention-dialog",
+
+	match = {
+		class = "^thunar$",
+		initial_title = "^Attention.*$",
+	},
+
+	float = true,
+	center = true,
+	size = { 500, 180 },
+	animation = "fade 70%",
+})
+
+hl.window_rule({
 	name = "steam-settings-dialog",
 
 	match = {
@@ -139,7 +153,6 @@ hl.window_rule({
 
 	float = true,
 	center = true,
-	no_blur = true,
 })
 
 hl.window_rule({

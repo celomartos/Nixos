@@ -5,7 +5,7 @@ local screenshot = "hyprshot --freeze -m region -o ~/Pictures/Screenshots"
 local quickshell =
 	"(pkill -x .quickshell-wra || pkill -x quickshell) && (pkill -f 'cava.*cava.conf' 2>/dev/null || true) || quickshell"
 local waybar = "pkill waybar socat || waybar"
-local cliphist = "qs ipc call clipboard toggle"
+local cliphist = "rofi -modi clipboard:$HOME/.config/rofi/scripts/cliphist-rofi-img -show clipboard -show-icons"
 local filemanager = "thunar"
 local navegador = "brave-origin"
 local navegador_anonimo = "brave-origin --incognito"
