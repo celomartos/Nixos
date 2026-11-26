@@ -18,11 +18,11 @@ PanelWindow {
     // ------------------------------------------------------------
 
     readonly property int cardMaxWidth: 720
-    readonly property int cardMaxHeight: 560
+    readonly property int cardMaxHeight: 700
     readonly property int cardMargin: 48
     readonly property int contentMargin: 20
     readonly property int delegateHeight: 76
-    readonly property int thumbnailSize: 58
+    readonly property int thumbnailSize: 60
 
     readonly property int panelWidth: screen ? Math.max(280, Math.min(cardMaxWidth, screen.width - cardMargin)) : cardMaxWidth
 
@@ -558,9 +558,13 @@ PanelWindow {
                                 cache: true
 
                                 sourceSize: Qt.size(root.thumbnailSize, root.thumbnailSize)
-
                                 onStatusChanged: {
-                                    if (status === Image.Error && delegateItem.previewReady) {
+                                    if (!delegateItem.previewReady)
+                                        return;
+
+                                    if (status === Image.Ready) {
+                                        CliphistService.markPreviewLoaded(delegateItem.entryId);
+                                    } else if (status === Image.Error) {
                                         console.warn("[Clipboard] Failed to load thumbnail:", source);
                                         CliphistService.retryPreview(delegateItem.entryId);
                                     }

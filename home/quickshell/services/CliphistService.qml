@@ -33,7 +33,7 @@ Singleton {
     // ------------------------------------------------------------
 
     readonly property int thumbnailSize: 58
-    readonly property int cacheMaxAgeMinutes: 360
+    readonly property int cacheMaxAgeMinutes: 120
 
     // Unique to this Quickshell session.
     // Prevents old thumbnails from being reused after cliphist wipe.
@@ -49,6 +49,8 @@ Singleton {
     }
 
     readonly property int maxPreviewRetries: 1
+
+    readonly property int maxPreviewLoadRetries: 1
 
     ListModel {
         id: entryModel
@@ -220,6 +222,7 @@ Singleton {
                 previewLoading: isImage && !cachedReady && (active || queued),
                 previewFailed: sameEntry ? old.previewFailed : false,
                 previewRetries: sameEntry ? old.previewRetries : 0,
+                previewLoadRetries: sameEntry ? (old.previewLoadRetries || 0) : 0,
                 summary: isImage ? extension.toUpperCase() + " image" : preview
             });
         }
@@ -510,6 +513,25 @@ Singleton {
     // IMAGE LOAD ERROR
     // ============================================================
 
+    function markPreviewLoaded(id) {
+        const index = root.findEntryIndex(id);
+
+        if (index < 0)
+            return;
+
+        const entry = entryModel.get(index);
+
+        if (!entry.isImage)
+            return;
+
+        // Reset loading retries only after Qt successfully loads
+        // the image.
+        if (entry.previewLoadRetries > 0 || entry.previewFailed) {
+            entryModel.setProperty(index, "previewLoadRetries", 0);
+            entryModel.setProperty(index, "previewFailed", false);
+        }
+    }
+
     function retryPreview(id) {
         const entryId = String(id);
         const index = root.findEntryIndex(entryId);
@@ -522,7 +544,8 @@ Singleton {
         if (!entry.isImage || root.isPreviewActive(entryId))
             return;
 
-        if (entry.previewRetries >= root.maxPreviewRetries) {
+        // Stop retrying after reaching the limit.
+        if (entry.previewLoadRetries >= root.maxPreviewLoadRetries) {
             entryModel.setProperty(index, "previewUrl", "");
             entryModel.setProperty(index, "previewReady", false);
             entryModel.setProperty(index, "previewLoading", false);
@@ -532,7 +555,7 @@ Singleton {
             return;
         }
 
-        entryModel.setProperty(index, "previewRetries", entry.previewRetries + 1);
+        entryModel.setProperty(index, "previewLoadRetries", entry.previewLoadRetries + 1);
 
         root.requestPreview(entryId, true);
     }
@@ -541,7 +564,6 @@ Singleton {
     function invalidatePreview(id) {
         root.retryPreview(id);
     }
-
     // ============================================================
     // COPY
     // ============================================================
