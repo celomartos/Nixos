@@ -17,16 +17,6 @@
     };
   };
 
-  # Flathub remote
-  systemd.services.flatpak-repo = {
-    wantedBy = [ "multi-user.target" ];
-    path = [ pkgs.flatpak ];
-
-    script = ''
-      flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-    '';
-  };
-
   # Graphite theme for Flatpaks
   systemd.user.services.flatpak-graphite-theme = {
     description = "Configurar tema Graphite nos Flatpaks";
