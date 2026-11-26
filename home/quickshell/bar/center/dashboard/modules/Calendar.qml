@@ -12,6 +12,7 @@ Item {
 
     property int monthOffset: 0
     property var currentDate: new Date()
+    property var selectedDate: new Date()
 
     readonly property var today: currentDate
 
@@ -29,9 +30,18 @@ Item {
         monthOffset += amount;
     }
 
+    function selectDay(date) {
+        selectedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+        // Switch to the selected day's month when necessary.
+        monthOffset = (selectedDate.getFullYear() - currentDate.getFullYear()) * 12 + selectedDate.getMonth() - currentDate.getMonth();
+    }
+
     function resetToCurrentMonth() {
         monthOffset = 0;
         currentDate = new Date();
+
+        selectedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
     }
 
     // ------------------------------------------------------------
@@ -205,7 +215,7 @@ Item {
 
                     readonly property bool isCurrentMonthDay: dayNumber >= 1 && dayNumber <= calendarGrid.daysInMonth
 
-                    readonly property bool isToday: root.isSameDay(cellDate, root.today)
+                    readonly property bool isSelected: root.isSameDay(cellDate, root.selectedDate)
 
                     width: (calendarGrid.width - calendarGrid.spacing * 6) / 7
 
@@ -219,7 +229,7 @@ Item {
                         height: 26
                         radius: 9
 
-                        visible: dayMouse.containsMouse && !parent.isToday
+                        visible: dayMouse.containsMouse && !parent.isSelected
 
                         color: Theme.hoverBackground
 
@@ -230,7 +240,7 @@ Item {
                         }
                     }
 
-                    // Today's permanent highlight
+                    // Selected day highlight
                     Rectangle {
                         anchors.centerIn: parent
 
@@ -238,7 +248,7 @@ Item {
                         height: 26
                         radius: 9
 
-                        visible: parent.isToday
+                        visible: parent.isSelected
 
                         color: Theme.todayBackground
                     }
@@ -254,10 +264,10 @@ Item {
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSize
 
-                        font.weight: parent.isToday ? Font.DemiBold : Font.Normal
+                        font.weight: parent.isSelected ? Font.DemiBold : Font.Normal
 
                         color: {
-                            if (parent.isToday)
+                            if (parent.isSelected)
                                 return Theme.todayText;
 
                             if (parent.isCurrentMonthDay)
@@ -269,15 +279,22 @@ Item {
                         text: parent.cellDate.getDate()
                     }
 
-                    // Hover only — no click or selection state
+                    // Hover and day selection
                     MouseArea {
                         id: dayMouse
 
-                        anchors.fill: parent
+                        width: 26
+                        height: 26
+                        anchors.centerIn: parent
 
                         hoverEnabled: true
-                        acceptedButtons: Qt.NoButton
-                        cursorShape: Qt.ArrowCursor
+                        acceptedButtons: Qt.LeftButton
+
+                        cursorShape: Qt.PointingHandCursor
+
+                        onClicked: {
+                            root.selectDay(parent.cellDate);
+                        }
                     }
                 }
             }
