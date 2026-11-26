@@ -58,15 +58,15 @@ in
   # ============================================================================
 
   home.file = {
-    ".config/waybar".source = ./home/waybar;
-    ".config/mako".source = ./home/mako;
-    ".config/Kvantum/Graphite".source = ./home/Graphite;
+    ".config/waybar".source = ../home/waybar;
+    ".config/mako".source = ../home/mako;
+    ".config/Kvantum/Graphite".source = ../home/Graphite;
 
     # Optional configurations.
-    # ".config/hypr".source = ./home/hyprland;
-    # ".config/rofi".source = ./home/rofi;
-    # ".config/quickshell".source = ./home/quickshell;
-    # ".config/Vencord".source = ./home/Vencord;
+    # ".config/hypr".source = ../home/hyprland;
+    # ".config/rofi".source = ../home/rofi;
+    # ".config/quickshell".source = ../home/quickshell;
+    # ".config/Vencord".source = ../home/Vencord;
   };
 
   # ============================================================================
