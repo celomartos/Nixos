@@ -49,8 +49,19 @@ PopupWindow {
     property real popupOpacity: 0
 
     readonly property var tabTitles: ["Calendar", "Media", "System"]
-
     readonly property var tabIcons: ["", "󰝚", "󰍛"]
+
+    // Detect fullscreen on the currently focused workspace.
+    readonly property bool hasFullscreen: Hyprland.focusedWorkspace?.hasFullscreen ?? false
+
+    Connections {
+        target: root
+
+        function onHasFullscreenChanged() {
+            if (root.hasFullscreen && root.visible && !closeAnim.running)
+                root.closePopup();
+        }
+    }
 
     // ------------------------------------------------------------
     // Animations
@@ -181,6 +192,10 @@ PopupWindow {
     // ------------------------------------------------------------
 
     function openPopup() {
+        // Do not open the dashboard while fullscreen is active.
+        if (root.hasFullscreen)
+            return;
+
         grabDelay.stop();
         focusRetry.stop();
 

@@ -63,7 +63,18 @@ Item {
         repeat: true
         running: root.dashboardVisible
 
-        onTriggered: root.currentDate = new Date()
+        onTriggered: {
+            const previousDate = root.currentDate;
+            const nextDate = new Date();
+
+            const dayChanged = !root.isSameDay(previousDate, nextDate);
+
+            if (dayChanged && root.isSameDay(root.selectedDate, previousDate)) {
+                root.selectedDate = new Date(nextDate.getFullYear(), nextDate.getMonth(), nextDate.getDate());
+            }
+
+            root.currentDate = nextDate;
+        }
     }
 
     // ------------------------------------------------------------
