@@ -3,8 +3,8 @@
 {
   imports = [
     ./home/nixvim/default.nix
-    ./home/programs.nix
-    ./home/packages.nix
+    ./programs.nix
+    ./packages.nix
   ];
 
   # ============================================================================
