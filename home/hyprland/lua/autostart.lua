@@ -6,8 +6,12 @@ hl.on("hyprland.start", function()
 	hl.exec_cmd("quickshell")
 	-- hl.exec_cmd("waybar") -- Fallback Waybar
 	hl.exec_cmd("mako")
-	hl.exec_cmd("wl-paste --type text --watch cliphist store")
-	hl.exec_cmd("wl-paste --type image --watch cliphist store")
+	hl.exec_cmd(
+		"wl-paste --type text --watch sh -c 'cliphist store && (qs ipc call clipboard refresh >/dev/null 2>&1 || true)'"
+	)
+	hl.exec_cmd(
+		"wl-paste --type image --watch sh -c 'cliphist store && (qs ipc call clipboard refresh >/dev/null 2>&1 || true)'"
+	)
 	hl.exec_cmd("kbuildsycoca6")
 	hl.exec_cmd("easyeffects --gapplication-service")
 	--hl.exec_cmd("waypaper --restore")

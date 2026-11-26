@@ -9,40 +9,35 @@ Singleton {
 
     property alias entries: entryModel
 
-    // `revision` só muda quando o HISTÓRICO muda (parseHistory).
+    // ------------------------------------------------------------
+    // State
+    // ------------------------------------------------------------
+
     property int revision: 0
 
     property bool loading: false
-    property string errorMessage: ""
+    property bool refreshPending: false
 
-    // Cache em memória: entryId -> file:// URL já decodificada.
-    property var previewCache: ({})
+    property string errorMessage: ""
+    property string historyOutput: ""
+    property string lastHistoryOutput: ""
 
     property var previewQueue: []
-    property string activePreviewId: ""
-    property string activePreviewPath: ""
+    property var previewForceIds: []
+    property var previewWorkers: []
 
-    property string metadataOutput: ""
-    property string metadataError: ""
-
-    // Guarda a última saída de metadados para pular parseHistory
-    // quando o histórico não mudou entre aberturas do painel.
-    property string lastMetadataOutput: ""
-
-    // Índice O(1) para findEntryIndex.
     property var _idToIndex: ({})
 
-    // ── Configuração da limpeza ─────────────────────────────────────────────
-    // Arquivos de preview mais antigos que isso (em dias) são removidos.
-    readonly property int cacheMaxAgeDays: 0
+    // ------------------------------------------------------------
+    // Cache configuration
+    // ------------------------------------------------------------
 
-    // Flag para garantir que a limpeza rode no máximo uma vez por sessão.
-    property bool _cacheCleanupDone: false
-
-    // ── Tamanho da thumbnail usado no sourceSize ────────────────────────────
-    // Deve bater com `thumbnailSize` em ClipboardWindow.qml para que o cache
-    // do Qt (QPixmapCache) seja efetivamente reaproveitado pelos delegates.
     readonly property int thumbnailSize: 58
+    readonly property int cacheMaxAgeMinutes: 360
+
+    // Unique to this Quickshell session.
+    // Prevents old thumbnails from being reused after cliphist wipe.
+    readonly property string cacheSessionId: String(Date.now())
 
     readonly property string cacheDirectory: {
         const cache = Quickshell.env("XDG_CACHE_HOME");
@@ -53,77 +48,46 @@ Singleton {
         return (Quickshell.env("HOME") || "/tmp") + "/.cache/quickshell/cliphist";
     }
 
-    // Componente usado apenas para pré-carregar a imagem no cache do Qt.
-    // Não é exibido — apenas força a decodificação para popular o QPixmapCache.
-    Component {
-        id: preloadImageComponent
-
-        Image {
-            asynchronous: true
-            cache: true
-            sourceSize: Qt.size(root.thumbnailSize, root.thumbnailSize)
-            visible: false
-        }
-    }
+    readonly property int maxPreviewRetries: 1
 
     ListModel {
         id: entryModel
     }
 
-    // =====================================================================
+    // ============================================================
     // HISTORY
-    // =====================================================================
+    // ============================================================
 
     function refresh() {
-        if (metadataProcess.running || listProcess.running)
+        if (cacheCleanupProcess.running || listProcess.running) {
+            root.refreshPending = true;
             return;
+        }
 
-        loading = true;
-        errorMessage = "";
-        metadataOutput = "";
-        metadataError = "";
+        root.refreshPending = false;
+        root.loading = true;
+        root.errorMessage = "";
+        root.historyOutput = "";
 
-        metadataProcess.exec(["cliphist", "list", "-fields", "id,format,preview"]);
+        cacheCleanupProcess.exec(["sh", "-c", 'mkdir -p "$1" && chmod 700 "$1" && ' + 'find "$1" -maxdepth 1 -type f -mmin +"$2" -delete && ' + 'find "$1" -maxdepth 1 -type f -name "*.tmp.*" -mmin +60 -delete', "qs-cliphist-cleanup", root.cacheDirectory, String(root.cacheMaxAgeMinutes)]);
     }
 
     Process {
-        id: metadataProcess
-
-        stdout: StdioCollector {
-            onStreamFinished: {
-                root.metadataOutput = this.text;
-            }
-        }
+        id: cacheCleanupProcess
 
         stderr: StdioCollector {
             onStreamFinished: {
-                root.metadataError = this.text.trim();
+                const message = this.text.trim();
+
+                if (message.length > 0)
+                    console.warn("[Clipboard Cache]", message);
             }
         }
 
         onExited: (code, status) => {
-            if (code === 0) {
-                const output = root.metadataOutput;
+            if (code !== 0)
+                console.warn("[Clipboard Cache] Cleanup exited with code", code);
 
-                // Se o histórico não mudou, não reconstrói o modelo.
-                if (output === root.lastMetadataOutput && entryModel.count > 0) {
-                    root.loading = false;
-                    root._runCacheCleanupIfNeeded();
-                    return;
-                }
-
-                const count = root.parseHistory(output, true);
-
-                if (count > 0 || output.trim() === "") {
-                    root.lastMetadataOutput = output;
-                    root.loading = false;
-                    root._runCacheCleanupIfNeeded();
-                    return;
-                }
-            }
-
-            // Fallback para versões antigas do cliphist sem `-fields`.
-            root.metadataOutput = "";
             listProcess.exec(["cliphist", "list"]);
         }
     }
@@ -133,7 +97,7 @@ Singleton {
 
         stdout: StdioCollector {
             onStreamFinished: {
-                root.parseHistory(this.text, false);
+                root.historyOutput = this.text;
             }
         }
 
@@ -149,56 +113,36 @@ Singleton {
         onExited: (code, status) => {
             root.loading = false;
 
-            if (code !== 0 && root.errorMessage.length === 0) {
+            if (code === 0) {
+                const output = root.historyOutput;
+
+                // Do not rebuild the model if nothing changed.
+                // This preserves loaded thumbnails when the menu
+                // is closed and opened again.
+                if (output !== root.lastHistoryOutput || entryModel.count === 0) {
+                    root.lastHistoryOutput = output;
+                    root.parseHistory(output);
+                } else {
+                    // Make sure any missing thumbnails are requested.
+                    root.requestAllPreviews();
+                }
+            } else if (root.errorMessage.length === 0) {
                 root.errorMessage = "Failed to load clipboard history.";
             }
 
-            root._runCacheCleanupIfNeeded();
-        }
-    }
+            if (root.refreshPending) {
+                root.refreshPending = false;
 
-    // =====================================================================
-    // LIMPEZA DE CACHE
-    // =====================================================================
-
-    // Dispara a limpeza apenas uma vez por sessão (ou após reload do shell).
-    function _runCacheCleanupIfNeeded() {
-        if (root._cacheCleanupDone)
-            return;
-
-        root._cacheCleanupDone = true;
-        root._cleanupCache();
-    }
-
-    function _cleanupCache() {
-        // `find` remove arquivos com mais de N dias.
-        // O `mkdir -p` garante que o diretório exista antes do find.
-        const script = 'mkdir -p "$1" && find "$1" -maxdepth 1 -type f -mtime +"$2" -delete';
-
-        cacheCleanupProcess.exec(["sh", "-c", script, "qs-cliphist-cache-cleanup", root.cacheDirectory, String(root.cacheMaxAgeDays),]);
-    }
-
-    Process {
-        id: cacheCleanupProcess
-
-        stderr: StdioCollector {
-            onStreamFinished: {
-                const message = this.text.trim();
-
-                if (message.length > 0)
-                    console.warn("[Clipboard Cache Cleanup]", message);
+                Qt.callLater(() => {
+                    root.refresh();
+                });
             }
         }
-
-        onExited: (code, status) => {
-            if (code !== 0)
-                console.warn("[Clipboard Cache Cleanup] exited with code", code);
-        }
     }
 
-    // =====================================================================
+    // ============================================================
     // IMAGE FORMAT
-    // =====================================================================
+    // ============================================================
 
     function normalizeFormat(format) {
         let value = String(format || "").trim().toLowerCase();
@@ -214,7 +158,7 @@ Singleton {
     }
 
     function detectImageFormat(preview) {
-        const match = String(preview || "").match(/^\[\[\s*binary data\b.*?\s+(png|jpe?g|gif|bmp|tiff|webp)\s+\d+x\d+\s*\]\]/i);
+        const match = String(preview || "").match(/^\[\[\s*binary data\b.*?\s+(png|jpe?g|bmp|gif|tiff|webp)\b/i);
 
         if (!match)
             return "";
@@ -222,12 +166,19 @@ Singleton {
         return root.normalizeFormat(match[1]);
     }
 
-    // =====================================================================
-    // PARSE
-    // =====================================================================
+    // ============================================================
+    // HISTORY PARSING
+    // ============================================================
 
-    function parseHistory(raw, hasMetadata) {
-        entryModel.clear();
+    function parseHistory(raw) {
+        // Keep the existing entry state when the same clipboard
+        // item is still present in the updated history.
+        const oldEntries = {};
+
+        for (let i = 0; i < entryModel.count; i++) {
+            const entry = entryModel.get(i);
+            oldEntries[String(entry.entryId)] = entry;
+        }
 
         const lines = String(raw || "").split(/\r?\n/);
         const batch = [];
@@ -236,119 +187,160 @@ Singleton {
             if (!line)
                 continue;
 
-            let id = "";
-            let format = "";
-            let preview = "";
+            const separator = line.indexOf("\t");
 
-            if (hasMetadata) {
-                const firstTab = line.indexOf("\t");
-                const secondTab = line.indexOf("\t", firstTab + 1);
+            if (separator < 1)
+                continue;
 
-                if (firstTab < 1 || secondTab < 0)
-                    continue;
-
-                id = line.substring(0, firstTab).trim();
-                format = line.substring(firstTab + 1, secondTab).trim();
-                preview = line.substring(secondTab + 1).trim();
-            } else {
-                const separator = line.indexOf("\t");
-
-                if (separator < 1)
-                    continue;
-
-                id = line.substring(0, separator).trim();
-                preview = line.substring(separator + 1).trim();
-            }
+            const id = line.substring(0, separator).trim();
+            const preview = line.substring(separator + 1).trim();
 
             if (!/^\d+$/.test(id))
                 continue;
 
-            let extension = root.normalizeFormat(format);
-
-            if (!extension)
-                extension = root.detectImageFormat(preview);
-
+            const extension = root.detectImageFormat(preview);
             const isImage = extension.length > 0;
 
-            const cachedUrl = isImage ? (root.previewCache[id] || "") : "";
-            const previewReady = cachedUrl.length > 0;
+            const old = oldEntries[id];
+
+            const sameEntry = old && old.preview === preview && old.extension === extension;
+
+            const cachedReady = sameEntry && old.previewReady && old.previewUrl.length > 0;
+
+            const active = root.isPreviewActive(id);
+            const queued = root.previewQueue.includes(id);
 
             batch.push({
                 entryId: id,
                 preview: preview,
                 isImage: isImage,
                 extension: extension,
-                previewUrl: cachedUrl,
-                previewReady: previewReady,
-                previewLoading: false,
+                previewUrl: cachedReady ? old.previewUrl : "",
+                previewReady: cachedReady,
+                previewLoading: isImage && !cachedReady && (active || queued),
+                previewFailed: sameEntry ? old.previewFailed : false,
+                previewRetries: sameEntry ? old.previewRetries : 0,
                 summary: isImage ? extension.toUpperCase() + " image" : preview
             });
         }
 
+        entryModel.clear();
+
         if (batch.length > 0)
             entryModel.append(batch);
 
-        root._rebuildIndex();
+        root.rebuildIndex();
 
-        root.previewQueue = [];
+        // Remove queued entries that no longer exist.
+        root.previewQueue = root.previewQueue.filter(id => {
+            return root.findEntryIndex(id) >= 0;
+        });
 
-        if (!previewProcess.running) {
-            root.activePreviewId = "";
-            root.activePreviewPath = "";
-        }
+        root.previewForceIds = root.previewForceIds.filter(id => {
+            return root.findEntryIndex(id) >= 0;
+        });
 
         root.revision++;
 
-        return entryModel.count;
+        // Start decoding every image, not just visible delegates.
+        root.requestAllPreviews();
     }
 
-    function _rebuildIndex() {
+    function rebuildIndex() {
         const map = {};
 
-        for (let i = 0; i < entryModel.count; i++)
+        for (let i = 0; i < entryModel.count; i++) {
             map[entryModel.get(i).entryId] = i;
+        }
 
         root._idToIndex = map;
     }
 
-    // =====================================================================
-    // IMAGE PREVIEWS
-    // =====================================================================
-
     function findEntryIndex(id) {
-        const i = root._idToIndex[String(id)];
-        return (i === undefined) ? -1 : i;
+        const index = root._idToIndex[String(id)];
+
+        return index === undefined ? -1 : index;
     }
+
+    // ============================================================
+    // IMAGE PATHS
+    // ============================================================
 
     function previewPath(id, extension) {
-        return root.cacheDirectory + "/" + String(id) + "." + String(extension);
+        return root.cacheDirectory + "/" + root.cacheSessionId + "-" + String(id) + "." + String(extension);
     }
 
-    function requestPreview(id) {
+    function fileUrl(path) {
+        const encodedPath = String(path).split("/").map(segment => encodeURIComponent(segment)).join("/");
+
+        return "file://" + encodedPath;
+    }
+
+    // ============================================================
+    // PREVIEW WORKERS
+    // ============================================================
+
+    function isPreviewActive(id) {
         const entryId = String(id);
-        const index = findEntryIndex(entryId);
+
+        for (const worker of root.previewWorkers) {
+            if (worker.entryId === entryId)
+                return true;
+        }
+
+        return false;
+    }
+
+    function requestAllPreviews() {
+        for (let i = 0; i < entryModel.count; i++) {
+            const entry = entryModel.get(i);
+
+            if (entry.isImage)
+                root.requestPreview(entry.entryId);
+        }
+    }
+
+    function requestPreview(id, force) {
+        const entryId = String(id);
+        const index = root.findEntryIndex(entryId);
 
         if (index < 0)
             return;
 
         const entry = entryModel.get(index);
+        const forced = Boolean(force);
 
-        if (!entry.isImage || entry.previewReady || entry.previewLoading)
+        if (!entry.isImage)
             return;
 
-        const cached = root.previewCache[entryId];
+        if (root.isPreviewActive(entryId))
+            return;
 
-        if (cached) {
-            entryModel.setProperty(index, "previewUrl", cached);
-            entryModel.setProperty(index, "previewReady", true);
+        if (!forced) {
+            if (entry.previewReady || entry.previewLoading || entry.previewFailed) {
+                return;
+            }
+        } else {
+            // A forced request must ignore the existing cache file.
+            entryModel.setProperty(index, "previewUrl", "");
+            entryModel.setProperty(index, "previewReady", false);
+            entryModel.setProperty(index, "previewFailed", false);
+        }
 
-            root.revision++;
+        // If it is already queued, just mark it for forced decoding.
+        if (root.previewQueue.includes(entryId)) {
+            if (forced && !root.previewForceIds.includes(entryId)) {
+                root.previewForceIds = root.previewForceIds.concat([entryId]);
+            }
+
+            entryModel.setProperty(index, "previewLoading", true);
 
             return;
         }
 
-        if (entryId === root.activePreviewId || root.previewQueue.includes(entryId))
-            return;
+        if (forced && !root.previewForceIds.includes(entryId)) {
+            root.previewForceIds = root.previewForceIds.concat([entryId]);
+        }
 
         entryModel.setProperty(index, "previewLoading", true);
 
@@ -358,91 +350,201 @@ Singleton {
     }
 
     function processNextPreview() {
-        if (previewProcess.running || root.activePreviewId !== "")
+        if (root.previewWorkers.length === 0)
             return;
 
         const queue = root.previewQueue.slice();
 
-        while (queue.length > 0) {
-            const id = queue.shift();
-            const index = findEntryIndex(id);
-
-            if (index < 0)
+        for (const worker of root.previewWorkers) {
+            if (worker.running || worker.entryId !== "")
                 continue;
 
+            let id = "";
+
+            // Find the next valid image.
+            while (queue.length > 0) {
+                const candidate = queue.shift();
+                const index = root.findEntryIndex(candidate);
+
+                if (index < 0)
+                    continue;
+
+                const entry = entryModel.get(index);
+
+                if (!entry.isImage || entry.previewReady)
+                    continue;
+
+                if (root.isPreviewActive(candidate))
+                    continue;
+
+                id = candidate;
+                break;
+            }
+
+            if (id === "")
+                break;
+
+            const index = root.findEntryIndex(id);
             const entry = entryModel.get(index);
 
-            if (!entry.isImage || entry.previewReady)
-                continue;
+            const forced = root.previewForceIds.includes(id);
+
+            root.previewForceIds = root.previewForceIds.filter(item => item !== id);
 
             const outputPath = root.previewPath(id, entry.extension);
 
-            root.activePreviewId = id;
-            root.activePreviewPath = outputPath;
-            root.previewQueue = queue;
+            worker.entryId = id;
+            worker.outputPath = outputPath;
 
-            previewProcess.exec(["sh", "-c", 'umask 077; mkdir -p "$1" || exit 1; tmp="$2.tmp.$$"; trap \'rm -f "$tmp"\' EXIT; if cliphist decode "$3" > "$tmp" && [ -s "$tmp" ]; then mv -f "$tmp" "$2"; else exit 1; fi', "qs-cliphist-preview", root.cacheDirectory, outputPath, id]);
+            entryModel.setProperty(index, "previewLoading", true);
 
-            return;
+            // Reuse an existing non-empty cache file unless this
+            // request explicitly asks for a fresh decode.
+            const script = 'umask 077; ' + 'mkdir -p "$1" && chmod 700 "$1" || exit 1; ' + 'if [ "$4" != "1" ] && [ -s "$2" ]; then ' + 'touch "$2" && exit 0; ' + 'fi; ' + 'tmp="$2.tmp.$$"; ' + 'trap \'rm -f "$tmp"\' EXIT; ' + 'if cliphist decode "$3" > "$tmp" && [ -s "$tmp" ]; then ' + 'mv -f "$tmp" "$2"; ' + 'else exit 1; fi';
+
+            worker.exec(["sh", "-c", script, "qs-cliphist-preview", root.cacheDirectory, outputPath, id, forced ? "1" : "0"]);
         }
 
         root.previewQueue = queue;
     }
 
+    function finishPreview(worker, code) {
+        const id = worker.entryId;
+        const outputPath = worker.outputPath;
+
+        worker.entryId = "";
+        worker.outputPath = "";
+
+        if (id === "") {
+            Qt.callLater(() => root.processNextPreview());
+            return;
+        }
+
+        const index = root.findEntryIndex(id);
+
+        if (index >= 0) {
+            entryModel.setProperty(index, "previewLoading", false);
+
+            if (code === 0) {
+                const url = root.fileUrl(outputPath);
+
+                entryModel.setProperty(index, "previewUrl", url);
+                entryModel.setProperty(index, "previewReady", true);
+                entryModel.setProperty(index, "previewFailed", false);
+                entryModel.setProperty(index, "previewRetries", 0);
+            } else {
+                entryModel.setProperty(index, "previewUrl", "");
+                entryModel.setProperty(index, "previewReady", false);
+
+                const entry = entryModel.get(index);
+
+                // Retry a failed decode once.
+                if (entry.previewRetries < root.maxPreviewRetries) {
+                    entryModel.setProperty(index, "previewRetries", entry.previewRetries + 1);
+
+                    entryModel.setProperty(index, "previewFailed", false);
+
+                    Qt.callLater(() => {
+                        root.requestPreview(id, true);
+                    });
+                } else {
+                    entryModel.setProperty(index, "previewFailed", true);
+
+                    console.warn("[Clipboard] Failed to decode image:", id, "exit code:", code);
+                }
+            }
+
+            root.revision++;
+        }
+
+        Qt.callLater(() => {
+            root.processNextPreview();
+        });
+    }
+
+    // ============================================================
+    // PREVIEW PROCESSES
+    // ============================================================
+
     Process {
-        id: previewProcess
+        id: previewProcessA
+
+        property string entryId: ""
+        property string outputPath: ""
 
         stderr: StdioCollector {
             onStreamFinished: {
                 const message = this.text.trim();
 
                 if (message.length > 0)
-                    console.warn("[Clipboard Preview]", message);
+                    console.warn("[Clipboard Preview A]", message);
             }
         }
 
         onExited: (code, status) => {
-            const id = root.activePreviewId;
-            const outputPath = root.activePreviewPath;
-
-            root.activePreviewId = "";
-            root.activePreviewPath = "";
-
-            const index = root.findEntryIndex(id);
-
-            if (index >= 0) {
-                entryModel.setProperty(index, "previewLoading", false);
-
-                if (code === 0) {
-                    const url = "file://" + encodeURI(outputPath);
-
-                    root.previewCache[id] = url;
-
-                    entryModel.setProperty(index, "previewUrl", url);
-                    entryModel.setProperty(index, "previewReady", true);
-                    const preload = preloadImageComponent.createObject(root, {
-                        source: url
-                    });
-
-                    if (preload) {
-                        preload.statusChanged.connect(() => {
-                            if (preload.status === Image.Ready || preload.status === Image.Error)
-                                preload.destroy();
-                        });
-                    }
-                }
-                root.revision++;
-            }
-
-            Qt.callLater(() => {
-                root.processNextPreview();
-            });
+            root.finishPreview(previewProcessA, code);
         }
     }
 
-    // =====================================================================
+    Process {
+        id: previewProcessB
+
+        property string entryId: ""
+        property string outputPath: ""
+
+        stderr: StdioCollector {
+            onStreamFinished: {
+                const message = this.text.trim();
+
+                if (message.length > 0)
+                    console.warn("[Clipboard Preview B]", message);
+            }
+        }
+
+        onExited: (code, status) => {
+            root.finishPreview(previewProcessB, code);
+        }
+    }
+
+    // ============================================================
+    // IMAGE LOAD ERROR
+    // ============================================================
+
+    function retryPreview(id) {
+        const entryId = String(id);
+        const index = root.findEntryIndex(entryId);
+
+        if (index < 0)
+            return;
+
+        const entry = entryModel.get(index);
+
+        if (!entry.isImage || root.isPreviewActive(entryId))
+            return;
+
+        if (entry.previewRetries >= root.maxPreviewRetries) {
+            entryModel.setProperty(index, "previewUrl", "");
+            entryModel.setProperty(index, "previewReady", false);
+            entryModel.setProperty(index, "previewLoading", false);
+            entryModel.setProperty(index, "previewFailed", true);
+
+            root.revision++;
+            return;
+        }
+
+        entryModel.setProperty(index, "previewRetries", entry.previewRetries + 1);
+
+        root.requestPreview(entryId, true);
+    }
+
+    // Kept for compatibility with ClipboardWindow.qml.
+    function invalidatePreview(id) {
+        root.retryPreview(id);
+    }
+
+    // ============================================================
     // COPY
-    // =====================================================================
+    // ============================================================
 
     Process {
         id: copyProcess
@@ -458,5 +560,19 @@ Singleton {
             return;
 
         copyProcess.exec(["sh", "-c", 'cliphist decode "$1" | wl-copy', "qs-cliphist-copy", entryId]);
+    }
+
+    // ============================================================
+    // INITIALIZATION
+    // ============================================================
+
+    Component.onCompleted: {
+        root.previewWorkers = [previewProcessA, previewProcessB];
+
+        // Prepare thumbnails as soon as Quickshell starts,
+        // instead of waiting for the clipboard menu to open.
+        Qt.callLater(() => {
+            root.refresh();
+        });
     }
 }

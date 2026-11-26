@@ -253,6 +253,10 @@ PanelWindow {
         function toggle(): void {
             root.toggle();
         }
+
+        function refresh(): void {
+            CliphistService.refresh();
+        }
     }
 
     onFullscreenActiveChanged: {
@@ -498,17 +502,16 @@ PanelWindow {
                         required property string previewUrl
                         required property bool previewReady
                         required property bool previewLoading
+                        required property bool previewFailed
                         required property string summary
 
                         width: listView.width
                         height: root.delegateHeight
 
-                        Component.onCompleted: {
-                            if (isImage)
-                                CliphistService.requestPreview(entryId);
-                        }
-
+                        // ------------------------------------------------
                         // Selection
+                        // ------------------------------------------------
+
                         Rectangle {
                             anchors.fill: parent
 
@@ -517,7 +520,10 @@ PanelWindow {
                             color: root.selectedIndex === delegateItem.index ? Theme.hoverBackground : Theme.cardBackground
                         }
 
+                        // ------------------------------------------------
                         // Thumbnail
+                        // ------------------------------------------------
+
                         Rectangle {
                             id: thumbnail
 
@@ -554,16 +560,16 @@ PanelWindow {
                                 sourceSize: Qt.size(root.thumbnailSize, root.thumbnailSize)
 
                                 onStatusChanged: {
-                                    if (status === Image.Error) {
+                                    if (status === Image.Error && delegateItem.previewReady) {
                                         console.warn("[Clipboard] Failed to load thumbnail:", source);
+                                        CliphistService.retryPreview(delegateItem.entryId);
                                     }
                                 }
                             }
-
                             Text {
                                 anchors.centerIn: parent
 
-                                visible: !delegateItem.isImage || !delegateItem.previewReady || previewImage.status !== Image.Ready
+                                visible: !delegateItem.isImage || previewImage.status !== Image.Ready
 
                                 text: delegateItem.isImage ? "▧" : "Aa"
 
@@ -575,7 +581,10 @@ PanelWindow {
                             }
                         }
 
+                        // ------------------------------------------------
                         // Entry information
+                        // ------------------------------------------------
+
                         Column {
                             anchors.left: thumbnail.right
                             anchors.leftMargin: Theme.spacingMd
@@ -615,7 +624,10 @@ PanelWindow {
                             }
                         }
 
+                        // ------------------------------------------------
                         // Mouse interaction
+                        // ------------------------------------------------
+
                         MouseArea {
                             anchors.fill: parent
 
@@ -633,7 +645,10 @@ PanelWindow {
                     }
                 }
 
+                // ----------------------------------------------------
                 // Empty / loading / error state
+                // ----------------------------------------------------
+
                 Text {
                     anchors.centerIn: parent
 
