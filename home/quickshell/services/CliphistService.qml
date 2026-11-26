@@ -341,6 +341,9 @@ Singleton {
         if (cached) {
             entryModel.setProperty(index, "previewUrl", cached);
             entryModel.setProperty(index, "previewReady", true);
+
+            root.revision++;
+
             return;
         }
 
@@ -417,15 +420,6 @@ Singleton {
 
                     entryModel.setProperty(index, "previewUrl", url);
                     entryModel.setProperty(index, "previewReady", true);
-
-                    // ── PRÉ-CARREGAMENTO NO QPixmapCache ────────────────
-                    // Cria um Image invisível com o mesmo `sourceSize` e
-                    // `cache: true` do delegate. Isso força o Qt a
-                    // decodificar a imagem JÁ e guardá-la no cache global,
-                    // de modo que, quando o delegate for criado, ele lê
-                    // do cache em vez de ir ao disco.
-                    // O objeto se autodestrói quando o carregamento
-                    // termina (Ready) ou falha (Error).
                     const preload = preloadImageComponent.createObject(root, {
                         source: url
                     });
@@ -437,6 +431,7 @@ Singleton {
                         });
                     }
                 }
+                root.revision++;
             }
 
             Qt.callLater(() => {

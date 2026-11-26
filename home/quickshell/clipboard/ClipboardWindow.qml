@@ -28,7 +28,10 @@ PanelWindow {
 
     readonly property bool fullscreenActive: Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.hasFullscreen : false
 
-    // ── Constantes de layout ────────────────────────────────────────────────
+    // ------------------------------------------------------------
+    // Layout constants
+    // ------------------------------------------------------------
+
     readonly property int cardMaxWidth: 720
     readonly property int cardMaxHeight: 560
     readonly property int cardMargin: 48
@@ -40,7 +43,12 @@ PanelWindow {
     property real cardYOffset: -16
     property real cardOpacity: 0
 
+    // ------------------------------------------------------------
+    // Filtered entries
+    // ------------------------------------------------------------
+
     readonly property var filteredEntries: {
+        // Explicit dependency on service updates.
         const revision = CliphistService.revision;
         const query = searchField.text.trim().toLowerCase();
 
@@ -49,6 +57,7 @@ PanelWindow {
 
         for (let i = 0; i < count; i++) {
             const entry = CliphistService.entries.get(i);
+
             const searchable = [entry.preview, entry.isImage ? "image" : "text", entry.entryId].join(" ").toLowerCase();
 
             if (query && !searchable.includes(query))
@@ -59,9 +68,9 @@ PanelWindow {
         return result;
     }
 
-    // -------------------------------------------------------------------------
+    // ------------------------------------------------------------
     // Animations
-    // -------------------------------------------------------------------------
+    // ------------------------------------------------------------
 
     ParallelAnimation {
         id: openAnimation
@@ -69,18 +78,22 @@ PanelWindow {
         NumberAnimation {
             target: root
             property: "cardYOffset"
+
             from: -16
             to: 0
-            duration: 180
+
+            duration: Theme.animDurationNormal
             easing.type: Easing.OutCubic
         }
 
         NumberAnimation {
             target: root
             property: "cardOpacity"
+
             from: 0
             to: 1
-            duration: 180
+
+            duration: Theme.animDurationNormal
             easing.type: Easing.OutCubic
         }
     }
@@ -91,16 +104,20 @@ PanelWindow {
         NumberAnimation {
             target: root
             property: "cardYOffset"
+
             to: -10
-            duration: 130
+
+            duration: Theme.animDurationFast
             easing.type: Easing.InCubic
         }
 
         NumberAnimation {
             target: root
             property: "cardOpacity"
+
             to: 0
-            duration: 130
+
+            duration: Theme.animDurationFast
             easing.type: Easing.InCubic
         }
 
@@ -109,9 +126,9 @@ PanelWindow {
         }
     }
 
-    // -------------------------------------------------------------------------
+    // ------------------------------------------------------------
     // Functions
-    // -------------------------------------------------------------------------
+    // ------------------------------------------------------------
 
     function openPanel() {
         if (fullscreenActive)
@@ -142,6 +159,7 @@ PanelWindow {
             return;
         openAnimation.stop();
         closeAnimation.stop();
+
         closeAnimation.start();
     }
 
@@ -179,9 +197,9 @@ PanelWindow {
         copyItem(entry.entryId);
     }
 
-    // -------------------------------------------------------------------------
+    // ------------------------------------------------------------
     // Events
-    // -------------------------------------------------------------------------
+    // ------------------------------------------------------------
 
     IpcHandler {
         target: "clipboard"
@@ -217,33 +235,37 @@ PanelWindow {
         }
     }
 
-    // -------------------------------------------------------------------------
-    // Backdrop (clique fora fecha o painel)
-    // -------------------------------------------------------------------------
+    // ------------------------------------------------------------
+    // Backdrop
+    // ------------------------------------------------------------
 
     Rectangle {
         anchors.fill: parent
+
         color: Theme.background
         opacity: 0.78
 
-        // Substitui o TapHandler manual — mais simples e imune a mudanças
-        // na geometria/translação do card.
         MouseArea {
             anchors.fill: parent
-            onClicked: root.closePanel()
+
+            onClicked: {
+                root.closePanel();
+            }
         }
     }
 
-    // -------------------------------------------------------------------------
+    // ------------------------------------------------------------
     // Main card
-    // -------------------------------------------------------------------------
+    // ------------------------------------------------------------
 
     Item {
         id: cardMotion
 
         z: 1
+        clip: true
 
         width: Math.max(0, Math.min(root.cardMaxWidth, root.width - root.cardMargin))
+
         height: Math.max(0, Math.min(root.cardMaxHeight, root.height - root.cardMargin))
 
         anchors.centerIn: parent
@@ -262,8 +284,6 @@ PanelWindow {
 
             border.width: 1
             border.color: Theme.borderColor
-
-            clip: true
         }
 
         Column {
@@ -272,11 +292,11 @@ PanelWindow {
             anchors.fill: parent
             anchors.margins: root.contentMargin
 
-            spacing: 14
+            spacing: Theme.spacingMd
 
-            // -----------------------------------------------------------------
+            // ----------------------------------------------------
             // Header
-            // -----------------------------------------------------------------
+            // ----------------------------------------------------
 
             Row {
                 id: headerRow
@@ -284,14 +304,14 @@ PanelWindow {
                 width: parent.width
                 height: 42
 
-                spacing: 10
+                spacing: Theme.spacingSm
 
                 Column {
                     width: headerRow.width - countBadge.width - headerRow.spacing
 
                     anchors.verticalCenter: parent.verticalCenter
 
-                    spacing: 3
+                    spacing: Theme.spacingXs
 
                     Text {
                         text: "Clipboard"
@@ -338,9 +358,9 @@ PanelWindow {
                 }
             }
 
-            // -----------------------------------------------------------------
+            // ----------------------------------------------------
             // Search
-            // -----------------------------------------------------------------
+            // ----------------------------------------------------
 
             Rectangle {
                 id: searchBox
@@ -400,8 +420,7 @@ PanelWindow {
                     }
                 }
 
-                // Placeholder independente (compatível com Quickshell 0.3.2).
-                // `placeholderTextColor` não existe nessa versão do TextInput.
+                // Placeholder
                 Text {
                     anchors.left: searchField.left
                     anchors.right: searchField.right
@@ -420,9 +439,9 @@ PanelWindow {
                 }
             }
 
-            // -----------------------------------------------------------------
+            // ----------------------------------------------------
             // Clipboard list
-            // -----------------------------------------------------------------
+            // ----------------------------------------------------
 
             Item {
                 id: listArea
@@ -437,10 +456,8 @@ PanelWindow {
                     anchors.fill: parent
 
                     clip: true
-                    spacing: 6
+                    spacing: Theme.spacingXs
 
-                    // cacheBuffer pré-instancia alguns delegates fora da viewport,
-                    // melhorando a rolagem sem custo excessivo de memória.
                     cacheBuffer: 200
 
                     model: root.filteredEntries
@@ -469,7 +486,10 @@ PanelWindow {
                                 CliphistService.requestPreview(entryId);
                         }
 
-                        // Seleção instantânea, sem animação de cor.
+                        // ------------------------------------------------
+                        // Selection
+                        // ------------------------------------------------
+
                         Rectangle {
                             anchors.fill: parent
 
@@ -478,9 +498,9 @@ PanelWindow {
                             color: root.selectedIndex === delegateItem.index ? Theme.hoverBackground : Theme.cardBackground
                         }
 
-                        // -----------------------------------------------------------------
+                        // ------------------------------------------------
                         // Thumbnail
-                        // -----------------------------------------------------------------
+                        // ------------------------------------------------
 
                         Rectangle {
                             id: thumbnail
@@ -502,24 +522,32 @@ PanelWindow {
                             clip: true
 
                             Image {
+                                id: previewImage
+
                                 anchors.fill: parent
 
-                                visible: delegateItem.isImage && delegateItem.previewReady
+                                visible: delegateItem.isImage && delegateItem.previewReady && status === Image.Ready
 
                                 source: delegateItem.previewUrl
 
                                 fillMode: Image.PreserveAspectCrop
+
                                 asynchronous: true
+                                cache: true
 
                                 sourceSize: Qt.size(root.thumbnailSize, root.thumbnailSize)
 
-                                cache: true
+                                onStatusChanged: {
+                                    if (status === Image.Error) {
+                                        console.warn("[Clipboard] Failed to load thumbnail:", source);
+                                    }
+                                }
                             }
 
                             Text {
                                 anchors.centerIn: parent
 
-                                visible: !delegateItem.isImage || !delegateItem.previewReady
+                                visible: !delegateItem.isImage || !delegateItem.previewReady || previewImage.status !== Image.Ready
 
                                 text: delegateItem.isImage ? "▧" : "Aa"
 
@@ -531,19 +559,20 @@ PanelWindow {
                             }
                         }
 
-                        // -----------------------------------------------------------------
+                        // ------------------------------------------------
                         // Entry information
-                        // -----------------------------------------------------------------
+                        // ------------------------------------------------
 
                         Column {
                             anchors.left: thumbnail.right
-                            anchors.leftMargin: 12
+                            anchors.leftMargin: Theme.spacingMd
+
                             anchors.right: parent.right
-                            anchors.rightMargin: 12
+                            anchors.rightMargin: Theme.spacingMd
 
                             anchors.verticalCenter: parent.verticalCenter
 
-                            spacing: 5
+                            spacing: Theme.spacingXs
 
                             Text {
                                 width: parent.width
@@ -573,9 +602,9 @@ PanelWindow {
                             }
                         }
 
-                        // -----------------------------------------------------------------
+                        // ------------------------------------------------
                         // Mouse interaction
-                        // -----------------------------------------------------------------
+                        // ------------------------------------------------
 
                         MouseArea {
                             anchors.fill: parent
@@ -594,9 +623,9 @@ PanelWindow {
                     }
                 }
 
-                // -----------------------------------------------------------------
+                // ----------------------------------------------------
                 // Empty / loading / error state
-                // -----------------------------------------------------------------
+                // ----------------------------------------------------
 
                 Text {
                     anchors.centerIn: parent
@@ -630,9 +659,9 @@ PanelWindow {
                 }
             }
 
-            // -----------------------------------------------------------------
+            // ----------------------------------------------------
             // Footer
-            // -----------------------------------------------------------------
+            // ----------------------------------------------------
 
             Row {
                 id: footerRow
