@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Widgets
+import Quickshell.Hyprland
 import "../theme"
 
 PanelWindow {
@@ -17,6 +18,8 @@ PanelWindow {
         right: true
         bottom: true
     }
+
+    readonly property bool fullscreenActive: Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.hasFullscreen : false
 
     margins {
         top: 34
@@ -725,6 +728,9 @@ PanelWindow {
     // --------------------------------------------------
 
     function openLauncher() {
+        if (fullscreenActive)
+            return;
+
         root.visible = true;
     }
 
@@ -736,10 +742,19 @@ PanelWindow {
         target: "app-launcher"
 
         function toggle(): void {
-            root.visible = !root.visible;
+            if (root.visible) {
+                root.closeLauncher();
+            } else {
+                root.openLauncher();
+            }
         }
     }
 
+    // Fecha automaticamente caso uma janela entre em fullscreen.
+    onFullscreenActiveChanged: {
+        if (fullscreenActive)
+            root.closeLauncher();
+    }
     onVisibleChanged: {
         if (visible) {
             searchInput.text = "";
