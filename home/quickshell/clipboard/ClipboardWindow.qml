@@ -13,11 +13,33 @@ PanelWindow {
     visible: false
     color: "transparent"
 
+    // ------------------------------------------------------------
+    // Window dimensions and positioning
+    // ------------------------------------------------------------
+
+    readonly property int cardMaxWidth: 720
+    readonly property int cardMaxHeight: 560
+    readonly property int cardMargin: 48
+    readonly property int contentMargin: 20
+    readonly property int delegateHeight: 76
+    readonly property int thumbnailSize: 58
+
+    readonly property int panelWidth: screen ? Math.max(280, Math.min(cardMaxWidth, screen.width - cardMargin)) : cardMaxWidth
+
+    readonly property int panelHeight: screen ? Math.max(280, Math.min(cardMaxHeight, screen.height - cardMargin)) : cardMaxHeight
+
+    implicitWidth: panelWidth
+    implicitHeight: panelHeight
+
     anchors {
         top: true
         left: true
-        right: true
-        bottom: true
+    }
+
+    margins {
+        top: screen ? Math.max(0, Math.round((screen.height - height) / 2)) : 0
+
+        left: screen ? Math.max(0, Math.round((screen.width - width) / 2)) : 0
     }
 
     exclusionMode: ExclusionMode.Ignore
@@ -28,17 +50,6 @@ PanelWindow {
 
     readonly property bool fullscreenActive: Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.hasFullscreen : false
 
-    // ------------------------------------------------------------
-    // Layout constants
-    // ------------------------------------------------------------
-
-    readonly property int cardMaxWidth: 720
-    readonly property int cardMaxHeight: 560
-    readonly property int cardMargin: 48
-    readonly property int contentMargin: 20
-    readonly property int delegateHeight: 76
-    readonly property int thumbnailSize: 58
-
     property int selectedIndex: 0
     property real cardYOffset: -16
     property real cardOpacity: 0
@@ -48,7 +59,6 @@ PanelWindow {
     // ------------------------------------------------------------
 
     readonly property var filteredEntries: {
-        // Explicit dependency on service updates.
         const revision = CliphistService.revision;
         const query = searchField.text.trim().toLowerCase();
 
@@ -127,6 +137,36 @@ PanelWindow {
     }
 
     // ------------------------------------------------------------
+    // Outside click handling
+    // ------------------------------------------------------------
+
+    Timer {
+        id: focusGrabDelay
+
+        interval: 60
+        repeat: false
+
+        onTriggered: {
+            if (!root.visible || closeAnimation.running)
+                return;
+            searchField.forceActiveFocus();
+            outsideGrab.active = true;
+        }
+    }
+
+    HyprlandFocusGrab {
+        id: outsideGrab
+
+        active: false
+        windows: [root]
+
+        onCleared: {
+            if (root.visible && !closeAnimation.running)
+                root.closePanel();
+        }
+    }
+
+    // ------------------------------------------------------------
     // Functions
     // ------------------------------------------------------------
 
@@ -135,6 +175,9 @@ PanelWindow {
             return;
         openAnimation.stop();
         closeAnimation.stop();
+
+        focusGrabDelay.stop();
+        outsideGrab.active = false;
 
         selectedIndex = 0;
         searchField.text = "";
@@ -151,16 +194,19 @@ PanelWindow {
                 return;
             searchField.forceActiveFocus();
             openAnimation.start();
+            focusGrabDelay.restart();
         });
     }
 
     function closePanel() {
-        if (!visible)
+        if (!visible || closeAnimation.running)
             return;
         openAnimation.stop();
-        closeAnimation.stop();
+        focusGrabDelay.stop();
 
         closeAnimation.start();
+
+        outsideGrab.active = false;
     }
 
     function toggle() {
@@ -219,6 +265,9 @@ PanelWindow {
             openAnimation.stop();
             closeAnimation.stop();
 
+            focusGrabDelay.stop();
+            outsideGrab.active = false;
+
             cardYOffset = -16;
             cardOpacity = 0;
             selectedIndex = 0;
@@ -236,40 +285,15 @@ PanelWindow {
     }
 
     // ------------------------------------------------------------
-    // Backdrop
-    // ------------------------------------------------------------
-
-    Rectangle {
-        anchors.fill: parent
-
-        color: Theme.background
-        opacity: 0.78
-
-        MouseArea {
-            anchors.fill: parent
-
-            onClicked: {
-                root.closePanel();
-            }
-        }
-    }
-
-    // ------------------------------------------------------------
     // Main card
     // ------------------------------------------------------------
 
     Item {
         id: cardMotion
 
-        z: 1
+        anchors.fill: parent
+
         clip: true
-
-        width: Math.max(0, Math.min(root.cardMaxWidth, root.width - root.cardMargin))
-
-        height: Math.max(0, Math.min(root.cardMaxHeight, root.height - root.cardMargin))
-
-        anchors.centerIn: parent
-
         opacity: root.cardOpacity
 
         transform: Translate {
@@ -280,7 +304,7 @@ PanelWindow {
             anchors.fill: parent
 
             radius: Theme.radiusXl
-            color: Theme.cardBackground
+            color: Theme.background
 
             border.width: 1
             border.color: Theme.borderColor
@@ -369,7 +393,7 @@ PanelWindow {
                 height: 44
 
                 radius: Theme.radiusLg
-                color: Theme.background
+                color: Theme.cardBackground
 
                 border.width: 1
                 border.color: Theme.borderColor
@@ -420,7 +444,6 @@ PanelWindow {
                     }
                 }
 
-                // Placeholder
                 Text {
                     anchors.left: searchField.left
                     anchors.right: searchField.right
@@ -457,7 +480,6 @@ PanelWindow {
 
                     clip: true
                     spacing: Theme.spacingXs
-
                     cacheBuffer: 200
 
                     model: root.filteredEntries
@@ -486,10 +508,7 @@ PanelWindow {
                                 CliphistService.requestPreview(entryId);
                         }
 
-                        // ------------------------------------------------
                         // Selection
-                        // ------------------------------------------------
-
                         Rectangle {
                             anchors.fill: parent
 
@@ -498,10 +517,7 @@ PanelWindow {
                             color: root.selectedIndex === delegateItem.index ? Theme.hoverBackground : Theme.cardBackground
                         }
 
-                        // ------------------------------------------------
                         // Thumbnail
-                        // ------------------------------------------------
-
                         Rectangle {
                             id: thumbnail
 
@@ -514,7 +530,7 @@ PanelWindow {
 
                             radius: Theme.radiusLg
 
-                            color: Theme.background
+                            color: Theme.cardBackground
 
                             border.width: 1
                             border.color: Theme.borderColor
@@ -559,10 +575,7 @@ PanelWindow {
                             }
                         }
 
-                        // ------------------------------------------------
                         // Entry information
-                        // ------------------------------------------------
-
                         Column {
                             anchors.left: thumbnail.right
                             anchors.leftMargin: Theme.spacingMd
@@ -602,10 +615,7 @@ PanelWindow {
                             }
                         }
 
-                        // ------------------------------------------------
                         // Mouse interaction
-                        // ------------------------------------------------
-
                         MouseArea {
                             anchors.fill: parent
 
@@ -623,10 +633,7 @@ PanelWindow {
                     }
                 }
 
-                // ----------------------------------------------------
                 // Empty / loading / error state
-                // ----------------------------------------------------
-
                 Text {
                     anchors.centerIn: parent
 
