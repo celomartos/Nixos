@@ -126,6 +126,7 @@ hl.window_rule({
 	},
 
 	float = true,
+	center = true,
 	size = { 500, 180 },
 })
 
@@ -140,7 +141,7 @@ hl.window_rule({
 	float = true,
 	center = true,
 	size = { 500, 180 },
-	animation = "fade 70%",
+	animation = "fade 75%",
 })
 
 hl.window_rule({

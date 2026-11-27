@@ -1,95 +1,99 @@
+/* MACOS SPOTLIGHT LIKE DARK THEME FOR ROFI  */
+/* Author: Newman Sanchez (https://github.com/newmanls) */
+
 * {
-    font: "Inter Regular 12";
+    font:   "Montserrat 12";
 
-    bg0:  #111111B3;
-    bg1:  #363636;
-    bg2:  #f5f5f520;
-    bg3:  #f5f5f540;
-    bg4:  #ffffff20;
+    bg0:    #242424E6;
+    bg1:    #7E7E7E80;
+    bg2:    #0860f2E6;
 
-    fg0:  #ffffff;
-    fg1:  #f5f5f580;
+    fg0:    #DEDEDE;
+    fg1:    #FFFFFF;
+    fg2:    #DEDEDE80;
 
-    background-color: transparent;
-    text-color:       @fg0;
-    padding:          0px;
-    margin:           0px;
+    background-color:   transparent;
+    text-color:         @fg0;
+
+    margin:     0;
+    padding:    0;
+    spacing:    0;
 }
 
 window {
-  fullscreen: true;
-  padding: 1em;
-  background-color: @bg0;
-  location: north;      /* Ancora a janela no topo da tela */
-  anchor:   north;      /* O ponto de ancoragem do Rofi também é o topo */
-  y-offset: 32px;       /* A altura da sua barra + uma margem de respiro */
-}
+    background-color:   @bg0;
 
-mainbox {
-  padding:  8px;
+    location:       center;
+    width:          640;
+    border-radius:  8;
 }
 
 inputbar {
-  background-color: @bg2;
-
-  margin:   0px calc( 50% - 150px );
-  padding:  4px 8px;
-  spacing:  4px;
-
-  border:         1px;
-  border-radius:  8px;
-  border-color:   @bg3;
-
-  children: [icon-search,entry];
-}
-
-prompt {
-  enabled:  false;
+    font:       "Montserrat 20";
+    padding:    12px;
+    spacing:    12px;
+    children:   [ icon-search, entry ];
 }
 
 icon-search {
-  expand:   false;
-  filename: "search";
-  vertical-align: 0.5;
+    expand:     false;
+    filename:   "search";
+    size: 28px;
+}
+
+icon-search, entry, element-icon, element-text {
+    vertical-align: 0.5;
 }
 
 entry {
-  placeholder:        "Search";
-  placeholder-color:  @fg1;
+    font:   inherit;
+
+    placeholder         : "Search";
+    placeholder-color   : @fg2;
+}
+
+message {
+    border:             2px 0 0;
+    border-color:       @bg1;
+    background-color:   @bg1;
+}
+
+textbox {
+    padding:    8px 24px;
 }
 
 listview {
-  margin:   48px calc( 50% - 560px );
-  spacing:  40px;
-  columns:  6;
-  fixed-columns: true;
-}
+    lines:      10;
+    columns:    1;
 
-element, element-text, element-icon {
-  cursor: pointer;
+    fixed-height:   false;
+    border:         1px 0 0;
+    border-color:   @bg1;
 }
 
 element {
-  padding:      8px;
-  spacing:      4px;
-
-  orientation:    vertical;
-  border-radius:  16px;
+    padding:            8px 16px;
+    spacing:            16px;
+    background-color:   transparent;
 }
 
-element selected {
-  background-color: @bg4;
-  border: 1px;
-  border-color: #ffffff80;
-  border-radius: 16px;
+element normal active {
+    text-color: @bg2;
+}
+
+element alternate active {
+    text-color: @bg2;
+}
+
+element selected normal, element selected active {
+    background-color:   @bg2;
+    text-color:         @fg1;
 }
 
 element-icon {
-  size: 4em;
-  horizontal-align: 0.5;
+    size:   1em;
 }
 
 element-text {
-  horizontal-align: 0.5;
-
+    text-color: inherit;
 }

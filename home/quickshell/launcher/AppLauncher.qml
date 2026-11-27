@@ -97,10 +97,17 @@ PanelWindow {
     // Posição lógica do seletor, preservada entre páginas.
     property int navigationRow: 0
     property int navigationColumn: 0
+    property int navigationRepeatInterval: 50
+    property double lastNavigationAcceptedAt: 0
 
     property real wheelAccumulator: 0
 
     property bool animatePageTransitions: true
+
+    // Alterna entre navegação por teclado e mouse.
+    property bool keyboardNavigationActive: false
+    property point keyboardModePointerOrigin: Qt.point(-1, -1)
+    readonly property real pointerResumeDistance: 8
 
     property int refreshGeneration: 0
 
@@ -121,9 +128,7 @@ PanelWindow {
     // CATEGORIZAÇÃO EXCLUSIVA
     // --------------------------------------------------
 
-    // Retorna o id da categoria "primária" do aplicativo.
-    // A primeira categoria da lista (exceto "all") que casa com as
-    // categorias do .desktop vence. Retorna null se nenhuma casar.
+    // Retorna a categoria primária do aplicativo.
     function primaryCategoryIdFor(entry) {
         const categories = entry.categories || [];
 
@@ -141,7 +146,6 @@ PanelWindow {
         return null;
     }
 
-    // Índice da categoria na lista (para ordenação). "null" vai para o fim.
     function categorySortIndex(categoryId) {
         if (!categoryId)
             return root.launcherCategories.length;
@@ -266,10 +270,7 @@ PanelWindow {
             }).map(item => item.entry);
         }
 
-        // Sem busca: agrupa por categoria (seguindo a ordem das abas em
-        // launcherCategories) e ordena alfabeticamente dentro de cada grupo.
-        // Em abas específicas todos os apps têm a mesma categoria primária,
-        // então o resultado é alfabético — o agrupamento só afeta "Todos".
+        // Sem busca: agrupa por categoria e ordena alfabeticamente.
         const categorized = entries.map(entry => ({
                     entry: entry,
                     categoryIndex: root.categorySortIndex(root.primaryCategoryIdFor(entry))
@@ -320,6 +321,7 @@ PanelWindow {
     // MAPEAMENTO DE POSIÇÕES DA GRADE
     // --------------------------------------------------
 
+    // Retorna o aplicativo que ocupa exatamente a posição solicitada.
     function applicationIndexAt(page, row, column) {
         if (page < 0 || page >= pageCount)
             return -1;
@@ -337,6 +339,8 @@ PanelWindow {
         return index >= pageStart && index < pageEnd ? index : -1;
     }
 
+    // Em páginas incompletas, procura o cartão mais próximo da posição desejada.
+    // A distância prioriza permanecer na mesma linha.
     function nearestApplicationIndexAt(page, row, column) {
         if (page < 0 || page >= pageCount)
             return -1;
@@ -449,8 +453,6 @@ PanelWindow {
         if (!root.visible || appGrid.width <= 0)
             return;
 
-        wheelAccumulator = 0;
-
         animatePageTransitions = false;
 
         const generation = ++refreshGeneration;
@@ -493,6 +495,7 @@ PanelWindow {
         });
     }
 
+    // Seleciona um índice mantendo uma posição lógica de navegação.
     function selectApplicationAt(index, preferredRow, preferredColumn) {
         if (index < 0 || index >= filteredApplications.length)
             return;
@@ -510,6 +513,7 @@ PanelWindow {
             positionPage(page);
     }
 
+    // Seleção normal: atualiza também a posição lógica para a célula real.
     function selectApplication(index) {
         if (index < 0 || index >= filteredApplications.length)
             return;
@@ -522,22 +526,80 @@ PanelWindow {
     }
 
     // --------------------------------------------------
+    // MODOS DE INTERAÇÃO: MOUSE / TECLADO
+    // --------------------------------------------------
+
+    function activateKeyboardNavigation() {
+        if (keyboardNavigationActive)
+            return;
+
+        keyboardModePointerOrigin = pointerTracker.hovered ? pointerTracker.point.position : Qt.point(-1, -1);
+
+        keyboardNavigationActive = true;
+    }
+
+    function restoreMouseNavigation() {
+        keyboardNavigationActive = false;
+        keyboardModePointerOrigin = Qt.point(-1, -1);
+    }
+
+    // Compartilhado pelo HoverHandler e pelo bloqueador de entrada.
+    // Mantém a origem no mesmo sistema de coordenadas do backdrop.
+    function checkPointerMovement(position) {
+        if (!keyboardNavigationActive)
+            return;
+
+        if (keyboardModePointerOrigin.x < 0 || keyboardModePointerOrigin.y < 0) {
+            keyboardModePointerOrigin = position;
+            return;
+        }
+
+        const dx = position.x - keyboardModePointerOrigin.x;
+        const dy = position.y - keyboardModePointerOrigin.y;
+        const distanceSquared = dx * dx + dy * dy;
+        const thresholdSquared = pointerResumeDistance * pointerResumeDistance;
+
+        if (distanceSquared >= thresholdSquared)
+            restoreMouseNavigation();
+    }
+
+    // --------------------------------------------------
     // NAVEGAÇÃO PELO TECLADO
     // --------------------------------------------------
 
+    function handleNavigationKey(key, isAutoRepeat) {
+        const arrowKeys = [Qt.Key_Left, Qt.Key_Right, Qt.Key_Up, Qt.Key_Down];
+
+        if (!arrowKeys.includes(key))
+            return false;
+
+        const now = Date.now();
+
+        // Limita a velocidade das repetições das setas.
+        if (isAutoRepeat && now - lastNavigationAcceptedAt < navigationRepeatInterval)
+            return true;
+
+        if (!root.navigate(key))
+            return false;
+
+        lastNavigationAcceptedAt = now;
+
+        return true;
+    }
+
     function navigate(key) {
+        if (key === Qt.Key_Left || key === Qt.Key_Right || key === Qt.Key_Up || key === Qt.Key_Down) {
+            root.activateKeyboardNavigation();
+        }
+
         const count = filteredApplications.length;
 
         if (count === 0)
             return false;
 
         if (selectedApplicationIndex < 0) {
-            if (key === Qt.Key_Left || key === Qt.Key_Right || key === Qt.Key_Up || key === Qt.Key_Down) {
-                selectApplication(0);
-                return true;
-            }
-
-            return false;
+            selectApplication(0);
+            return true;
         }
 
         const index = selectedApplicationIndex;
@@ -606,7 +668,6 @@ PanelWindow {
             return false;
         }
     }
-
     // --------------------------------------------------
     // TROCA PROGRAMÁTICA DE PÁGINA
     // --------------------------------------------------
@@ -679,6 +740,8 @@ PanelWindow {
         if (itemContainsPoint(categoryBar, point))
             return true;
 
+        // Considera todos os delegates instanciados.
+        // Inclui os cartões visíveis durante a transição.
         for (let i = 0; i < appGrid.count; i++) {
             const delegate = appGrid.itemAtIndex(i);
 
@@ -709,7 +772,6 @@ PanelWindow {
             });
         } else {
             const launchId = String(entry.id).replace(/\.desktop$/i, "");
-
             Quickshell.execDetached(["gtk-launch", launchId]);
         }
 
@@ -742,20 +804,22 @@ PanelWindow {
         target: "app-launcher"
 
         function toggle(): void {
-            if (root.visible) {
+            if (root.visible)
                 root.closeLauncher();
-            } else {
+            else
                 root.openLauncher();
-            }
         }
     }
 
-    // Fecha automaticamente caso uma janela entre em fullscreen.
     onFullscreenActiveChanged: {
         if (fullscreenActive)
             root.closeLauncher();
     }
+
     onVisibleChanged: {
+        keyboardNavigationActive = false;
+        keyboardModePointerOrigin = Qt.point(-1, -1);
+
         if (visible) {
             searchInput.text = "";
             wheelAccumulator = 0;
@@ -793,7 +857,27 @@ PanelWindow {
 
         color: "#B3111111"
 
+        // ==============================================
+        // CLIQUE EM ESPAÇOS VAZIOS
+        // ==============================================
+
+        // Observa a posição do mouse sem capturar cliques.
+        HoverHandler {
+            id: pointerTracker
+
+            acceptedDevices: PointerDevice.Mouse
+            cursorShape: root.keyboardNavigationActive ? Qt.BlankCursor : undefined
+
+            // Segunda via de detecção: o cursor volta ao modo mouse
+            // assim que houver movimento físico suficiente.
+            onPointChanged: {
+                if (hovered)
+                    root.checkPointerMovement(point.position);
+            }
+        }
+
         TapHandler {
+            enabled: !root.keyboardNavigationActive
             acceptedButtons: Qt.LeftButton
 
             gesturePolicy: TapHandler.DragThreshold
@@ -807,6 +891,10 @@ PanelWindow {
                     root.closeLauncher();
             }
         }
+
+        // ==============================================
+        // PESQUISA
+        // ==============================================
 
         Rectangle {
             id: searchBar
@@ -866,7 +954,7 @@ PanelWindow {
                         selectedTextColor: "#000000"
 
                         verticalAlignment: TextInput.AlignVCenter
-                        selectByMouse: true
+                        selectByMouse: !root.keyboardNavigationActive
 
                         Keys.priority: Keys.BeforeItem
 
@@ -878,6 +966,8 @@ PanelWindow {
                             }
 
                             if (event.key === Qt.Key_Tab || event.key === Qt.Key_Backtab) {
+                                root.activateKeyboardNavigation();
+
                                 const backwards = event.key === Qt.Key_Backtab || (event.modifiers & Qt.ShiftModifier);
 
                                 root.cycleCategory(backwards ? -1 : 1);
@@ -886,7 +976,7 @@ PanelWindow {
                                 return;
                             }
 
-                            if (root.navigate(event.key)) {
+                            if (root.handleNavigationKey(event.key, event.isAutoRepeat)) {
                                 event.accepted = true;
                                 return;
                             }
@@ -920,6 +1010,10 @@ PanelWindow {
                 }
             }
         }
+
+        // ==============================================
+        // CATEGORIAS
+        // ==============================================
 
         Item {
             id: categoryBar
@@ -957,7 +1051,7 @@ PanelWindow {
 
                             radius: 8
 
-                            color: categoryDelegate.selected ? "#30FFFFFF" : categoryMouse.containsMouse ? "#18FFFFFF" : "transparent"
+                            color: categoryDelegate.selected ? "#30FFFFFF" : (!root.keyboardNavigationActive && categoryMouse.containsMouse) ? "#18FFFFFF" : "transparent"
 
                             border.width: categoryDelegate.selected ? 1 : 0
                             border.color: "#80FFFFFF"
@@ -988,6 +1082,7 @@ PanelWindow {
                             id: categoryMouse
 
                             anchors.fill: parent
+                            enabled: !root.keyboardNavigationActive
 
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
@@ -1002,6 +1097,10 @@ PanelWindow {
                 }
             }
         }
+
+        // ==============================================
+        // GRADE HORIZONTAL DE APLICATIVOS
+        // ==============================================
 
         GridView {
             id: appGrid
@@ -1046,16 +1145,18 @@ PanelWindow {
                 values: root.pagedApplications
             }
 
+            // Animação que acompanha alterações rápidas de destino.
             Behavior on contentX {
                 enabled: root.animatePageTransitions
 
-                SmoothedAnimation {
-                    duration: 200
-                    reversingMode: SmoothedAnimation.Immediate
+                NumberAnimation {
+                    duration: Theme.animDurationSlow
+                    easing.type: Easing.OutCubic
                 }
             }
-
+            // Scroll vertical do mouse e touchpad.
             WheelHandler {
+                enabled: !root.keyboardNavigationActive
                 target: null
 
                 acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
@@ -1068,6 +1169,10 @@ PanelWindow {
                     event.accepted = true;
                 }
             }
+
+            // ------------------------------------------
+            // DELEGATES
+            // ------------------------------------------
 
             delegate: Item {
                 id: appDelegate
@@ -1099,6 +1204,7 @@ PanelWindow {
                     border.width: appDelegate.selected ? 1 : 0
                     border.color: "#80FFFFFF"
 
+                    // Ícone.
                     IconImage {
                         anchors.horizontalCenter: parent.horizontalCenter
                         anchors.top: parent.top
@@ -1111,6 +1217,7 @@ PanelWindow {
                         source: appDelegate.modelData.entry ? Quickshell.iconPath(appDelegate.modelData.entry.icon || "", "application-x-executable") : ""
                     }
 
+                    // Nome.
                     Text {
                         anchors.left: parent.left
                         anchors.right: parent.right
@@ -1135,17 +1242,20 @@ PanelWindow {
                         elide: Text.ElideRight
                     }
 
+                    // Mouse e teclado compartilham a seleção.
                     MouseArea {
                         id: tileMouse
 
                         anchors.fill: parent
 
-                        enabled: !!appDelegate.modelData.entry
+                        enabled: !!appDelegate.modelData.entry && !root.keyboardNavigationActive
 
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
 
                         onEntered: {
+                            // Evita que cartões em movimento
+                            // alterem a seleção do teclado/scroll.
                             if (root.pageTransitionActive)
                                 return;
 
@@ -1162,6 +1272,10 @@ PanelWindow {
             }
         }
 
+        // ==============================================
+        // NENHUM RESULTADO
+        // ==============================================
+
         Text {
             anchors.centerIn: appGrid
 
@@ -1173,6 +1287,33 @@ PanelWindow {
             font.pixelSize: Theme.fontSize
 
             color: Theme.textMuted
+        }
+
+        // Bloqueia toda a entrada do mouse enquanto as setas estiverem ativas.
+        // Fica acima dos demais elementos, mas não recebe foco de teclado.
+        MouseArea {
+            id: keyboardInputBlocker
+
+            anchors.fill: parent
+            z: 10000
+
+            enabled: root.keyboardNavigationActive && root.visible
+            hoverEnabled: true
+            acceptedButtons: Qt.AllButtons
+
+            // Este MouseArea bloqueia os eventos, mas NÃO define cursorShape.
+            // A visibilidade do cursor é controlada exclusivamente pelo HoverHandler.
+            onEntered: {
+                root.checkPointerMovement(Qt.point(mouseX, mouseY));
+            }
+
+            onPositionChanged: {
+                root.checkPointerMovement(Qt.point(mouseX, mouseY));
+            }
+
+            onWheel: event => {
+                event.accepted = true;
+            }
         }
     }
 }

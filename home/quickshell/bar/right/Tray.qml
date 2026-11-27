@@ -3,7 +3,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Services.SystemTray
 import Quickshell.Widgets
-import QtQuick.Effects // IMPORTANTE: Adicionado para o MultiEffect
+import QtQuick.Effects
 import "../../theme"
 
 Item {

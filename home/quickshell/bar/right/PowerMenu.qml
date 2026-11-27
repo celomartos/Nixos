@@ -27,28 +27,21 @@ PopupWindow {
 
     property Item anchorItem: null
 
-    // Anchoring relative to the power module, following CalendarPopup.
     anchor.window: anchorItem ? anchorItem.QsWindow.window : null
     anchor.edges: Edges.Top | Edges.Left
     anchor.gravity: Edges.Bottom | Edges.Right
     anchor.adjustment: PopupAdjustment.SlideX
 
     anchor.onAnchoring: {
-        if (!root.anchorItem ||
-            !root.anchorItem.QsWindow ||
-            !root.anchorItem.QsWindow.window) {
+        if (!root.anchorItem || !root.anchorItem.QsWindow || !root.anchorItem.QsWindow.window) {
             return;
         }
 
         const window = root.anchorItem.QsWindow.window;
-        const pos = root.anchorItem.mapToItem(
-            window.contentItem,
-            0,
-            0
-        );
+        const pos = root.anchorItem.mapToItem(window.contentItem, 0, 0);
 
         anchor.rect.x = pos.x + root.anchorItem.width - root.width;
-        anchor.rect.y = pos.y + root.anchorItem.height
+        anchor.rect.y = pos.y + root.anchorItem.height;
 
         anchor.rect.width = 1;
         anchor.rect.height = 1;
@@ -113,11 +106,7 @@ PopupWindow {
             key: "E",
             altKeys: ["Q"],
             dangerous: true,
-            command: [
-                "sh",
-                "-c",
-                "hyprctl dispatch exit 2>/dev/null || loginctl terminate-session ${XDG_SESSION_ID:-self}"
-            ]
+            command: ["sh", "-c", "hyprctl dispatch exit 2>/dev/null || loginctl terminate-session ${XDG_SESSION_ID:-self}"]
         },
         {
             id: "reboot",
@@ -161,10 +150,7 @@ PopupWindow {
         root.visibleActions = filtered;
 
         if (root.selectedIndex >= root.visibleActions.length) {
-            root.selectedIndex = Math.max(
-                0,
-                root.visibleActions.length - 1
-            );
+            root.selectedIndex = Math.max(0, root.visibleActions.length - 1);
         }
     }
 
@@ -192,11 +178,7 @@ PopupWindow {
     Process {
         id: probeProcess
 
-        command: [
-            "sh",
-            "-c",
-            "hib=$(busctl call org.freedesktop.login1 /org/freedesktop/login1 org.freedesktop.login1.Manager CanHibernate 2>/dev/null | awk '{print $2}' | tr -d '\"'); sus=$(busctl call org.freedesktop.login1 /org/freedesktop/login1 org.freedesktop.login1.Manager CanSuspend 2>/dev/null | awk '{print $2}' | tr -d '\"'); reb=$(busctl call org.freedesktop.login1 /org/freedesktop/login1 org.freedesktop.login1.Manager CanReboot 2>/dev/null | awk '{print $2}' | tr -d '\"'); pwr=$(busctl call org.freedesktop.login1 /org/freedesktop/login1 org.freedesktop.login1.Manager CanPowerOff 2>/dev/null | awk '{print $2}' | tr -d '\"'); printf 'hibernate=%s\\nsuspend=%s\\nreboot=%s\\npoweroff=%s\\n' \"$hib\" \"$sus\" \"$reb\" \"$pwr\""
-        ]
+        command: ["sh", "-c", "hib=$(busctl call org.freedesktop.login1 /org/freedesktop/login1 org.freedesktop.login1.Manager CanHibernate 2>/dev/null | awk '{print $2}' | tr -d '\"'); sus=$(busctl call org.freedesktop.login1 /org/freedesktop/login1 org.freedesktop.login1.Manager CanSuspend 2>/dev/null | awk '{print $2}' | tr -d '\"'); reb=$(busctl call org.freedesktop.login1 /org/freedesktop/login1 org.freedesktop.login1.Manager CanReboot 2>/dev/null | awk '{print $2}' | tr -d '\"'); pwr=$(busctl call org.freedesktop.login1 /org/freedesktop/login1 org.freedesktop.login1.Manager CanPowerOff 2>/dev/null | awk '{print $2}' | tr -d '\"'); printf 'hibernate=%s\\nsuspend=%s\\nreboot=%s\\npoweroff=%s\\n' \"$hib\" \"$sus\" \"$reb\" \"$pwr\""]
 
         running: true
 
@@ -254,10 +236,7 @@ PopupWindow {
         running: false
 
         onTriggered: {
-            root.holdProgress = Math.min(
-                1.0,
-                root.holdProgress + (16 / root.holdDurationMs)
-            );
+            root.holdProgress = Math.min(1.0, root.holdProgress + (16 / root.holdDurationMs));
 
             if (root.holdProgress >= 1.0) {
                 stop();
@@ -304,10 +283,7 @@ PopupWindow {
     }
 
     function getCurrentAction() {
-        if (
-            root.selectedIndex >= 0 &&
-            root.selectedIndex < root.visibleActions.length
-        ) {
+        if (root.selectedIndex >= 0 && root.selectedIndex < root.visibleActions.length) {
             return root.visibleActions[root.selectedIndex];
         }
 
@@ -399,10 +375,7 @@ PopupWindow {
                             actionData: modelData
 
                             isSelected: (index === root.selectedIndex)
-                            isHolding: (
-                                root.isHolding &&
-                                root.holdActionId === modelData.id
-                            )
+                            isHolding: (root.isHolding && root.holdActionId === modelData.id)
                             holdProgress: root.holdProgress
 
                             onHovered: {
@@ -418,7 +391,7 @@ PopupWindow {
                                 root.cancelHold();
                             }
 
-                            onItemClicked: {} 
+                            onItemClicked: {}
                         }
 
                         // Separação entre as opções (Agora visível)
@@ -454,42 +427,25 @@ PopupWindow {
                 return;
             }
 
-            if (
-                event.key === Qt.Key_Up ||
-                event.key === Qt.Key_Backtab ||
-                event.key === Qt.Key_K
-            ) {
+            if (event.key === Qt.Key_Up || event.key === Qt.Key_Backtab || event.key === Qt.Key_K) {
                 if (root.visibleActions.length > 0) {
-                    root.selectedIndex = (
-                        root.selectedIndex - 1 +
-                        root.visibleActions.length
-                    ) % root.visibleActions.length;
+                    root.selectedIndex = (root.selectedIndex - 1 + root.visibleActions.length) % root.visibleActions.length;
                 }
 
                 event.accepted = true;
                 return;
             }
 
-            if (
-                event.key === Qt.Key_Down ||
-                event.key === Qt.Key_Tab ||
-                event.key === Qt.Key_J
-            ) {
+            if (event.key === Qt.Key_Down || event.key === Qt.Key_Tab || event.key === Qt.Key_J) {
                 if (root.visibleActions.length > 0) {
-                    root.selectedIndex = (
-                        root.selectedIndex + 1
-                    ) % root.visibleActions.length;
+                    root.selectedIndex = (root.selectedIndex + 1) % root.visibleActions.length;
                 }
 
                 event.accepted = true;
                 return;
             }
 
-            if (
-                event.key === Qt.Key_Return ||
-                event.key === Qt.Key_Enter ||
-                event.key === Qt.Key_Space
-            ) {
+            if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
                 if (event.isAutoRepeat) {
                     event.accepted = true;
                     return;

@@ -146,8 +146,8 @@ Item {
                         readonly property real angleRadians: angleDegrees * Math.PI / 180
                         readonly property real level: Math.max(0, Math.min(7, CavaService.levels[index] || 0))
 
-                        width: 3
-                        height: 5 + level * 2
+                        width: 5
+                        height: 10 + level * 2
 
                         x: albumVisual.width / 2 + Math.cos(angleRadians) * (artwork.width / 2 + 4 + height / 2) - width / 2
                         y: albumVisual.height / 2 + Math.sin(angleRadians) * (artwork.height / 2 + 4 + height / 2) - height / 2

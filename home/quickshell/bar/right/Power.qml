@@ -16,11 +16,7 @@ Item {
 
         text: "󰐥"
 
-        // --- AQUI ESTÁ O SEGREDO ---
-        // Aumenta o ícone de energia em 4 pixels em relação ao resto da barra
-        fontSize: Theme.fontSize + 2
-
-        // (Se quiser um tamanho fixo, use apenas: fontSize: 20)
+        fontSize: Theme.fontSize + 4
 
         onClicked: {
             powerMenu.toggle();
