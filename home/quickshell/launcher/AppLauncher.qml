@@ -57,7 +57,7 @@ PanelWindow {
         {
             id: "settings",
             label: "⚙️ Configurações",
-            desktopCategories: ["Settings", "Utility"]
+            desktopCategories: ["Settings"]
         },
         {
             id: "internet",
@@ -124,167 +124,16 @@ PanelWindow {
     // Detecta se a grade ainda está em movimento.
     readonly property bool pageTransitionActive: Math.abs(appGrid.contentX - targetPageX) > 1
 
-    // --------------------------------------------------
-    // CATEGORIZAÇÃO EXCLUSIVA
-    // --------------------------------------------------
-
-    // Retorna a categoria primária do aplicativo.
-    function primaryCategoryIdFor(entry) {
-        const categories = entry.categories || [];
-
-        if (categories.length === 0)
-            return null;
-
-        for (const cat of root.launcherCategories) {
-            if (cat.id === "all")
-                continue;
-
-            if ((cat.desktopCategories || []).some(c => categories.includes(c)))
-                return cat.id;
-        }
-
-        return null;
+    SearchModel {
+        id: searchModel
+        applications: DesktopEntries.applications.values
+        categories: root.launcherCategories
+        excludedCategories: root.excludedCategories
+        categoryId: root.selectedCategoryId
+        queryText: searchInput.text
     }
 
-    function categorySortIndex(categoryId) {
-        if (!categoryId)
-            return root.launcherCategories.length;
-
-        for (let i = 0; i < root.launcherCategories.length; i++) {
-            if (root.launcherCategories[i].id === categoryId)
-                return i;
-        }
-
-        return root.launcherCategories.length;
-    }
-
-    // --------------------------------------------------
-    // PONTUAÇÃO DE RELEVÂNCIA DE BUSCA
-    // --------------------------------------------------
-
-    function searchRelevanceScore(entry, query, terms) {
-        const name = String(entry.name || "").toLowerCase();
-        const genericName = String(entry.genericName || "").toLowerCase();
-        const comment = String(entry.comment || "").toLowerCase();
-        const id = String(entry.id || "").toLowerCase();
-        const keywords = (entry.keywords || []).join(" ").toLowerCase();
-
-        let score = 0;
-
-        if (name === query)
-            score += 1000;
-        else if (name.startsWith(query))
-            score += 800;
-        else if (name.split(/\s+/).some(word => word.startsWith(query)))
-            score += 600;
-        else if (name.includes(query))
-            score += 400;
-
-        if (genericName === query)
-            score += 500;
-        else if (genericName.startsWith(query))
-            score += 400;
-        else if (genericName.split(/\s+/).some(word => word.startsWith(query)))
-            score += 300;
-        else if (genericName.includes(query))
-            score += 200;
-
-        const keywordWords = keywords.split(/[\s,]+/);
-        if (keywordWords.some(word => word === query))
-            score += 250;
-        else if (keywordWords.some(word => word.startsWith(query)))
-            score += 150;
-        else if (keywords.includes(query))
-            score += 100;
-
-        if (comment.includes(query))
-            score += 50;
-
-        if (id.includes(query))
-            score += 25;
-
-        if (terms.length > 1) {
-            let allTermsInName = true;
-            for (const term of terms) {
-                if (!name.includes(term)) {
-                    allTermsInName = false;
-                    break;
-                }
-            }
-            if (allTermsInName)
-                score += 900;
-        }
-
-        return score;
-    }
-
-    // --------------------------------------------------
-    // FILTRAGEM E ORDENAÇÃO
-    // --------------------------------------------------
-
-    readonly property var filteredApplications: {
-        const categoryId = root.selectedCategoryId;
-        const query = searchInput.text.trim().toLowerCase();
-        const terms = query.length > 0 ? query.split(/\s+/).filter(term => term.length > 0) : [];
-        const hasQuery = terms.length > 0;
-
-        const entries = [...DesktopEntries.applications.values].filter(entry => {
-            const name = String(entry.name || "").trim();
-
-            if (!name || !entry.id)
-                return false;
-
-            if (entry.noDisplay)
-                return false;
-
-            if (categoryId !== "all") {
-                if (root.primaryCategoryIdFor(entry) !== categoryId)
-                    return false;
-
-                const blocked = categoryId === "settings" ? ["System", "AudioVideo", "Audio"] : root.excludedCategories;
-
-                if ((entry.categories || []).some(category => blocked.includes(category)))
-                    return false;
-            }
-
-            if (hasQuery) {
-                const searchableText = [entry.name || "", entry.genericName || "", entry.comment || "", entry.id || "", (entry.keywords || []).join(" "), (entry.categories || []).join(" ")].join(" ").toLowerCase();
-
-                if (!terms.every(term => searchableText.includes(term)))
-                    return false;
-            }
-
-            return true;
-        });
-
-        // Com busca: ranking por relevância, depois alfabético.
-        if (hasQuery) {
-            return entries.map(entry => ({
-                        entry: entry,
-                        score: root.searchRelevanceScore(entry, query, terms)
-                    })).sort((a, b) => {
-                if (b.score !== a.score)
-                    return b.score - a.score;
-
-                return a.entry.name.toLowerCase().localeCompare(b.entry.name.toLowerCase());
-            }).map(item => item.entry);
-        }
-
-        // Sem busca: agrupa por categoria e ordena alfabeticamente.
-        const categorized = entries.map(entry => ({
-                    entry: entry,
-                    categoryIndex: root.categorySortIndex(root.primaryCategoryIdFor(entry))
-                }));
-
-        categorized.sort((a, b) => {
-            if (a.categoryIndex !== b.categoryIndex)
-                return a.categoryIndex - b.categoryIndex;
-
-            return a.entry.name.toLowerCase().localeCompare(b.entry.name.toLowerCase());
-        });
-
-        return categorized.map(item => item.entry);
-    }
+    readonly property var filteredApplications: searchModel.filteredApplications
 
     // --------------------------------------------------
     // ORGANIZAÇÃO DOS APLICATIVOS POR PÁGINA
@@ -1174,101 +1023,10 @@ PanelWindow {
             // DELEGATES
             // ------------------------------------------
 
-            delegate: Item {
-                id: appDelegate
-
-                required property var modelData
-                required property int index
-
-                readonly property int sourceIndex: modelData.sourceIndex
-
-                readonly property bool selected: sourceIndex >= 0 && root.selectedApplicationIndex === sourceIndex
-
-                readonly property Item cardItem: tile
-
-                width: appGrid.cellWidth
-                height: appGrid.cellHeight
-
-                Rectangle {
-                    id: tile
-
-                    anchors.fill: parent
-                    anchors.margins: 16
-
-                    visible: !!appDelegate.modelData.entry
-
-                    radius: 16
-
-                    color: appDelegate.selected ? "#20FFFFFF" : "transparent"
-
-                    border.width: appDelegate.selected ? 1 : 0
-                    border.color: "#80FFFFFF"
-
-                    // Ícone.
-                    IconImage {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        anchors.top: parent.top
-                        anchors.topMargin: 16
-
-                        implicitSize: 64
-
-                        asynchronous: true
-
-                        source: appDelegate.modelData.entry ? Quickshell.iconPath(appDelegate.modelData.entry.icon || "", "application-x-executable") : ""
-                    }
-
-                    // Nome.
-                    Text {
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        anchors.bottom: parent.bottom
-
-                        anchors.bottomMargin: 10
-
-                        height: 34
-
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-
-                        font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontSize
-
-                        color: Theme.text
-
-                        text: appDelegate.modelData.entry ? appDelegate.modelData.entry.name : ""
-
-                        wrapMode: Text.Wrap
-                        maximumLineCount: 2
-                        elide: Text.ElideRight
-                    }
-
-                    // Mouse e teclado compartilham a seleção.
-                    MouseArea {
-                        id: tileMouse
-
-                        anchors.fill: parent
-
-                        enabled: !!appDelegate.modelData.entry && !root.keyboardNavigationActive
-
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-
-                        onEntered: {
-                            // Evita que cartões em movimento
-                            // alterem a seleção do teclado/scroll.
-                            if (root.pageTransitionActive)
-                                return;
-
-                            root.selectApplication(appDelegate.sourceIndex);
-                        }
-
-                        onClicked: {
-                            root.selectApplication(appDelegate.sourceIndex);
-
-                            root.launchEntry(appDelegate.modelData.entry);
-                        }
-                    }
-                }
+            delegate: LauncherAppTile {
+                launcher: root
+                cellWidth: appGrid.cellWidth
+                cellHeight: appGrid.cellHeight
             }
         }
 
