@@ -92,6 +92,7 @@ Item {
     NetworkPopup {
         id: popup
         anchorItem: barItem
+        online: root.online
     }
 
     Timer {

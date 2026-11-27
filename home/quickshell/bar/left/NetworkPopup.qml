@@ -8,7 +8,8 @@ PopupWindow {
 
     property Item anchorItem: null
     property bool pointerInside: false
-    property string connectionState: "Offline"
+    property bool online: false
+    readonly property string connectionState: online ? "Online" : "Offline"
     property string connectionType: "—"
     property string interfaceName: "—"
     property string ipv4: "—"
@@ -41,6 +42,13 @@ PopupWindow {
             infoProcess.running = true;
     }
 
+    function validText(value, fallback) {
+        if (typeof value !== "string")
+            return fallback;
+        const result = value.trim();
+        return result.length > 0 && result.length <= 128 ? result : fallback;
+    }
+
     onVisibleChanged: {
         if (visible) {
             updateInfo();
@@ -66,13 +74,14 @@ PopupWindow {
             onTextChanged: {
                 try {
                     const info = JSON.parse(text.trim());
-                    root.connectionState = info.state || "Offline";
-                    root.connectionType = info.type || "—";
-                    root.interfaceName = info.interface || "—";
-                    root.ipv4 = info.ipv4 || "—";
-                    root.gateway = info.gateway || "—";
-                    root.downloadSpeed = info.download || "0 B/s";
-                    root.uploadSpeed = info.upload || "0 B/s";
+                    if (!info || typeof info !== "object" || Array.isArray(info))
+                        return;
+                    root.connectionType = root.validText(info.type, "—");
+                    root.interfaceName = root.validText(info.interface, "—");
+                    root.ipv4 = root.validText(info.ipv4, "—");
+                    root.gateway = root.validText(info.gateway, "—");
+                    root.downloadSpeed = root.validText(info.download, "0 B/s");
+                    root.uploadSpeed = root.validText(info.upload, "0 B/s");
                 } catch (error) {
                     // Ignore partial output until the script finishes.
                 }

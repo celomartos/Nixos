@@ -6,7 +6,18 @@ route="$(ip -4 route show default 2>/dev/null | head -n1)"
 gateway="$(awk '{for (i=1;i<=NF;i++) if ($i=="via") {print $(i+1); exit}}' <<< "$route")"
 iface="$(awk '{for (i=1;i<=NF;i++) if ($i=="dev") {print $(i+1); exit}}' <<< "$route")"
 if [[ -z "$iface" ]]; then
-    iface="$(ip -o link show up 2>/dev/null | awk -F': ' '$2 != "lo" {sub(/@.*/, "", $2); print $2; exit}')"
+    # Without a default route, prefer an active physical adapter and skip
+    # bridges, container links, and common virtual tunnel interfaces.
+    iface="$(for path in /sys/class/net/*; do
+        candidate="${path##*/}"
+        [[ "$candidate" == "lo" || ! -e "$path/operstate" ]] && continue
+        [[ "$(cat "$path/operstate" 2>/dev/null)" == "up" ]] || continue
+        [[ -e "$path/device" ]] || continue
+        [[ -d "$path/bridge" || -d "$path/wireguard" ]] && continue
+        case "$candidate" in docker*|veth*|virbr*|br-*|br[0-9]*|lxc*|podman*|cni*|tun*|tap*|zt*|tailscale*) continue ;; esac
+        printf '%s\n' "$candidate"
+        break
+    done)"
 fi
 
 state="Offline"
@@ -17,7 +28,7 @@ upload="0 B/s"
 
 if [[ -n "$iface" && -d "/sys/class/net/$iface" ]]; then
     [[ -n "$route" ]] && state="Online"
-    if [[ "$iface" == *"tun"* || "$iface" == *"tap"* || "$iface" == *"wg"* || "$iface" == *"vpn"* || -d "/sys/class/net/$iface/wireguard" ]]; then
+    if [[ "$iface" == "tailscale0" || "$iface" == zt* || "$iface" == tun* || "$iface" == tap* || "$iface" == wg* || "$iface" == *vpn* || -d "/sys/class/net/$iface/wireguard" ]]; then
         type="VPN"
     elif [[ -d "/sys/class/net/$iface/wireless" ]]; then
         type="Wi-Fi"
@@ -43,7 +54,7 @@ if [[ -n "$iface" && -d "/sys/class/net/$iface" ]]; then
             upload="$(numfmt --to=iec-i --suffix=B/s "$tx_rate" 2>/dev/null || echo "${tx_rate} B/s")"
         fi
     fi
-    printf '%s %s %s\n' "$rx" "$tx" "$now" > "$state_file"
+    printf '%s %s %s\n' "$rx" "$tx" "$now" > "$state_file" 2>/dev/null || true
 fi
 
 printf '{"state":"%s","type":"%s","interface":"%s","ipv4":"%s","gateway":"%s","download":"%s","upload":"%s"}\n' \
