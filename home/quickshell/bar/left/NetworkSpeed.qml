@@ -78,5 +78,28 @@ Item {
         text: root.online ? "󰖩" : "󰖪"
 
         textColor: root.online ? Theme.textMuted : Theme.textDanger
+
+        onHoveredChanged: {
+            if (hovered) {
+                closePopupTimer.stop();
+                popup.visible = true;
+            } else {
+                closePopupTimer.start();
+            }
+        }
+    }
+
+    NetworkPopup {
+        id: popup
+        anchorItem: barItem
+    }
+
+    Timer {
+        id: closePopupTimer
+        interval: 120
+        onTriggered: {
+            if (!barItem.hovered && !popup.pointerInside)
+                popup.visible = false;
+        }
     }
 }
