@@ -2,44 +2,20 @@ import QtQuick
 import Quickshell
 import Quickshell.Hyprland
 import "../../../theme"
+import "../../../components"
 import "./modules"
 
-PopupWindow {
+Item {
     id: root
 
-    required property Item anchorItem
+    required property real originX
+    required property real originY
 
-    visible: false
-    color: "transparent"
+    anchors.fill: parent
 
-    implicitWidth: 620
-    implicitHeight: 420
-
-    // ------------------------------------------------------------
-    // Window anchoring
-    // ------------------------------------------------------------
-
-    anchor.window: anchorItem ? anchorItem.QsWindow.window : null
-    anchor.edges: Edges.Top | Edges.Left
-    anchor.gravity: Edges.Bottom | Edges.Right
-
-    anchor.adjustment: PopupAdjustment.FlipY | PopupAdjustment.SlideX | PopupAdjustment.ResizeY
-
-    anchor.onAnchoring: {
-        const item = root.anchorItem;
-        const parentWindow = item ? item.QsWindow.window : null;
-
-        if (!parentWindow || !parentWindow.contentItem)
-            return;
-        const pos = item.mapToItem(parentWindow.contentItem, 0, 0);
-
-        anchor.rect.x = Math.round(pos.x + (item.width - root.width) / 2);
-
-        anchor.rect.y = Math.round(pos.y + item.height);
-
-        anchor.rect.width = 1;
-        anchor.rect.height = 1;
-    }
+    readonly property bool popupVisible: reveal.visible
+    property alias interactiveArea: reveal
+    property bool openRequested: false
 
     // ------------------------------------------------------------
     // Dashboard state
@@ -56,76 +32,13 @@ PopupWindow {
     property int currentTab: 0
     property bool animatePageTransition: true
 
-    property real popupYOffset: -28
-    property real popupOpacity: 0
-
     // ------------------------------------------------------------
     // Fullscreen handling
     // ------------------------------------------------------------
 
     onHasFullscreenChanged: {
-        if (hasFullscreen && visible)
+        if (hasFullscreen && openRequested)
             closePopup();
-    }
-
-    // ------------------------------------------------------------
-    // Animations
-    // ------------------------------------------------------------
-
-    ParallelAnimation {
-        id: openAnim
-
-        NumberAnimation {
-            target: root
-            property: "popupYOffset"
-
-            from: -28
-            to: 0
-
-            duration: Theme.animDurationNormal
-            easing.type: Easing.OutCubic
-        }
-
-        NumberAnimation {
-            target: root
-            property: "popupOpacity"
-
-            from: 0
-            to: 1
-
-            duration: Theme.animDurationNormal
-            easing.type: Easing.OutQuad
-        }
-    }
-
-    ParallelAnimation {
-        id: closeAnim
-
-        NumberAnimation {
-            target: root
-            property: "popupYOffset"
-
-            from: 0
-            to: -20
-
-            duration: Theme.animDurationFast
-            easing.type: Easing.InCubic
-        }
-
-        NumberAnimation {
-            target: root
-            property: "popupOpacity"
-
-            from: 1
-            to: 0
-
-            duration: Theme.animDurationFast
-            easing.type: Easing.InQuad
-        }
-
-        onFinished: {
-            root.visible = false;
-        }
     }
 
     // ------------------------------------------------------------
@@ -139,7 +52,7 @@ PopupWindow {
         repeat: false
 
         onTriggered: {
-            if (!root.visible || closeAnim.running)
+            if (!root.popupVisible || !root.openRequested)
                 return;
             outsideGrab.active = true;
 
@@ -163,7 +76,7 @@ PopupWindow {
         }
 
         onTriggered: {
-            if (!root.visible || closeAnim.running) {
+            if (!root.popupVisible || !root.openRequested) {
                 stop();
                 return;
             }
@@ -182,17 +95,17 @@ PopupWindow {
         id: outsideGrab
 
         active: false
-        windows: [root]
+        windows: [root.QsWindow.window]
 
         onCleared: {
-            if (root.visible && !closeAnim.running)
+            if (root.openRequested)
                 root.closePopup();
         }
     }
 
     Shortcut {
-        sequence: StandardKey.Cancel
-        enabled: root.visible && !closeAnim.running
+        sequences: [StandardKey.Cancel]
+        enabled: root.openRequested
 
         onActivated: root.closePopup()
     }
@@ -219,99 +132,78 @@ PopupWindow {
         grabDelay.stop();
         focusRetry.stop();
 
-        openAnim.stop();
-        closeAnim.stop();
-
         // Always start on Calendar.
         animatePageTransition = false;
         currentTab = 0;
-
-        popupYOffset = -28;
-        popupOpacity = 0;
-
-        root.visible = true;
+        root.openRequested = true;
 
         Qt.callLater(() => {
-            if (root.visible && !closeAnim.running)
+            if (root.openRequested)
                 root.animatePageTransition = true;
         });
 
-        openAnim.restart();
         grabDelay.restart();
     }
 
     function closePopup() {
-        if (!root.visible || closeAnim.running)
+        if (!root.openRequested)
             return;
+        root.openRequested = false;
         grabDelay.stop();
         focusRetry.stop();
-
-        openAnim.stop();
-        closeAnim.restart();
-
-        outsideGrab.active = false;
     }
 
     function toggle() {
-        if (root.visible && !closeAnim.running)
+        if (root.openRequested)
             closePopup();
         else
             openPopup();
     }
 
-    // ------------------------------------------------------------
-    // Visibility
-    // ------------------------------------------------------------
-
-    onVisibleChanged: {
-        if (!visible) {
-            grabDelay.stop();
-            focusRetry.stop();
-
-            outsideGrab.active = false;
-
-            openAnim.stop();
-            closeAnim.stop();
-
-            popupYOffset = -28;
-            popupOpacity = 0;
-        }
+    function finishClose() {
+        grabDelay.stop();
+        focusRetry.stop();
+        outsideGrab.active = false;
     }
 
     // ------------------------------------------------------------
-    // Dashboard background
+    // Animated, clipped dashboard surface
     // ------------------------------------------------------------
 
-    Rectangle {
-        id: bg
+    PopupReveal {
+        id: reveal
 
-        anchors.fill: parent
+        originX: root.originX
+        originY: root.originY
+        contentWidth: 620
+        contentHeight: 420
+        expanded: root.openRequested
+        onClosed: root.finishClose()
 
-        radius: Theme.radiusXl
+        Rectangle {
+            id: bg
 
-        color: Theme.background
+            anchors.fill: parent
 
-        border.color: Theme.borderColor
-        border.width: 1
+            radius: Theme.radiusXl
 
-        opacity: root.popupOpacity
+            color: Theme.background
 
-        focus: true
+            border.color: Theme.borderColor
+            border.width: 1
 
-        transform: Translate {
-            y: root.popupYOffset
-        }
+            focus: true
 
-        // Keyboard navigation
-        Keys.onPressed: event => {
-            if (event.key === Qt.Key_Left) {
-                root.changeTab(-1);
-                event.accepted = true;
-            } else if (event.key === Qt.Key_Right) {
-                root.changeTab(1);
-                event.accepted = true;
+            // Keyboard navigation
+            Keys.onPressed: event => {
+                if (event.key === Qt.Key_Left) {
+                    root.changeTab(-1);
+                    event.accepted = true;
+                } else if (event.key === Qt.Key_Right) {
+                    root.changeTab(1);
+                    event.accepted = true;
+                }
             }
-        }
 
         Column {
             id: content
@@ -474,7 +366,7 @@ PopupWindow {
                         Calendar {
                             anchors.fill: parent
 
-                            dashboardVisible: root.visible && root.currentTab === 0
+                            dashboardVisible: root.popupVisible && root.currentTab === 0
                         }
                     }
 
@@ -502,7 +394,7 @@ PopupWindow {
                         System {
                             anchors.fill: parent
 
-                            pageActive: root.visible && root.currentTab === 2
+                            pageActive: root.popupVisible && root.currentTab === 2
                         }
                     }
                 }
@@ -530,4 +422,5 @@ PopupWindow {
             }
         }
     }
+}
 }

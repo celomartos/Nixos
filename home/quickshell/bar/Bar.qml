@@ -13,16 +13,27 @@ PanelWindow {
     anchors.top: true
     anchors.left: true
     anchors.right: true
-    implicitHeight: Theme.barHeight + Theme.borderBottomWidth
+    implicitHeight: screen ? screen.height : 0
     color: "transparent"
 
-    WlrLayershell.layer: WlrLayer.Bottom
+    WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.namespace: "quickshell-bar"
-    exclusionMode: ExclusionMode.Auto
+    exclusiveZone: Theme.barHeight + Theme.borderBottomWidth
+
+    mask: Region {
+        item: barBackground
+
+        Region {
+            item: dashboard.interactiveArea
+        }
+    }
 
     Rectangle {
         id: barBackground
-        anchors.fill: parent
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.right: parent.right
+        height: Theme.barHeight + Theme.borderBottomWidth
         color: Theme.background
 
         // Borda inferior (2px solid rgba(255, 255, 255, 0.2))
@@ -63,7 +74,12 @@ PanelWindow {
                 anchors.centerIn: parent
                 spacing: Theme.itemSpacing
 
-                Clock {}
+                Clock {
+                    id: clock
+
+                    onDashboardToggleRequested: dashboard.toggle()
+                    onDashboardScrollRequested: direction => dashboard.changeTab(direction)
+                }
             }
 
             // Seção Direita
@@ -84,4 +100,14 @@ PanelWindow {
             }
         }
     }
+
+    DashboardWindow {
+        id: dashboard
+
+        anchors.fill: parent
+        originX: centerSection.x + clock.x + clock.clockItem.x + clock.clockItem.width / 2
+        originY: centerSection.y + clock.y + clock.clockItem.y + clock.clockItem.height + Theme.borderBottomWidth
+    }
+
+    WlrLayershell.keyboardFocus: dashboard.popupVisible ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 }
