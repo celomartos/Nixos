@@ -135,18 +135,14 @@ PopupWindow {
                 color: Theme.text
             }
 
-            Rectangle { width: parent.width; height: 1; color: Theme.progressTrack }
+            Rectangle {
+                width: parent.width
+                height: 1
+                color: Theme.progressTrack
+            }
 
             Repeater {
-                model: [
-                    ["Status", root.connectionState],
-                    ["Type", root.connectionType],
-                    ["Interface", root.interfaceName],
-                    ["IPv4", root.ipv4],
-                    ["Gateway", root.gateway],
-                    ["Download", root.downloadSpeed],
-                    ["Upload", root.uploadSpeed]
-                ]
+                model: [["Status", root.connectionState], ["Type", root.connectionType], ["Interface", root.interfaceName], ["IPv4", root.ipv4], ["Gateway", root.gateway], ["Download", root.downloadSpeed], ["Upload", root.uploadSpeed]]
                 delegate: Row {
                     required property var modelData
                     width: content.width

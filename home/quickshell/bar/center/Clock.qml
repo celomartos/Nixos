@@ -21,9 +21,9 @@ Item {
 
     function formatClock(date) {
         var enLocale = Qt.locale("en_US");
-        var datePart = date.toLocaleDateString(enLocale, "ddd dd MMM");
+        var datePart = date.toLocaleDateString(enLocale, "ddd, dd, MMM | ");
         var timePart = Qt.formatTime(date, "hh:mm");
-        return " : " + datePart + " 󰥔 : " + timePart;
+        return "  " + datePart + "  " + timePart;
     }
 
     BarItem {

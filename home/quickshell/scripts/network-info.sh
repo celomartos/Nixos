@@ -5,6 +5,8 @@ iface=""
 route="$(ip -4 route show default 2>/dev/null | head -n1)"
 gateway="$(awk '{for (i=1;i<=NF;i++) if ($i=="via") {print $(i+1); exit}}' <<< "$route")"
 iface="$(awk '{for (i=1;i<=NF;i++) if ($i=="dev") {print $(i+1); exit}}' <<< "$route")"
+internet_route="$(ip -4 route get 1.1.1.1 2>/dev/null | head -n1)"
+internet_iface="$(awk '{for (i=1;i<=NF;i++) if ($i=="dev") {print $(i+1); exit}}' <<< "$internet_route")"
 if [[ -z "$iface" ]]; then
     # Without a default route, prefer an active physical adapter and skip
     # bridges, container links, and common virtual tunnel interfaces.
@@ -14,7 +16,7 @@ if [[ -z "$iface" ]]; then
         [[ "$(cat "$path/operstate" 2>/dev/null)" == "up" ]] || continue
         [[ -e "$path/device" ]] || continue
         [[ -d "$path/bridge" || -d "$path/wireguard" ]] && continue
-        case "$candidate" in docker*|veth*|virbr*|br-*|br[0-9]*|lxc*|podman*|cni*|tun*|tap*|zt*|tailscale*) continue ;; esac
+        case "$candidate" in docker*|veth*|virbr*|br-*|br[0-9]*|lxc*|podman*|cni*|tun*|tap*|zt*|tailscale*|pvpnksintrf*) continue ;; esac
         printf '%s\n' "$candidate"
         break
     done)"
@@ -28,7 +30,7 @@ upload="0 B/s"
 
 if [[ -n "$iface" && -d "/sys/class/net/$iface" ]]; then
     [[ -n "$route" ]] && state="Online"
-    if [[ "$iface" == "tailscale0" || "$iface" == zt* || "$iface" == tun* || "$iface" == tap* || "$iface" == wg* || "$iface" == *vpn* || -d "/sys/class/net/$iface/wireguard" ]]; then
+    if [[ "$internet_iface" == "proton0" || "$internet_iface" == "tailscale0" || "$internet_iface" == zt* || "$internet_iface" == tun* || "$internet_iface" == tap* || "$internet_iface" == wg* || "$internet_iface" == *vpn* || ( -n "$internet_iface" && -d "/sys/class/net/$internet_iface/wireguard" ) ]]; then
         type="VPN"
     elif [[ -d "/sys/class/net/$iface/wireless" ]]; then
         type="Wi-Fi"
