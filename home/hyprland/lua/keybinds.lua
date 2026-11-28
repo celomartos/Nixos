@@ -1,9 +1,8 @@
 local terminal = "kitty"
 local menu = "rofi -show drun"
-local menu2 = "qs ipc call app-launcher toggle"
+local menu2 = "caelestia-shell ipc call drawers toggle launcher"
 local screenshot = "hyprshot --freeze -m region -o ~/Pictures/Screenshots"
-local quickshell =
-	"(pkill -x .quickshell-wra || pkill -x quickshell) && (pkill -f 'cava.*cava.conf' 2>/dev/null || true) || quickshell"
+local quickshell = "(pkill -x .quickshell-wra || pkill -x quickshell) || caelestia-shell"
 local waybar = "pkill waybar socat || waybar"
 local cliphist = "rofi -modi clipboard:$HOME/.config/rofi/scripts/cliphist-rofi-img -show clipboard -show-icons"
 local filemanager = "thunar"

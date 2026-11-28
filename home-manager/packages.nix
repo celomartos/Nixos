@@ -92,6 +92,7 @@
       waybar
       quickshell
       mako
+      caelestia-shell
 
       # Clipboard and input.
       cliphist
