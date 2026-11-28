@@ -29,6 +29,8 @@ PanelWindow {
 
     readonly property real effectiveExpandedWidth: Math.min(width, Math.max(0, expandedWidth))
 
+    readonly property int maxExpandedHeight: dashboardHeight
+
     property alias contentHost: expansionHost
 
     // ============================================================
@@ -69,7 +71,7 @@ PanelWindow {
         right: true
     }
 
-    implicitHeight: collapsedHeight + expansionHost.height
+    implicitHeight: collapsedHeight + maxExpandedHeight
 
     exclusiveZone: collapsedHeight
 
