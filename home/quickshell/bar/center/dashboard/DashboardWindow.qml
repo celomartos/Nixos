@@ -13,9 +13,13 @@ Item {
 
     anchors.fill: parent
 
+    // Intent drives input/focus; visual visibility remains true until the
+    // reveal animation reaches zero. Closing never changes intent back to open.
     readonly property bool popupVisible: reveal.visible
-    property alias interactiveArea: reveal
+    readonly property Item interactiveArea: popupVisible ? reveal : null
+    readonly property bool isInteractive: openRequested && popupVisible
     property bool openRequested: false
+    property int openGeneration: 0
 
     // ------------------------------------------------------------
     // Dashboard state
@@ -45,69 +49,16 @@ Item {
     // Focus management
     // ------------------------------------------------------------
 
-    Timer {
-        id: grabDelay
-
-        interval: 60
-        repeat: false
-
-        onTriggered: {
-            if (!root.popupVisible || !root.openRequested)
-                return;
-            outsideGrab.active = true;
-
-            bg.forceActiveFocus();
-            focusRetry.start();
-        }
-    }
-
-    Timer {
-        id: focusRetry
-
-        interval: 40
-        repeat: true
-        running: false
-
-        property int attempts: 0
-
-        onRunningChanged: {
-            if (running)
-                attempts = 0;
-        }
-
-        onTriggered: {
-            if (!root.popupVisible || !root.openRequested) {
-                stop();
-                return;
-            }
-
-            if (bg.activeFocus || attempts >= 15) {
-                stop();
-                return;
-            }
-
-            attempts++;
-            bg.forceActiveFocus();
-        }
-    }
-
     HyprlandFocusGrab {
         id: outsideGrab
 
-        active: false
+        active: root.isInteractive
         windows: [root.QsWindow.window]
 
         onCleared: {
-            if (root.openRequested)
+            if (root.isInteractive)
                 root.closePopup();
         }
-    }
-
-    Shortcut {
-        sequences: [StandardKey.Cancel]
-        enabled: root.openRequested
-
-        onActivated: root.closePopup()
     }
 
     // ------------------------------------------------------------
@@ -127,43 +78,38 @@ Item {
     // ------------------------------------------------------------
 
     function openPopup() {
-        if (root.hasFullscreen)
+        if (root.hasFullscreen || root.popupVisible)
             return;
-        grabDelay.stop();
-        focusRetry.stop();
 
         // Always start on Calendar.
         animatePageTransition = false;
         currentTab = 0;
+        const generation = ++root.openGeneration;
         root.openRequested = true;
 
         Qt.callLater(() => {
-            if (root.openRequested)
-                root.animatePageTransition = true;
+            if (!root.isInteractive || generation !== root.openGeneration)
+                return;
+            bg.forceActiveFocus();
+            root.animatePageTransition = true;
         });
-
-        grabDelay.restart();
     }
 
     function closePopup() {
         if (!root.openRequested)
             return;
+        root.openGeneration++;
         root.openRequested = false;
-        grabDelay.stop();
-        focusRetry.stop();
     }
 
     function toggle() {
-        if (root.openRequested)
-            closePopup();
-        else
-            openPopup();
-    }
+        if (root.popupVisible) {
+            if (root.openRequested)
+                closePopup();
+            return;
+        }
 
-    function finishClose() {
-        grabDelay.stop();
-        focusRetry.stop();
-        outsideGrab.active = false;
+        openPopup();
     }
 
     // ------------------------------------------------------------
@@ -178,7 +124,6 @@ Item {
         contentWidth: 620
         contentHeight: 420
         expanded: root.openRequested
-        onClosed: root.finishClose()
 
         Rectangle {
             id: bg
@@ -192,11 +137,15 @@ Item {
             border.color: Theme.borderColor
             border.width: 1
 
-            focus: true
+            enabled: root.isInteractive
+            focus: root.isInteractive
 
             // Keyboard navigation
             Keys.onPressed: event => {
-                if (event.key === Qt.Key_Left) {
+                if (event.key === Qt.Key_Escape) {
+                    root.closePopup();
+                    event.accepted = true;
+                } else if (event.key === Qt.Key_Left) {
                     root.changeTab(-1);
                     event.accepted = true;
                 } else if (event.key === Qt.Key_Right) {
@@ -407,6 +356,7 @@ Item {
 
         WheelHandler {
             target: null
+            enabled: root.isInteractive
 
             orientation: Qt.Vertical
 
