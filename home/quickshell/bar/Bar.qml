@@ -93,7 +93,6 @@ PanelWindow {
 
         Region {
             item: expansionHost
-            radius: Theme.radiusXl
         }
     }
 
@@ -201,7 +200,7 @@ PanelWindow {
         id: expansionHost
 
         x: (root.width - width) / 2 + root.expandedOffsetX
-        y: root.collapsedHeight
+        y: Theme.barHeight
 
         width: root.effectiveExpandedWidth
 

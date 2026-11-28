@@ -160,6 +160,38 @@ Item {
         border.color: Theme.borderColor
         border.width: 1
 
+        // Square top corners to connect with the bar.
+        Rectangle {
+            anchors.top: parent.top
+            anchors.left: parent.left
+            anchors.right: parent.right
+
+            height: Theme.radiusXl + 1
+
+            color: Theme.background
+        }
+
+        // Restore side borders covered by the top rectangle.
+        Rectangle {
+            anchors.top: parent.top
+            anchors.left: parent.left
+
+            width: 1
+            height: Theme.radiusXl + 1
+
+            color: Theme.borderColor
+        }
+
+        Rectangle {
+            anchors.top: parent.top
+            anchors.right: parent.right
+
+            width: 1
+            height: Theme.radiusXl + 1
+
+            color: Theme.borderColor
+        }
+
         focus: true
 
         Keys.onPressed: event => {
