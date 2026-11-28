@@ -1,5 +1,6 @@
 pragma Singleton
 import QtQuick
+import "."
 
 QtObject {
     // ============================================================
@@ -105,13 +106,13 @@ QtObject {
     readonly property int itemSpacing: 6
 
     // ============================================================
-    // ANIMATION
+    // TEMPORARY ANIMATION COMPATIBILITY ALIASES
     // ============================================================
 
-    readonly property int animDurationFast: 120
-    readonly property int animDuration: 100
-    readonly property int animDurationNormal: 180
-    readonly property int animDurationSlow: 280
+    readonly property int animDurationFast: Animations.durations.fast
+    readonly property int animDuration: Animations.durations.base
+    readonly property int animDurationNormal: Animations.durations.normal
+    readonly property int animDurationSlow: Animations.durations.slow
 
     // ============================================================
     // OPACITY
