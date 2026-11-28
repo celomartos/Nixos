@@ -4,49 +4,21 @@ import Quickshell.Hyprland
 import "../../../theme"
 import "./modules"
 
-PopupWindow {
+Item {
     id: root
 
-    required property Item anchorItem
-
-    visible: false
-    color: "transparent"
+    // ============================================================
+    // PROPERTIES
+    // ============================================================
 
     implicitWidth: 620
     implicitHeight: 420
 
-    // ------------------------------------------------------------
-    // Window anchoring
-    // ------------------------------------------------------------
+    property bool active: false
 
-    anchor.window: anchorItem ? anchorItem.QsWindow.window : null
-    anchor.edges: Edges.Top | Edges.Left
-    anchor.gravity: Edges.Bottom | Edges.Right
-
-    anchor.adjustment: PopupAdjustment.FlipY | PopupAdjustment.SlideX | PopupAdjustment.ResizeY
-
-    anchor.onAnchoring: {
-        const item = root.anchorItem;
-        const parentWindow = item ? item.QsWindow.window : null;
-
-        if (!parentWindow || !parentWindow.contentItem)
-            return;
-        const pos = item.mapToItem(parentWindow.contentItem, 0, 0);
-
-        anchor.rect.x = Math.round(pos.x + (item.width - root.width) / 2);
-
-        anchor.rect.y = Math.round(pos.y + item.height);
-
-        anchor.rect.width = 1;
-        anchor.rect.height = 1;
-    }
-
-    // ------------------------------------------------------------
-    // Dashboard state
-    // ------------------------------------------------------------
+    signal closeRequested
 
     readonly property var tabTitles: ["Calendar", "Media", "System"]
-
     readonly property var tabIcons: ["", "󰝚", "󰍛"]
 
     readonly property int tabCount: tabTitles.length
@@ -56,81 +28,41 @@ PopupWindow {
     property int currentTab: 0
     property bool animatePageTransition: true
 
-    property real popupYOffset: -28
-    property real popupOpacity: 0
-
-    // ------------------------------------------------------------
-    // Fullscreen handling
-    // ------------------------------------------------------------
+    // ============================================================
+    // FULLSCREEN
+    // ============================================================
 
     onHasFullscreenChanged: {
-        if (hasFullscreen && visible)
-            closePopup();
+        if (hasFullscreen && active)
+            closeRequested();
     }
 
-    // ------------------------------------------------------------
-    // Animations
-    // ------------------------------------------------------------
+    // ============================================================
+    // LIFECYCLE
+    // ============================================================
 
-    ParallelAnimation {
-        id: openAnim
+    onActiveChanged: {
+        if (active) {
+            animatePageTransition = false;
+            currentTab = 0;
 
-        NumberAnimation {
-            target: root
-            property: "popupYOffset"
+            grabDelay.restart();
 
-            from: -28
-            to: 0
+            Qt.callLater(() => {
+                if (root.active)
+                    root.animatePageTransition = true;
+            });
+        } else {
+            grabDelay.stop();
+            focusRetry.stop();
 
-            duration: Theme.animDurationNormal
-            easing.type: Easing.OutCubic
-        }
-
-        NumberAnimation {
-            target: root
-            property: "popupOpacity"
-
-            from: 0
-            to: 1
-
-            duration: Theme.animDurationNormal
-            easing.type: Easing.OutQuad
+            outsideGrab.active = false;
         }
     }
 
-    ParallelAnimation {
-        id: closeAnim
-
-        NumberAnimation {
-            target: root
-            property: "popupYOffset"
-
-            from: 0
-            to: -20
-
-            duration: Theme.animDurationFast
-            easing.type: Easing.InCubic
-        }
-
-        NumberAnimation {
-            target: root
-            property: "popupOpacity"
-
-            from: 1
-            to: 0
-
-            duration: Theme.animDurationFast
-            easing.type: Easing.InQuad
-        }
-
-        onFinished: {
-            root.visible = false;
-        }
-    }
-
-    // ------------------------------------------------------------
-    // Focus management
-    // ------------------------------------------------------------
+    // ============================================================
+    // FOCUS MANAGEMENT
+    // ============================================================
 
     Timer {
         id: grabDelay
@@ -139,8 +71,9 @@ PopupWindow {
         repeat: false
 
         onTriggered: {
-            if (!root.visible || closeAnim.running)
+            if (!root.active)
                 return;
+
             outsideGrab.active = true;
 
             bg.forceActiveFocus();
@@ -163,7 +96,7 @@ PopupWindow {
         }
 
         onTriggered: {
-            if (!root.visible || closeAnim.running) {
+            if (!root.active) {
                 stop();
                 return;
             }
@@ -182,105 +115,38 @@ PopupWindow {
         id: outsideGrab
 
         active: false
-        windows: [root]
+
+        windows: root.QsWindow.window ? [root.QsWindow.window] : []
 
         onCleared: {
-            if (root.visible && !closeAnim.running)
-                root.closePopup();
+            if (root.active)
+                root.closeRequested();
         }
     }
 
     Shortcut {
         sequence: StandardKey.Cancel
-        enabled: root.visible && !closeAnim.running
+        enabled: root.active
 
-        onActivated: root.closePopup()
+        onActivated: root.closeRequested()
     }
 
-    // ------------------------------------------------------------
-    // Navigation
-    // ------------------------------------------------------------
+    // ============================================================
+    // NAVIGATION
+    // ============================================================
 
     function changeTab(direction) {
         const nextTab = Math.max(0, Math.min(root.tabCount - 1, root.currentTab + direction));
 
         if (nextTab === root.currentTab)
             return;
+
         root.currentTab = nextTab;
     }
 
-    // ------------------------------------------------------------
-    // Popup controls
-    // ------------------------------------------------------------
-
-    function openPopup() {
-        if (root.hasFullscreen)
-            return;
-        grabDelay.stop();
-        focusRetry.stop();
-
-        openAnim.stop();
-        closeAnim.stop();
-
-        // Always start on Calendar.
-        animatePageTransition = false;
-        currentTab = 0;
-
-        popupYOffset = -28;
-        popupOpacity = 0;
-
-        root.visible = true;
-
-        Qt.callLater(() => {
-            if (root.visible && !closeAnim.running)
-                root.animatePageTransition = true;
-        });
-
-        openAnim.restart();
-        grabDelay.restart();
-    }
-
-    function closePopup() {
-        if (!root.visible || closeAnim.running)
-            return;
-        grabDelay.stop();
-        focusRetry.stop();
-
-        openAnim.stop();
-        closeAnim.restart();
-
-        outsideGrab.active = false;
-    }
-
-    function toggle() {
-        if (root.visible && !closeAnim.running)
-            closePopup();
-        else
-            openPopup();
-    }
-
-    // ------------------------------------------------------------
-    // Visibility
-    // ------------------------------------------------------------
-
-    onVisibleChanged: {
-        if (!visible) {
-            grabDelay.stop();
-            focusRetry.stop();
-
-            outsideGrab.active = false;
-
-            openAnim.stop();
-            closeAnim.stop();
-
-            popupYOffset = -28;
-            popupOpacity = 0;
-        }
-    }
-
-    // ------------------------------------------------------------
-    // Dashboard background
-    // ------------------------------------------------------------
+    // ============================================================
+    // DASHBOARD BACKGROUND
+    // ============================================================
 
     Rectangle {
         id: bg
@@ -294,15 +160,8 @@ PopupWindow {
         border.color: Theme.borderColor
         border.width: 1
 
-        opacity: root.popupOpacity
-
         focus: true
 
-        transform: Translate {
-            y: root.popupYOffset
-        }
-
-        // Keyboard navigation
         Keys.onPressed: event => {
             if (event.key === Qt.Key_Left) {
                 root.changeTab(-1);
@@ -321,9 +180,9 @@ PopupWindow {
 
             spacing: 18
 
-            // ----------------------------------------------------
-            // Tab bar
-            // ----------------------------------------------------
+            // ====================================================
+            // TAB BAR
+            // ====================================================
 
             Row {
                 id: tabBar
@@ -340,7 +199,6 @@ PopupWindow {
                         required property int index
 
                         width: (tabBar.width - tabBar.spacing * (root.tabCount - 1)) / root.tabCount
-
                         height: tabBar.height
 
                         Rectangle {
@@ -360,12 +218,10 @@ PopupWindow {
 
                         Row {
                             anchors.centerIn: parent
-
                             spacing: Theme.spacingSm
 
                             Text {
                                 text: root.tabIcons[index]
-
                                 color: root.currentTab === index ? Theme.text : Theme.textMuted
 
                                 font.family: Theme.fontFamily
@@ -401,9 +257,9 @@ PopupWindow {
                 }
             }
 
-            // ----------------------------------------------------
-            // Tab indicator
-            // ----------------------------------------------------
+            // ====================================================
+            // TAB INDICATOR
+            // ====================================================
 
             Rectangle {
                 id: indicator
@@ -433,9 +289,9 @@ PopupWindow {
                 }
             }
 
-            // ----------------------------------------------------
-            // Page container
-            // ----------------------------------------------------
+            // ====================================================
+            // PAGE CONTAINER
+            // ====================================================
 
             Item {
                 id: pageViewport
@@ -474,7 +330,7 @@ PopupWindow {
                         Calendar {
                             anchors.fill: parent
 
-                            dashboardVisible: root.visible && root.currentTab === 0
+                            dashboardVisible: root.active && root.currentTab === 0
                         }
                     }
 
@@ -502,16 +358,16 @@ PopupWindow {
                         System {
                             anchors.fill: parent
 
-                            pageActive: root.visible && root.currentTab === 2
+                            pageActive: root.active && root.currentTab === 2
                         }
                     }
                 }
             }
         }
 
-        // --------------------------------------------------------
-        // Mouse wheel navigation
-        // --------------------------------------------------------
+        // ========================================================
+        // MOUSE WHEEL NAVIGATION
+        // ========================================================
 
         WheelHandler {
             target: null

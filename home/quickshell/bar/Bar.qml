@@ -6,74 +6,180 @@ import "../components"
 import "left"
 import "center"
 import "right"
+import "center/dashboard"
 
 PanelWindow {
     id: root
 
-    anchors.top: true
-    anchors.left: true
-    anchors.right: true
-    implicitHeight: Theme.barHeight + Theme.borderBottomWidth
+    // ============================================================
+    // EXPANSION
+    // ============================================================
+
+    readonly property int collapsedHeight: Theme.barHeight + Theme.borderBottomWidth
+
+    readonly property int dashboardHeight: 420
+
+    property real expandedHeight: 0
+    property real expandedWidth: 620
+    property real expandedOffsetX: 0
+
+    property Component expandedContent: dashboardComponent
+
+    readonly property real effectiveExpandedHeight: Math.max(0, expandedHeight)
+
+    readonly property real effectiveExpandedWidth: Math.min(width, Math.max(0, expandedWidth))
+
+    property alias contentHost: expansionHost
+
+    // ============================================================
+    // PANEL CONTROLS
+    // ============================================================
+
+    function openDashboard() {
+        expandedContent = dashboardComponent;
+        expandedWidth = 620;
+        expandedHeight = dashboardHeight;
+    }
+
+    function closeExpandedPanel() {
+        expandedHeight = 0;
+    }
+
+    function toggleDashboard() {
+        if (expandedHeight > 0)
+            closeExpandedPanel();
+        else
+            openDashboard();
+    }
+
+    function changeDashboardTab(direction) {
+        const dashboard = expansionHost.loadedItem;
+
+        if (dashboard)
+            dashboard.changeTab(direction);
+    }
+
+    // ============================================================
+    // WINDOW
+    // ============================================================
+
+    anchors {
+        top: true
+        left: true
+        right: true
+    }
+
+    implicitHeight: collapsedHeight + expansionHost.height
+
+    exclusiveZone: collapsedHeight
+
+    focusable: effectiveExpandedHeight > 0
+
     color: "transparent"
 
-    WlrLayershell.layer: WlrLayer.Bottom
+    WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.namespace: "quickshell-bar"
-    exclusionMode: ExclusionMode.Auto
+
+    // ============================================================
+    // WINDOW MASK
+    // ============================================================
+
+    mask: Region {
+        Region {
+            item: barBackground
+        }
+
+        Region {
+            item: expansionHost
+            radius: Theme.radiusXl
+        }
+    }
+
+    // ============================================================
+    // BAR BACKGROUND
+    // ============================================================
 
     Rectangle {
         id: barBackground
-        anchors.fill: parent
+
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.right: parent.right
+
+        height: root.collapsedHeight
+
         color: Theme.background
 
-        // Borda inferior (2px solid rgba(255, 255, 255, 0.2))
+        // BOTTOM BORDER
+
         Rectangle {
             id: bottomBorder
+
             anchors.bottom: parent.bottom
             anchors.left: parent.left
             anchors.right: parent.right
+
             height: Theme.borderBottomWidth
+
             color: Theme.borderColor
+
+            visible: expansionHost.height <= 0
         }
 
-        // Área útil dos módulos
+        // BAR CONTENT
+
         Item {
             id: contentArea
+
             anchors.top: parent.top
             anchors.bottom: bottomBorder.top
             anchors.left: parent.left
             anchors.right: parent.right
 
-            // Seção Esquerda
+            // LEFT
+
             Row {
                 id: leftSection
+
                 anchors.left: parent.left
-                // Margem externa para não colar na borda da tela
                 anchors.leftMargin: Theme.itemPaddingHorizontal
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: Theme.itemSpacing // Espaçamento entre os módulos (6)
+
+                spacing: Theme.itemSpacing
 
                 Workspaces {}
                 Cava {}
                 NetworkSpeed {}
             }
 
-            // Seção Centro
+            // CENTER
+
             Row {
                 id: centerSection
+
                 anchors.centerIn: parent
+
                 spacing: Theme.itemSpacing
 
-                Clock {}
+                Clock {
+                    onDashboardToggleRequested: root.toggleDashboard()
+
+                    onDashboardTabStepRequested: direction => {
+                        root.changeDashboardTab(direction);
+                    }
+                }
             }
 
-            // Seção Direita
+            // RIGHT
+
             Row {
                 id: rightSection
+
                 anchors.right: parent.right
-                // Margem externa para não colar na borda da tela
                 anchors.rightMargin: Theme.itemPaddingHorizontal
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: Theme.itemSpacing // Espaçamento entre os módulos (6)
+
+                spacing: Theme.itemSpacing
 
                 Tray {}
                 Audio {}
@@ -81,6 +187,39 @@ PanelWindow {
                 Cpu {}
                 Temp {}
                 Power {}
+            }
+        }
+    }
+
+    // ============================================================
+    // EXPANDED CONTENT
+    // ============================================================
+
+    ExpandablePanel {
+        id: expansionHost
+
+        x: (root.width - width) / 2 + root.expandedOffsetX
+        y: root.collapsedHeight
+
+        width: root.effectiveExpandedWidth
+
+        expandedHeight: root.effectiveExpandedHeight
+
+        contentComponent: root.expandedContent
+    }
+
+    // ============================================================
+    // DASHBOARD COMPONENT
+    // ============================================================
+
+    Component {
+        id: dashboardComponent
+
+        DashboardWindow {
+            active: root.effectiveExpandedHeight > 0
+
+            onCloseRequested: {
+                root.closeExpandedPanel();
             }
         }
     }
