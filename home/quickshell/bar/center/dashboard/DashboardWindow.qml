@@ -2,26 +2,44 @@ import QtQuick
 import Quickshell
 import Quickshell.Hyprland
 import "../../../theme"
-import "../../../components"
 import "./modules"
 
-Item {
+PopupWindow {
     id: root
 
-    required property real originX
-    required property real originY
+    required property Item anchorItem
 
-    anchors.fill: parent
+    visible: false
+    color: "transparent"
 
-    // Intent drives input/focus; visual visibility remains true until the
-    // reveal animation reaches zero. Closing never changes intent back to open.
-    readonly property bool popupVisible: reveal.visible
-    readonly property Item interactiveArea: popupVisible ? reveal : null
-    readonly property bool isInteractive: openRequested && popupVisible
-    property bool openRequested: false
-    property int openGeneration: 0
+    implicitWidth: 620
+    implicitHeight: 420
 
-    signal inputRegionChanged
+    // ------------------------------------------------------------
+    // Window anchoring
+    // ------------------------------------------------------------
+
+    anchor.window: anchorItem ? anchorItem.QsWindow.window : null
+    anchor.edges: Edges.Top | Edges.Left
+    anchor.gravity: Edges.Bottom | Edges.Right
+
+    anchor.adjustment: PopupAdjustment.FlipY | PopupAdjustment.SlideX | PopupAdjustment.ResizeY
+
+    anchor.onAnchoring: {
+        const item = root.anchorItem;
+        const parentWindow = item ? item.QsWindow.window : null;
+
+        if (!parentWindow || !parentWindow.contentItem)
+            return;
+        const pos = item.mapToItem(parentWindow.contentItem, 0, 0);
+
+        anchor.rect.x = Math.round(pos.x + (item.width - root.width) / 2);
+
+        anchor.rect.y = Math.round(pos.y + item.height);
+
+        anchor.rect.width = 1;
+        anchor.rect.height = 1;
+    }
 
     // ------------------------------------------------------------
     // Dashboard state
@@ -38,13 +56,76 @@ Item {
     property int currentTab: 0
     property bool animatePageTransition: true
 
+    property real popupYOffset: -28
+    property real popupOpacity: 0
+
     // ------------------------------------------------------------
     // Fullscreen handling
     // ------------------------------------------------------------
 
     onHasFullscreenChanged: {
-        if (hasFullscreen && openRequested)
+        if (hasFullscreen && visible)
             closePopup();
+    }
+
+    // ------------------------------------------------------------
+    // Animations
+    // ------------------------------------------------------------
+
+    ParallelAnimation {
+        id: openAnim
+
+        NumberAnimation {
+            target: root
+            property: "popupYOffset"
+
+            from: -28
+            to: 0
+
+            duration: Theme.animDurationNormal
+            easing.type: Easing.OutCubic
+        }
+
+        NumberAnimation {
+            target: root
+            property: "popupOpacity"
+
+            from: 0
+            to: 1
+
+            duration: Theme.animDurationNormal
+            easing.type: Easing.OutQuad
+        }
+    }
+
+    ParallelAnimation {
+        id: closeAnim
+
+        NumberAnimation {
+            target: root
+            property: "popupYOffset"
+
+            from: 0
+            to: -20
+
+            duration: Theme.animDurationFast
+            easing.type: Easing.InCubic
+        }
+
+        NumberAnimation {
+            target: root
+            property: "popupOpacity"
+
+            from: 1
+            to: 0
+
+            duration: Theme.animDurationFast
+            easing.type: Easing.InQuad
+        }
+
+        onFinished: {
+            root.visible = false;
+        }
     }
 
     // ------------------------------------------------------------
@@ -53,36 +134,45 @@ Item {
 
     Timer {
         id: grabDelay
+
         interval: 60
         repeat: false
-        property int generation: -1
 
         onTriggered: {
-            if (!root.isInteractive || generation !== root.openGeneration)
+            if (!root.visible || closeAnim.running)
                 return;
             outsideGrab.active = true;
+
             bg.forceActiveFocus();
-            if (!bg.activeFocus)
-                focusRetry.restart();
+            focusRetry.start();
         }
     }
 
     Timer {
         id: focusRetry
+
         interval: 40
         repeat: true
+        running: false
+
         property int attempts: 0
-        property int generation: -1
+
+        onRunningChanged: {
+            if (running)
+                attempts = 0;
+        }
 
         onTriggered: {
-            if (!root.isInteractive || generation !== root.openGeneration || attempts >= 15) {
+            if (!root.visible || closeAnim.running) {
                 stop();
                 return;
             }
-            if (bg.activeFocus) {
+
+            if (bg.activeFocus || attempts >= 15) {
                 stop();
                 return;
             }
+
             attempts++;
             bg.forceActiveFocus();
         }
@@ -92,17 +182,18 @@ Item {
         id: outsideGrab
 
         active: false
-        windows: [root.QsWindow.window]
+        windows: [root]
 
         onCleared: {
-            if (root.isInteractive)
+            if (root.visible && !closeAnim.running)
                 root.closePopup();
         }
     }
 
     Shortcut {
-        sequences: [StandardKey.Cancel]
-        enabled: root.isInteractive
+        sequence: StandardKey.Cancel
+        enabled: root.visible && !closeAnim.running
+
         onActivated: root.closePopup()
     }
 
@@ -123,87 +214,104 @@ Item {
     // ------------------------------------------------------------
 
     function openPopup() {
-        if (root.hasFullscreen || root.popupVisible)
+        if (root.hasFullscreen)
             return;
+        grabDelay.stop();
+        focusRetry.stop();
+
+        openAnim.stop();
+        closeAnim.stop();
 
         // Always start on Calendar.
         animatePageTransition = false;
         currentTab = 0;
-        const generation = ++root.openGeneration;
-        root.openRequested = true;
+
+        popupYOffset = -28;
+        popupOpacity = 0;
+
+        root.visible = true;
 
         Qt.callLater(() => {
-            if (!root.isInteractive || generation !== root.openGeneration)
-                return;
-            bg.forceActiveFocus();
-            root.animatePageTransition = true;
-            grabDelay.generation = generation;
-            focusRetry.generation = generation;
-            focusRetry.attempts = 0;
-            grabDelay.restart();
+            if (root.visible && !closeAnim.running)
+                root.animatePageTransition = true;
         });
+
+        openAnim.restart();
+        grabDelay.restart();
     }
 
     function closePopup() {
-        if (!root.openRequested)
+        if (!root.visible || closeAnim.running)
             return;
-        root.openGeneration++;
         grabDelay.stop();
         focusRetry.stop();
+
+        openAnim.stop();
+        closeAnim.restart();
+
         outsideGrab.active = false;
-        root.openRequested = false;
     }
 
     function toggle() {
-        if (root.popupVisible) {
-            if (root.openRequested)
-                closePopup();
-            return;
-        }
-
-        openPopup();
+        if (root.visible && !closeAnim.running)
+            closePopup();
+        else
+            openPopup();
     }
 
     // ------------------------------------------------------------
-    // Animated, clipped dashboard surface
+    // Visibility
     // ------------------------------------------------------------
 
-    PopupReveal {
-        id: reveal
+    onVisibleChanged: {
+        if (!visible) {
+            grabDelay.stop();
+            focusRetry.stop();
 
-        originX: root.originX
-        originY: root.originY
-        contentWidth: 620
-        contentHeight: 420
-        expanded: root.openRequested
+            outsideGrab.active = false;
 
-        onRevealGeometryChanged: root.inputRegionChanged()
+            openAnim.stop();
+            closeAnim.stop();
 
-        Rectangle {
-            id: bg
+            popupYOffset = -28;
+            popupOpacity = 0;
+        }
+    }
 
-            anchors.fill: parent
+    // ------------------------------------------------------------
+    // Dashboard background
+    // ------------------------------------------------------------
 
-            radius: Theme.radiusXl
+    Rectangle {
+        id: bg
 
-            color: Theme.background
+        anchors.fill: parent
 
-            border.color: Theme.borderColor
-            border.width: 1
+        radius: Theme.radiusXl
 
-            enabled: root.isInteractive
-            focus: root.isInteractive
+        color: Theme.background
 
-            // Keyboard navigation
-            Keys.onPressed: event => {
-                if (event.key === Qt.Key_Left) {
-                    root.changeTab(-1);
-                    event.accepted = true;
-                } else if (event.key === Qt.Key_Right) {
-                    root.changeTab(1);
-                    event.accepted = true;
-                }
+        border.color: Theme.borderColor
+        border.width: 1
+
+        opacity: root.popupOpacity
+
+        focus: true
+
+        transform: Translate {
+            y: root.popupYOffset
+        }
+
+        // Keyboard navigation
+        Keys.onPressed: event => {
+            if (event.key === Qt.Key_Left) {
+                root.changeTab(-1);
+                event.accepted = true;
+            } else if (event.key === Qt.Key_Right) {
+                root.changeTab(1);
+                event.accepted = true;
             }
+        }
 
         Column {
             id: content
@@ -366,7 +474,7 @@ Item {
                         Calendar {
                             anchors.fill: parent
 
-                            dashboardVisible: root.popupVisible && root.currentTab === 0
+                            dashboardVisible: root.visible && root.currentTab === 0
                         }
                     }
 
@@ -394,7 +502,7 @@ Item {
                         System {
                             anchors.fill: parent
 
-                            pageActive: root.popupVisible && root.currentTab === 2
+                            pageActive: root.visible && root.currentTab === 2
                         }
                     }
                 }
@@ -407,7 +515,6 @@ Item {
 
         WheelHandler {
             target: null
-            enabled: root.isInteractive
 
             orientation: Qt.Vertical
 
@@ -423,5 +530,4 @@ Item {
             }
         }
     }
-}
 }

@@ -13,35 +13,16 @@ PanelWindow {
     anchors.top: true
     anchors.left: true
     anchors.right: true
-    implicitHeight: screen ? screen.height : 0
+    implicitHeight: Theme.barHeight + Theme.borderBottomWidth
     color: "transparent"
 
-    WlrLayershell.layer: WlrLayer.Top
+    WlrLayershell.layer: WlrLayer.Bottom
     WlrLayershell.namespace: "quickshell-bar"
-    exclusiveZone: Theme.barHeight + Theme.borderBottomWidth
-
-    mask: Region {
-        item: barBackground
-
-        Region {
-            id: dashboardRegion
-            item: dashboard.interactiveArea
-        }
-    }
-
-    Connections {
-        target: dashboard
-        function onInputRegionChanged() {
-            dashboardRegion.changed();
-        }
-    }
+    exclusionMode: ExclusionMode.Auto
 
     Rectangle {
         id: barBackground
-        anchors.top: parent.top
-        anchors.left: parent.left
-        anchors.right: parent.right
-        height: Theme.barHeight + Theme.borderBottomWidth
+        anchors.fill: parent
         color: Theme.background
 
         // Borda inferior (2px solid rgba(255, 255, 255, 0.2))
@@ -82,12 +63,7 @@ PanelWindow {
                 anchors.centerIn: parent
                 spacing: Theme.itemSpacing
 
-                Clock {
-                    id: clock
-
-                    onDashboardToggleRequested: dashboard.toggle()
-                    onDashboardScrollRequested: direction => dashboard.changeTab(direction)
-                }
+                Clock {}
             }
 
             // Seção Direita
@@ -107,16 +83,5 @@ PanelWindow {
                 Power {}
             }
         }
-
     }
-
-    DashboardWindow {
-        id: dashboard
-
-        anchors.fill: parent
-        originX: centerSection.x + clock.x + clock.clockItem.x + clock.clockItem.width / 2
-        originY: centerSection.y + clock.y + clock.clockItem.y + clock.clockItem.height + Theme.borderBottomWidth
-    }
-
-    WlrLayershell.keyboardFocus: dashboard.isInteractive ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 }

@@ -2,13 +2,10 @@ import QtQuick
 import Quickshell
 import "../../theme"
 import "../../components"
+import "./dashboard"
 
 Item {
     id: root
-
-    signal dashboardToggleRequested
-    signal dashboardScrollRequested(int direction)
-    property alias clockItem: clockItem
 
     implicitHeight: Theme.barHeight
     implicitWidth: clockItem.implicitWidth
@@ -36,13 +33,18 @@ Item {
         clickable: true
         text: root.formatClock(root.currentTime)
 
-        onClicked: root.dashboardToggleRequested()
+        onClicked: dashboard.toggle()
 
         onWheel: wheel => {
             if (wheel.angleDelta.y > 0)
-                root.dashboardScrollRequested(-1);
+                dashboard.currentTab = Math.max(0, dashboard.currentTab - 1);
             else
-                root.dashboardScrollRequested(1);
+                dashboard.currentTab = Math.min(2, dashboard.currentTab + 1);
         }
+    }
+
+    DashboardWindow {
+        id: dashboard
+        anchorItem: clockItem
     }
 }
