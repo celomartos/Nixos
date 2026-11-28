@@ -4,43 +4,38 @@ import "../theme"
 Item {
     id: root
 
-    // ============================================================
-    // PROPERTIES
-    // ============================================================
-
     property Component contentComponent: null
     property real expandedHeight: 0
+    property real maximumHeight: 420
+
+    property real progress: 0
+
     property alias loadedItem: contentLoader.item
 
-    implicitHeight: height
-
-    height: Math.max(0, expandedHeight)
-
+    height: maximumHeight * progress
     clip: true
 
     // ============================================================
-    // ANIMATIONS
+    // SPATIAL ANIMATION
     // ============================================================
 
-    Behavior on height {
-        NumberAnimation {
-            duration: Theme.animDurationSlow
-            easing.type: Easing.OutCubic
-        }
+    function updateProgress() {
+        progressAnimation.stop();
+        progressAnimation.to = expandedHeight > 0 ? 1 : 0;
+        progressAnimation.restart();
     }
 
-    Behavior on width {
-        NumberAnimation {
-            duration: Theme.animDurationNormal
-            easing.type: Easing.OutCubic
-        }
-    }
+    onExpandedHeightChanged: updateProgress()
 
-    Behavior on x {
-        NumberAnimation {
-            duration: Theme.animDurationNormal
-            easing.type: Easing.OutCubic
-        }
+    NumberAnimation {
+        id: progressAnimation
+
+        target: root
+        property: "progress"
+
+        duration: root.expandedHeight > 0 ? Animations.spatialOpenDuration : Animations.spatialCloseDuration
+
+        easing.type: root.expandedHeight > 0 ? Animations.spatialOpenEasing : Animations.spatialCloseEasing
     }
 
     // ============================================================
@@ -50,31 +45,18 @@ Item {
     Loader {
         id: contentLoader
 
-        anchors.fill: parent
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.right: parent.right
 
-        active: root.contentComponent !== null
+        height: root.maximumHeight
+
+        active: root.contentComponent !== null && (root.expandedHeight > 0 || root.progress > 0)
+
         sourceComponent: root.contentComponent
 
-        visible: root.height > 0
+        visible: root.progress > 0
 
-        opacity: root.expandedHeight > 0 ? 1 : 0
-
-        Behavior on opacity {
-            NumberAnimation {
-                duration: Theme.animDurationNormal
-                easing.type: Easing.OutQuad
-            }
-        }
-
-        transform: Translate {
-            y: root.expandedHeight > 0 ? 0 : -12
-
-            Behavior on y {
-                NumberAnimation {
-                    duration: Theme.animDurationNormal
-                    easing.type: Easing.OutCubic
-                }
-            }
-        }
+        opacity: 1
     }
 }

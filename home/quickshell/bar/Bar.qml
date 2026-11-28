@@ -31,7 +31,21 @@ PanelWindow {
 
     readonly property int maxExpandedHeight: dashboardHeight
 
+    readonly property real borderLeftEnd: root.width / 2 + (expansionHost.x - root.width / 2) * expansionHost.progress
+
+    readonly property real borderRightStart: root.width / 2 + (expansionHost.x + expansionHost.width - root.width / 2) * expansionHost.progress
+
     property alias contentHost: expansionHost
+
+    // Animated border geometry
+
+    readonly property real borderGapHalfWidth: effectiveExpandedWidth * expansionHost.progress / 2
+
+    readonly property real borderGapCenter: width / 2 + expandedOffsetX
+
+    readonly property real borderGapLeft: Math.max(0, Math.min(width, borderGapCenter - borderGapHalfWidth))
+
+    readonly property real borderGapRight: Math.max(0, Math.min(width, borderGapCenter + borderGapHalfWidth))
 
     // ============================================================
     // PANEL CONTROLS
@@ -71,11 +85,13 @@ PanelWindow {
         right: true
     }
 
+    // Keep the actual window size stable.
     implicitHeight: collapsedHeight + maxExpandedHeight
 
+    // Never reserve the expanded area.
     exclusiveZone: collapsedHeight
 
-    focusable: effectiveExpandedHeight > 0
+    focusable: expansionHost.progress > 0
 
     color: "transparent"
 
@@ -111,23 +127,50 @@ PanelWindow {
 
         color: Theme.background
 
-        // BOTTOM BORDER
+        // --------------------------------------------------------
+        // ANIMATED BOTTOM BORDER
+        // --------------------------------------------------------
 
-        Rectangle {
-            id: bottomBorder
+        Item {
 
-            anchors.bottom: parent.bottom
-            anchors.left: parent.left
-            anchors.right: parent.right
+          Item {
+    id: bottomBorder
 
-            height: Theme.borderBottomWidth
+    anchors.bottom: parent.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
 
-            color: Theme.borderColor
+    height: Theme.borderBottomWidth
 
-            visible: expansionHost.height <= 0
-        }
+    // LEFT BORDER
 
+    Rectangle {
+        anchors.left: parent.left
+        anchors.bottom: parent.bottom
+
+        width: root.borderLeftEnd
+        height: parent.height
+
+        color: Theme.borderColor
+    }
+
+    // RIGHT BORDER
+
+    Rectangle {
+        anchors.bottom: parent.bottom
+
+        x: root.borderRightStart
+
+        width: parent.width - x
+        height: parent.height
+
+        color: Theme.borderColor
+    }
+}
+
+        // --------------------------------------------------------
         // BAR CONTENT
+        // --------------------------------------------------------
 
         Item {
             id: contentArea
@@ -200,10 +243,13 @@ PanelWindow {
         id: expansionHost
 
         x: (root.width - width) / 2 + root.expandedOffsetX
+
+        // Overlap the bottom border to connect both surfaces.
         y: Theme.barHeight
 
         width: root.effectiveExpandedWidth
 
+        maximumHeight: root.maxExpandedHeight
         expandedHeight: root.effectiveExpandedHeight
 
         contentComponent: root.expandedContent
@@ -217,7 +263,7 @@ PanelWindow {
         id: dashboardComponent
 
         DashboardWindow {
-            active: root.effectiveExpandedHeight > 0
+            active: expansionHost.progress > 0
 
             onCloseRequested: {
                 root.closeExpandedPanel();
