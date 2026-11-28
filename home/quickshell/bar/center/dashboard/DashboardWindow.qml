@@ -21,6 +21,8 @@ Item {
     property bool openRequested: false
     property int openGeneration: 0
 
+    signal inputRegionChanged
+
     // ------------------------------------------------------------
     // Dashboard state
     // ------------------------------------------------------------
@@ -49,16 +51,59 @@ Item {
     // Focus management
     // ------------------------------------------------------------
 
+    Timer {
+        id: grabDelay
+        interval: 60
+        repeat: false
+        property int generation: -1
+
+        onTriggered: {
+            if (!root.isInteractive || generation !== root.openGeneration)
+                return;
+            outsideGrab.active = true;
+            bg.forceActiveFocus();
+            if (!bg.activeFocus)
+                focusRetry.restart();
+        }
+    }
+
+    Timer {
+        id: focusRetry
+        interval: 40
+        repeat: true
+        property int attempts: 0
+        property int generation: -1
+
+        onTriggered: {
+            if (!root.isInteractive || generation !== root.openGeneration || attempts >= 15) {
+                stop();
+                return;
+            }
+            if (bg.activeFocus) {
+                stop();
+                return;
+            }
+            attempts++;
+            bg.forceActiveFocus();
+        }
+    }
+
     HyprlandFocusGrab {
         id: outsideGrab
 
-        active: root.isInteractive
+        active: false
         windows: [root.QsWindow.window]
 
         onCleared: {
             if (root.isInteractive)
                 root.closePopup();
         }
+    }
+
+    Shortcut {
+        sequences: [StandardKey.Cancel]
+        enabled: root.isInteractive
+        onActivated: root.closePopup()
     }
 
     // ------------------------------------------------------------
@@ -92,6 +137,10 @@ Item {
                 return;
             bg.forceActiveFocus();
             root.animatePageTransition = true;
+            grabDelay.generation = generation;
+            focusRetry.generation = generation;
+            focusRetry.attempts = 0;
+            grabDelay.restart();
         });
     }
 
@@ -99,6 +148,9 @@ Item {
         if (!root.openRequested)
             return;
         root.openGeneration++;
+        grabDelay.stop();
+        focusRetry.stop();
+        outsideGrab.active = false;
         root.openRequested = false;
     }
 
@@ -125,6 +177,8 @@ Item {
         contentHeight: 420
         expanded: root.openRequested
 
+        onRevealGeometryChanged: root.inputRegionChanged()
+
         Rectangle {
             id: bg
 
@@ -142,10 +196,7 @@ Item {
 
             // Keyboard navigation
             Keys.onPressed: event => {
-                if (event.key === Qt.Key_Escape) {
-                    root.closePopup();
-                    event.accepted = true;
-                } else if (event.key === Qt.Key_Left) {
+                if (event.key === Qt.Key_Left) {
                     root.changeTab(-1);
                     event.accepted = true;
                 } else if (event.key === Qt.Key_Right) {

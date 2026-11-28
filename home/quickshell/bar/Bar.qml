@@ -24,7 +24,15 @@ PanelWindow {
         item: barBackground
 
         Region {
+            id: dashboardRegion
             item: dashboard.interactiveArea
+        }
+    }
+
+    Connections {
+        target: dashboard
+        function onInputRegionChanged() {
+            dashboardRegion.changed();
         }
     }
 
@@ -100,21 +108,6 @@ PanelWindow {
             }
         }
 
-        // The bar and dashboard share a window, so the focus grab treats
-        // other bar controls as part of its allowed surface. Observe bar taps
-        // without taking their pointer events to dismiss the dashboard there.
-        TapHandler {
-            enabled: dashboard.isInteractive
-            acceptedButtons: Qt.LeftButton | Qt.RightButton
-
-            onTapped: eventPoint => {
-                const clockPos = clock.clockItem.mapToItem(barBackground, 0, 0);
-                const point = eventPoint.position;
-                const inClock = point.x >= clockPos.x && point.x <= clockPos.x + clock.clockItem.width && point.y >= clockPos.y && point.y <= clockPos.y + clock.clockItem.height;
-                if (!inClock)
-                    dashboard.closePopup();
-            }
-        }
     }
 
     DashboardWindow {
@@ -125,5 +118,5 @@ PanelWindow {
         originY: centerSection.y + clock.y + clock.clockItem.y + clock.clockItem.height + Theme.borderBottomWidth
     }
 
-    WlrLayershell.keyboardFocus: dashboard.isInteractive ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    WlrLayershell.keyboardFocus: dashboard.isInteractive ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 }

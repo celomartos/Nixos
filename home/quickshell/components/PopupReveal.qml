@@ -23,6 +23,7 @@ Item {
     property real opacityProgress: 0
 
     signal closed
+    signal revealGeometryChanged
 
     x: originX - width / 2
     y: originY
@@ -32,6 +33,11 @@ Item {
     implicitHeight: contentHeight * progress
     clip: true
     visible: expanded || progress > 0 || opacityProgress > 0
+
+    onXChanged: revealGeometryChanged()
+    onYChanged: revealGeometryChanged()
+    onWidthChanged: revealGeometryChanged()
+    onHeightChanged: revealGeometryChanged()
 
     onExpandedChanged: {
         transition.restart();
